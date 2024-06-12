@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'docs/**'
   workflow_dispatch:
 
 jobs:
@@ -26,14 +24,14 @@ jobs:
           version: 8
           run_install: false
 
-      - name: Change to docs Directory
-        run: cd docs && pnpm install && pnpm build
+      - name: Install dependencies and build
+        run: pnpm install && pnpm build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/build
+          publish_dir: ./build
 
   notify-on-failure:
     runs-on: ubuntu-latest

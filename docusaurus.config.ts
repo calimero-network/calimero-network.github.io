@@ -8,9 +8,9 @@ const config: Config = {
     "Calimero Network is a framework which enables building fully decentralized applications, ensuring everyone's data privacy.",
   favicon: "img/favicon.ico",
   url: "https://calimero-network.github.io",
-  baseUrl: "/core/",
+  baseUrl: "/",
   organizationName: "calimero-network",
-  projectName: "core",
+  projectName: "calimero-2.0",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   i18n: {

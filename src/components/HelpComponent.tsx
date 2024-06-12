@@ -6,7 +6,7 @@ export function HelpComponent() {
       <div className="alert alert--success">
         <summary>
           Need some help? <a>Check </a>
-          <a href="/core/resources/community-and-support">Support</a> page
+          <a href="/resources/community-and-support">Support</a> page
         </summary>
       </div>
     </>

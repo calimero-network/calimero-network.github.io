@@ -16,7 +16,7 @@ Follow these steps to get started with the documentation:
 1. Clone the repository (if you haven't already):
 
    ```bash
-   git clone https://github.com/calimero-network/core.git
+   git clone https://github.com/calimero-network.git
    cd yourproject/docs
    ```
 
