@@ -98,6 +98,10 @@ const config: Config = {
           label: "Resources",
         },
         {
+          type: "search",
+          position: "right",
+        },
+        {
           href: "https://github.com/calimero-network/core",
           label: "GitHub",
           position: "right",
@@ -112,6 +116,39 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
       additionalLanguages: ["bash", "toml"],
+    },
+    algolia: {
+      // The application ID provided by Algolia
+      appId: "8PGB83FWXB",
+      // Public API key: it is safe to commit it
+      apiKey: "7292f3a4d621985b6492b0f12e0d9cb0",
+      indexName: "calimero-2-0",
+      // Optional: see doc section below
+      contextualSearch: true,
+      // Optional: Algolia search parameters
+      searchParameters: {
+        clickAnalytics: true,
+        analytics: true,
+        enableReRanking: true,
+        attributesToRetrieve: [
+          "hierarchy.lvl0",
+          "hierarchy.lvl1",
+          "hierarchy.lvl2",
+          "hierarchy.lvl3",
+          "hierarchy.lvl4",
+          "hierarchy.lvl5",
+          "hierarchy.lvl6",
+          "type",
+          "url",
+          "title",
+          "description",
+          "headers",
+          "headersLevels",
+        ],
+      },
+      //... other Algolia params
+      placeholder: `Search the Docs...`,
+      insights: true,
     },
   } satisfies Preset.ThemeConfig,
 };
