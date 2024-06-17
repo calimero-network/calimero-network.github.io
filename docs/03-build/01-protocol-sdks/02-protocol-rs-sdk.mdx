@@ -159,6 +159,7 @@ use calimero_sdk::app;
 
 #[app::state]
 #[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
 struct KvStore {}
 
 #[app::logic]
