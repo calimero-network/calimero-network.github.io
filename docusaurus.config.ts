@@ -119,12 +119,13 @@ const config: Config = {
     },
     algolia: {
       // The application ID provided by Algolia
-      appId: "8PGB83FWXB",
+      appId: "W1H5P6IW4T",
       // Public API key: it is safe to commit it
-      apiKey: "7292f3a4d621985b6492b0f12e0d9cb0",
-      indexName: "calimero-2-0",
+      apiKey: "f18239c312d6cc30d128a382d330278d",
+      indexName: "calimero-networkio",
       // Optional: see doc section below
       contextualSearch: true,
+      searchPagePath: "search",
       // Optional: Algolia search parameters
       searchParameters: {
         clickAnalytics: true,
@@ -147,7 +148,6 @@ const config: Config = {
         ],
       },
       //... other Algolia params
-      placeholder: `Search the Docs...`,
       insights: true,
     },
   } satisfies Preset.ThemeConfig,
