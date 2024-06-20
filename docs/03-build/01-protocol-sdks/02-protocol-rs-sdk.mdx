@@ -215,6 +215,7 @@ use calimero_sdk::{app, env};
 
 #[app::state]
 #[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
 struct KvStore {
     entries: HashMap<String, String>,
 }
