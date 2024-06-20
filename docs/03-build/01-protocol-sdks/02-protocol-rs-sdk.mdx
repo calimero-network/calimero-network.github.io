@@ -54,7 +54,7 @@ You can now configure your project to use the Calimero SDK by adding it as a dep
 
 ```toml title="File: Cargo.toml"
 [dependencies]
-calimero-sdk = { git = "https://github.com/calimero-network/core" }
+calimero-sdk = { git = "https://github.com/calimero-network/core/crates/sdk" }
 ```
 
 Then, we need to specify a custom build profile for the most compact Wasm output:
@@ -64,8 +64,9 @@ Then, we need to specify a custom build profile for the most compact Wasm output
 inherits = "release"
 codegen-units = 1
 opt-level = "z"
-lto = true
+lto = "thin"
 debug = false
+strip = true
 panic = "abort"
 overflow-checks = true
 ```
@@ -86,7 +87,7 @@ crate-type = ["cdylib"]
 
 # highlight-start
 [dependencies]
-calimero-sdk = { git = "https://github.com/calimero-network/core" }
+calimero-sdk = { git = "https://github.com/calimero-network/core/crates/sdk" }
 # highlight-end
 
 # highlight-start
@@ -94,8 +95,9 @@ calimero-sdk = { git = "https://github.com/calimero-network/core" }
 inherits = "release"
 codegen-units = 1
 opt-level = "z"
-lto = true
+lto = "thin"
 debug = false
+strip = true
 panic = "abort"
 overflow-checks = true
 # highlight-end
