@@ -111,24 +111,47 @@ set -e
 
 cd "$(dirname $0)"
 
-TARGET="${CARGO_TARGET_DIR:-../../target}"
+# Check if rustup is installed
+if ! command -v rustup &> /dev/null; then
+  echo "Error: rustup is not installed"
+  echo "Please install rustup in order to use this build script."
+  exit 1
+fi
 
-rustup target add wasm32-unknown-unknown
+# Check if the wasm32-unknown-unknown target is installed
+if ! rustup target list --installed | grep -q "wasm32-unknown-unknown"; then
+  echo "Error: Target wasm32-unknown-unknown is not installed"
+  echo "Please run 'rustup target add wasm32-unknown-unknown' to install it."
+  exit 1
+fi
 
+# Get the application name from Cargo
+APP_ID=$(cargo pkgid)
+APP_NAME=${APP_ID#*#}
+APP_NAME=${APP_NAME%%:*}
+TARGET_DIR="${CARGO_TARGET_DIR:-target}"
+WASM_FILE="$TARGET_DIR/wasm32-unknown-unknown/app-release/$APP_NAME.wasm"
+
+# Build the application
 cargo build --target wasm32-unknown-unknown --profile app-release
+
+# Check if the WASM file exists
+if [[ ! -f "$WASM_FILE" ]]; then
+  echo "Error: WASM file $WASM_FILE not found"
+  exit 1
+fi
 
 mkdir -p res
 
-cp $TARGET/wasm32-unknown-unknown/app-release/kv_store.wasm ./res/
-```
+cp "$WASM_FILE" ./res/
 
-You can optionally choose to install and use [`wasm-opt`](https://github.com/WebAssembly/binaryen), for an additional optimization step in the build script. This step is not required but can help reduce the size of the generated Wasm file:
-
-```bash title="File: build.sh"
+# Optimize the WASM file
 if command -v wasm-opt > /dev/null; then
   wasm-opt -Oz ./res/kv_store.wasm -o ./res/kv_store.wasm
 fi
 ```
+
+You can optionally choose to install and use [`wasm-opt`](https://github.com/WebAssembly/binaryen), for an additional optimization step in the build script (the final stage above). This step is not required, but can help reduce the size of the generated Wasm file.
 
 Don't forget to make the `build.sh` script executable:
 
