@@ -98,6 +98,11 @@ const config: Config = {
           label: "Resources",
         },
         {
+          to: "/getting-started/setup",
+          position: "right",
+          label: "Getting started",
+        },
+        {
           type: "search",
           position: "right",
         },
