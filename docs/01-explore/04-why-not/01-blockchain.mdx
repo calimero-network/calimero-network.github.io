@@ -5,14 +5,35 @@ title: Blockchain
 
 ## Why not Blockchain?
 
-By virtue of blockchain principles, there's a couple of issues that arise. The major one being that everyone has to agree on the state of the canonical chain, and therefore there can be only one network actor at any given time. Different chains implement different strategies for electing this actor to alleviate the risk of compromise, but the fundamental issue remains, and hence, the long-standing problem of scalability.
+By virtue of blockchain principles, there's a couple of issues that arise. The
+major one being that everyone has to agree on the state of the canonical chain,
+and therefore there can be only one network actor at any given time. Different
+chains implement different strategies for electing this actor to alleviate the
+risk of compromise, but the fundamental issue remains, and hence, the
+long-standing problem of scalability.
 
 ## Calimero vs Blockchain
 
-Calimero fundamentally rethinks the problem and offers an alternative approach, local-first execution with eventual consistency. This means that each actor can independently drive their own local state, and the network will eventually reconcile to the same state. Essentially pegging the scalability threshold to the number of actors in the network, and executions are practically instantaneous.
+Calimero fundamentally rethinks the problem and offers an alternative approach,
+local-first execution with eventual consistency. This means that each actor can
+independently drive their own local state, and the network will eventually
+reconcile to the same state. Essentially pegging the scalability threshold to
+the number of actors in the network, and executions are practically
+instantaneous.
 
-State reconciliation is context-aware, meaning that all activity revolves around an instance of an app. This means that participants of a context only have to synchronize with each other, and not the entire network. This is in stark contrast to blockchains, where everyone is forced to synchronize with everyone else and this competition is reflected in gas fees. Calimero doesn't have gas fees, and the cost of execution is directly borne by the actor.
+State reconciliation is context-aware, meaning that all activity revolves around
+an instance of an app. This means that participants of a context only have to
+synchronize with each other, and not the entire network. This is in stark
+contrast to blockchains, where everyone is forced to synchronize with everyone
+else and this competition is reflected in gas fees. Calimero doesn't have gas
+fees, and the cost of execution is directly borne by the actor.
 
-Blockchains achieve integrity through transparency, which is a double-edged sword, essentially precluding you from using it in private environments. Calimero however, leverages the direct-actor relationship to encrypt all network traffic between them, and therefore, the network is inherently private.
+Blockchains achieve integrity through transparency, which is a double-edged
+sword, essentially precluding you from using it in private environments.
+Calimero however, leverages the direct-actor relationship to encrypt all network
+traffic between them, and therefore, the network is inherently private.
 
-Calimero is also designed to be embeddable, meaning that client apps themselves become the network actors, and the network is the app itself. This is in stark contrast to blockchains, where the network is a separate entity from the client apps.
+Calimero is also designed to be embeddable, meaning that client apps themselves
+become the network actors, and the network is the app itself. This is in stark
+contrast to blockchains, where the network is a separate entity from the client
+apps.
