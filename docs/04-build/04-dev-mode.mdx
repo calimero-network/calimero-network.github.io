@@ -7,24 +7,34 @@ title: Dev Mode
 
 ## Overview
 
-The meroctl CLI provides a powerful feature called "dev mode" that allows developers to test their applications locally before publishing them to the network. This mode is particularly useful during the development and testing phases of your application.
+The meroctl CLI provides a powerful feature called "dev mode" that allows
+developers to test their applications locally before publishing them to the
+network. This mode is particularly useful during the development and testing
+phases of your application.
 
 ## Why Use Dev Mode?
 
 Dev mode offers several advantages:
 
-1. **Local Testing**: Test your application on your local machine without needing to publish it to the network.
-2. **Quick Iterations**: Make changes to your application and immediately test them without going through the full publication process.
-3. **Context Creation**: Automatically create a context and link it to your local application.
-4. **Hot Reload-like Functionality**: Any changes to the binary will automatically reflect in the context, eliminating the need to "upload" the app again after every change.
+1. **Local Testing**: Test your application on your local machine without
+   needing to publish it to the network.
+2. **Quick Iterations**: Make changes to your application and immediately test
+   them without going through the full publication process.
+3. **Context Creation**: Automatically create a context and link it to your
+   local application.
+4. **Hot Reload-like Functionality**: Any changes to the binary will
+   automatically reflect in the context, eliminating the need to "upload" the
+   app again after every change.
 
 ## Prerequisites
 
-Before using dev mode, ensure you have a node running. This should be done in a separate terminal window.
+Before using dev mode, ensure you have a node and a coordinator node running. This should be done in a
+separate terminal window.
 
 ## How to Use Dev Mode
 
-To use dev mode, you'll use the `context create` command with the `--dev` flag. Here's the basic syntax:
+To use dev mode, you'll use the `context create` command with the `--dev` flag.
+Here's the basic syntax:
 
 ```bash title="Terminal"
 cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> context create --dev --path <path_to_wasm_file> --version <version_number>
@@ -53,14 +63,18 @@ This command will:
 
 ### Automatic Updates
 
-One of the key benefits of dev mode is its ability to automatically reflect changes in your application.
-When you modify and recompile your WASM binary, these changes are immediately available in the context without requiring you to "upload" or reinstall the application.
-This feature provides a seamless development experience, similar to "hot reload" functionality in other development environments.
+One of the key benefits of dev mode is its ability to automatically reflect
+changes in your application. When you modify and recompile your WASM binary,
+these changes are immediately available in the context without requiring you to
+"upload" or reinstall the application. This feature provides a seamless
+development experience, similar to "hot reload" functionality in other
+development environments.
 
 ### Other useful commands
 
 1. List existing contexts
-```bash title="Terminal" 
+
+```bash title="Terminal"
 $ cargo run -p meroctl -- --home data --node-name node1 context ls
 ```
 
@@ -77,6 +91,8 @@ When you're ready to move from local development to publishing your application:
 
 1. Test your application thoroughly using dev mode.
 
-2. When satisfied with your application's performance, follow the steps in the Publish App guide to publish your application to the network.
+2. When satisfied with your application's performance, follow the steps in the
+   Publish App guide to publish your application to the network.
 
-3. After publication, you can create contexts for your published application using the --application-id flag instead of dev mode.
+3. After publication, you can create contexts for your published application
+   using the --application-id flag instead of dev mode.
