@@ -48,7 +48,23 @@ cargo run -p meroctl -- --node-name node1 --home data init --server-port 2428 --
 cargo run -p meroctl -- --node-name node1 --home data run
 ```
 
-Node is now initialized and ready for use.
+### Adding SSL/TLS Support
+
+To secure the communication with your local server, a self-signed certificate will be created during server startup.
+
+1. **Process of Generating SSL Certificate**
+
+   - If a certificate doesn't exist, a new one will be generated based on your current local IP address.
+   - If a certificate exists for the current IP address, it will be used.
+   - If a certificate exists but is not configured for the current IP address, a new certificate will be created.
+
+2. **Add the SSL Certificate to Your Device**
+
+   Follow the instructions provided in the CLI output to add the self-signed SSL certificate to your device's trusted certificates.
+
+> **_NOTE:_** Every time a new certificate is generated (e.g., on the first start of the server or when the IP address changes), you will need to add it to your device's trusted certificates.
+
+Node is now initialized, secure, and ready for use.
 
 ### Congratulations on setting up your node!
 
