@@ -48,25 +48,54 @@ cargo run -p meroctl -- --node-name node1 --home data init --server-port 2428 --
 cargo run -p meroctl -- --node-name node1 --home data run
 ```
 
-### Adding SSL/TLS Support
+Node is now initialized and ready for use.
 
-To secure the communication with your local server, a self-signed certificate will be created during server startup.
+### SSL/TLS Support
 
-1. **Process of Generating SSL Certificate**
+To be able to access the the node from external source on the same network you will need to install the generated self-signed certificate.
 
-   - If a certificate doesn't exist, a new one will be generated based on your current local IP address.
-   - If a certificate exists for the current IP address, it will be used.
-   - If a certificate exists but is not configured for the current IP address, a new certificate will be created.
+> **_NOTE:_** Installing the SSL certificate is only necessary if you plan to access the node from an external source on the same network. If you are running the application locally, you do not need to install the certificate.
 
-2. **Add the SSL Certificate to Your Device**
+### Steps to Add the Certificate to Your Device
 
-   Follow the instructions provided in the CLI output to add the self-signed SSL certificate to your device's trusted certificates.
+1. **Locate the Certificate**:
+   - Navigate to the `/crates/server/certificates/` directory on your server to find the generated self-signed certificate file named `cert.pem`.
+
+2. **Add the Certificate to Trusted Certificates**:
+
+   - **For Windows**:
+     1. Open the `Run` dialog (Win + R) and type `mmc` to open the Microsoft Management Console.
+     2. Go to `File` -> `Add/Remove Snap-in...`.
+     3. Select `Certificates` and click `Add`.
+     4. Choose `Computer account`, then `Next` and `Finish`.
+     5. Expand `Certificates (Local Computer)` -> `Trusted Root Certification Authorities`.
+     6. Right-click `Certificates`, then `All Tasks` -> `Import...`.
+     7. Follow the prompts to import the certificate file.
+
+   - **For macOS**:
+     1. Double-click the certificate file.
+     2. This will open the `Keychain Access` application.
+     3. Choose `System` from the list of keychains.
+     4. Drag and drop the certificate into the `System` keychain.
+     5. Authenticate with your administrator password if prompted.
+     6. Right-click the certificate and select `Get Info`.
+     7. Expand the `Trust` section and select `Always Trust` from the `When using this certificate` dropdown.
+
+   - **For Linux**:
+     1. Copy the certificate to `/usr/local/share/ca-certificates/` (or `/etc/pki/ca-trust/source/anchors/` depending on your distribution).
+     2. Run `sudo update-ca-certificates` (or `sudo update-ca-trust extract` for Red Hat-based distributions).
+
+3. **Restart Your Browser**:
+   - Close and reopen your web browser to ensure it recognizes the newly added certificate.
+
+### Rules for Generating SSL Certificates
+
+- If a certificate doesn't exist, a new one will be generated based on your current local IP address.
+- If a certificate exists for the current IP address, it will be used.
+- If a certificate exists but is not configured for the current IP address, a new certificate will be created.
 
 > **_NOTE:_** Every time a new certificate is generated (e.g., on the first start of the server or when the IP address changes), you will need to add it to your device's trusted certificates.
 
-Node is now initialized, secure, and ready for use.
+### Congratulations on Setting Up Your Node!
 
-### Congratulations on setting up your node!
-
-Your next step is to add an authentication mechanism to your node by adding a
-decentralized identity.
+Your next step is to add an authentication mechanism to your node by adding a decentralized identity.
