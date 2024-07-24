@@ -59,7 +59,12 @@ To be able to access the the node from external source on the same network you w
 ### Steps to Add the Certificate to Your Device
 
 1. **Locate the Certificate**:
-   - Navigate to the `/crates/server/certificates/` directory on your server to find the generated self-signed certificate file named `cert.pem`.
+    - Download the certificate from `http://localhost:<server-port>/admin-api/certificate`.
+    - The `<server-port>` is the port number used as an argument in the `--server-port` flag in the section [Initialize and start your node (separate terminal)](#initialize-and-start-your-node-separate-terminal).
+    - For example:
+    \`\`\`bash
+    http://localhost:2428/admin-api/certificate
+    \`\`\`
 
 2. **Add the Certificate to Trusted Certificates**:
 
