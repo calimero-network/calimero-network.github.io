@@ -9,10 +9,16 @@ you need to create new context where application will be installed.
 
 ### Create new context
 
-Navigate back to Admin Dashboard. If you have not started Admin Dashboard,
-follow the instructions in [Admin Dashboard](./02-admin-dashboard.mdx).
+To create new context node CLI has to be used.
+There are two possible options of creating new context.
 
-- Follow context creation instructions and select `only-peers` app.
+1. If the node already has application installed, crating context using command:
+
+`meroctl context create --application <app-id>`
+
+2. If application is not installed then create context using command:
+
+`meroctl context create --watch /path/to/app`
 
 You are now part of the context and can start using the application.
 
