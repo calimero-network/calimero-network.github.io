@@ -16,12 +16,16 @@ There are two possible options of creating new context.
 
 ```bash title="Terminal"
 $ meroctl context create --application <app-id>
+>> <context-id>
 ```
 
-2. If application is not installed then create new context using command:
+2. If application is not installed then install the application and create new context using commands:
 
 ```bash title="Terminal"
-$ meroctl context create --watch /path/to/app
+$ meroctl app install --path /path/to/app
+>> <app-id>
+$ meroctl context create --application <app-id>
+>> <context-id>
 ```
 
 You are now part of the context and can start using the application.
