@@ -9,17 +9,19 @@ you need to create new context where application will be installed.
 
 ### Create new context
 
-To create new context, node CLI has to be used.
-There are two possible options of creating new context.
+To create new context, node CLI has to be used. There are two possible options
+of creating new context.
 
-1. If the node already has application installed, create new context using command:
+1. If the node already has application installed, create new context using
+   command:
 
 ```bash title="Terminal"
 $ meroctl context create --application <app-id>
 >> <context-id>
 ```
 
-2. If application is not installed then install the application and create new context using commands:
+2. If application is not installed then install the application and create new
+   context using commands:
 
 ```bash title="Terminal"
 $ meroctl app install --path /path/to/app

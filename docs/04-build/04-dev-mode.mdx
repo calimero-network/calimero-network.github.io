@@ -28,34 +28,72 @@ Dev mode offers several advantages:
 
 ## Prerequisites
 
-Before using dev mode, ensure you have a node and a coordinator node running. This should be done in a
-separate terminal window.
+Before using dev mode, ensure you have a node and a coordinator node running.
+This should be done in a separate terminal window. For more information, see the
+[Setup guide](/getting-started/setup).
 
 ## How to Use Dev Mode
 
-To use dev mode, you'll use the `context create` command with the `--dev` flag.
-Here's the basic syntax:
+To list all supported commands, run the following command:
 
 ```bash title="Terminal"
-cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> context create --dev --path <path_to_wasm_file> --version <version_number>
+cargo run -p  meroctl -- --node-name node1 --home data help
+```
+
+Supported commands:
+
+- `init` Initialize node configuration
+- `config` Configure the node
+- `run` Run a node
+- `context` Manage contexts
+- `app` Manage applications
+- `help` Print this message or the help of the given subcommand(s)
+
+Here's the basic syntax:
+
+All commands share the same prefix:
+
+```bash title="Terminal"
+cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> <command>
 ```
 
 ### Parameters:
 
-- `--home`: Specifies the path to the home directory.
+- `--home`: Specifies the path to the home directory. ( In our example we are
+  using `data` as the home directory)
 - `--node-name`: Specifies the name of the node.
-- `--dev`: Enables dev mode.
-- `--path`: Specifies the path to your WASM file.
-- `--version`: Specifies the version of your application (optional).
 
-## Example Usage
+- `--path`: Specifies the absolute path to your WASM file.
+
+Create dev context using installed app
 
 ```bash title="Terminal"
-$ cargo run -p meroctl -- --home data --node-name node1 context create --dev --path ./path/to/binary.wasm --version 1.0.0
-Created BTgDJ5FezfFJCMWzRWScXiwkgfMHX3zX4s3Qum7Gf4pb linked to application ./path/to/binary.wasm
+cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> context create --watch <path>
 ```
 
-This command will:
+Output
+
+```bash title="Terminal"
+$ cargo run -p meroctl -- --home data --node-name node1 context create  --watch ./path/to/binary.wasm
+Application `<appId>` installed!
+Context `<contextId>` created!
+Context{contextId} -> Application{appId}
+(i) Watching for changes to "./path/to/binary.wasm"
+```
+
+Invite coordinator or other local nodes to participate in the context
+
+```bash title="Terminal"
+cargo run -p  meroctl -- --node-name coordinator --home data  context join --context-id contextId
+```
+
+Output
+
+```bash title="Terminal"
+Context 41gdT47MW9CJ5Y9S1hhpxnQT7C9oPVZZAtxv2erJAiK4 sucesfully joined
+```
+
+Create context command will:
 
 1. Install your application locally.
 2. Create a new context.
@@ -81,8 +119,14 @@ $ cargo run -p meroctl -- --home data --node-name node1 context ls
 2. Create a context for a published application:
 
 ```bash title="Terminal"
-$ cargo run -p meroctl -- --home data --node-name node1 context create --application-id APwGT9wuLwjkBoGxRR9thpS89VsbazYd6CpMpyqx4b5J
-Created BTgDJ5FezfFJCMWzRWScXiwkgfMHX3zX4s3Qum7Gf4pb with application APwGT9wuLwjkBoGxRR9thpS89VsbazYd6CpMpyqx4b5J
+$ cargo run -p meroctl -- --home data --node-name node1 context create --application-id <appId>
+```
+
+Output
+
+```bash title="Terminal"
+Context `contextId` created!
+Context{contextId} -> Application{appId}
 ```
 
 ### From development to Publication
@@ -96,3 +140,15 @@ When you're ready to move from local development to publishing your application:
 
 3. After publication, you can create contexts for your published application
    using the --application-id flag instead of dev mode.
+
+Install the local app on node for debugging
+
+```bash title="Terminal"
+cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> app install –-path <path>
+```
+
+Output
+
+```bash title="Terminal"
+Application installed successfully. Application ID: <appId>
+```
