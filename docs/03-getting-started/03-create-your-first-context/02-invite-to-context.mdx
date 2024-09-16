@@ -3,11 +3,11 @@ id: invite-to-context
 title: Invite To Context
 ---
 
-## Invite To Context with Admin Dashboard
+## Invite to context with Admin Dashboard
 
-- TBD
+- Currently not available
 
-##Invite To Context with meroctl CLI
+## Invite to context with meroctl CLI
 
 Inviting to the context consists of 3 steps:
 
@@ -24,7 +24,7 @@ following command:
 context identity new
 ```
 
-```bash Example
+```bash title="Example"
 context identity new
 │ Private Key: G5pK45VAegesDwvHqyQsZ6NNQyRPjZ7YQLJSz1XBfpdc
 │ Public Key: 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp
@@ -39,7 +39,7 @@ Existing member of a context, needs to create invitation.
 context invite {contextId} {invitorContextIdentity } {inviteeContextIdentity}
 ```
 
-```bash Example
+```bash title="Example"
 context invite GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
 62HEbeSo6NKLufZZALVvEUthQGcf6G3A4g1ug2KKjELg
 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp
@@ -58,7 +58,7 @@ following command:
 context identity ls {contextId}
 ```
 
-```bash Example
+```bash title="Example"
 context identity ls GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
 
 │ Identity                                     |  Owned │
@@ -73,9 +73,10 @@ Invitee can accept the invitation by running the following command:
 context join {inviteePrivateKey} {invitationPayload}
 ```
 
-```bash Example
+```bash title="Example"
 context join G5pK45VAegesDwvHqyQsZ6NNQyRPjZ7YQLJSz1XBfpdc
 3FdouEaEdTWtP6YBH3tjXgBJixiVF921t9DxTPbie5GVkhxjMQH7ipkB9h3RAA6EjGYEF5eugjuC154WRUx71eDRoZkdJ94ucZdyWXEA461BQyaQjS3GzQtimcqMWG9UbP7eGoci3jKnJycuoadLhVd
+
 │ Joined context GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv as 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp,
 waiting for catchup to complete...
 ```
@@ -86,7 +87,7 @@ You can check the context list to verify that you are part of the context.
 context ls
 ```
 
-```bash Example
+```bash title="Example"
 context ls
 │ Context ID                                   | Application ID                               | Last Transaction                            │
   GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv | 3dTQEovDrrTVqFoTXRDef5M2VQM51osB66XRdTnT7uRb | DoQ99Yty1ygPcc4ek4zsMUNpyAEtaA4MnRC8beGaFtd
