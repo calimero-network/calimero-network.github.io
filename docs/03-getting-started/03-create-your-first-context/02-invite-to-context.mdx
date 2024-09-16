@@ -7,22 +7,32 @@ title: Invite To Context
 
 - Currently not available
 
-## Invite to context with meroctl CLI
+## Invite to context with the CLI using meroctl
 
 Inviting to the context consists of 3 steps:
 
-1. Peer who wants to join context, needs to share his identity with the invitor.
-2. Invitor creates an invitation to the context by creating an invitation
-   payload.
-3. Invitee accepts the invitation by signing invitation payload to prove his
-   identity.
+1. Identity Exchange: The peer wishing to join (invitee) shares their identity
+   with the existing member (invitor).
+2. Create Invitation: The invitor generates an invitation payload for the
+   context.
+3. Accept Invitation: The invitee signs the invitation payload to confirm their
+   identity and join the context.
 
-If you want to join context, you can create new identity by running the
-following command:
+In the example below, Node 2 is the coordinator node (invitee), and Node 1 is
+the user node (invitor).
 
-```bash
+### Step-by-Step Process
+
+1. Invitee Generates and Shares Identity To join the context, the invitee must
+   first create and share their identity with the invitor. This can be done
+   using the following command:
+
+```bash title="Node 2"
 context identity new
 ```
+
+This generates a private and public key pair, where the public key is the
+inviteeContextIdentity. Share this public key with the invitor.
 
 ```bash title="Example"
 context identity new
@@ -30,12 +40,10 @@ context identity new
 │ Public Key: 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp
 ```
 
-Listed public key is your inviteeContextIdentity used below. Share it with the
-invitor to invite you to the context.
+2. Invitor Creates an Invitation Once the invitee’s public key is shared, the
+   invitor generates an invitation to the context using the following command:
 
-Existing member of a context, needs to create invitation.
-
-```bash
+```bash title="Node 1"
 context invite {contextId} {invitorContextIdentity } {inviteeContextIdentity}
 ```
 
@@ -51,10 +59,9 @@ GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
 3FdouEaEdTWtP6YBH3tjXgBJixiVF921t9DxTPbie5GVkhxjMQH7ipkB9h3RAA6EjGYEF5eugjuC154WRUx71eDRoZkdJ94ucZdyWXEA461BQyaQjS3GzQtimcqMWG9UbP7eGoci3jKnJycuoadLhVd
 ```
 
-Existing member of a context can find his context identity by running the
-following command:
+To check the invitor's identity, use this command:
 
-```bash
+```bash title="Node 1"
 context identity ls {contextId}
 ```
 
@@ -67,9 +74,11 @@ context identity ls GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
 
 Listed identity is invitorContextIdentity used above.
 
-Invitee can accept the invitation by running the following command:
+3. Invitee Accepts the Invitation After receiving the invitation payload from
+   the invitor, the invitee can accept the invitation by signing it with their
+   private key:
 
-```bash
+```bash title="Node 2"
 context join {inviteePrivateKey} {invitationPayload}
 ```
 
@@ -81,9 +90,10 @@ context join G5pK45VAegesDwvHqyQsZ6NNQyRPjZ7YQLJSz1XBfpdc
 waiting for catchup to complete...
 ```
 
-You can check the context list to verify that you are part of the context.
+4. Verifying Context Membership To confirm successful joining of the context,
+   the invitee can list their contexts with the following command:
 
-```bash
+```bash title="Node 2"
 context ls
 ```
 
