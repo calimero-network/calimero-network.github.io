@@ -3,10 +3,91 @@ id: invite-to-context
 title: Invite To Context
 ---
 
-## Invite To Context
+## Invite To Context with Admin Dashboard
 
 - TBD
 
-## Join existing Context
+##Invite To Context with meroctl CLI
 
-- TBD
+Inviting to the context consists of 3 steps:
+
+1. Peer who wants to join context, needs to share his identity with the invitor.
+2. Invitor creates an invitation to the context by creating an invitation
+   payload.
+3. Invitee accepts the invitation by signing invitation payload to prove his
+   identity.
+
+If you want to join context, you can create new identity by running the
+following command:
+
+```bash
+context identity new
+```
+
+```bash Example
+context identity new
+│ Private Key: G5pK45VAegesDwvHqyQsZ6NNQyRPjZ7YQLJSz1XBfpdc
+│ Public Key: 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp
+```
+
+Listed public key is your inviteeContextIdentity used below. Share it with the
+invitor to invite you to the context.
+
+Existing member of a context, needs to create invitation.
+
+```bash
+context invite {contextId} {invitorContextIdentity } {inviteeContextIdentity}
+```
+
+```bash Example
+context invite GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
+62HEbeSo6NKLufZZALVvEUthQGcf6G3A4g1ug2KKjELg
+21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp
+
+│ Invited
+21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp to context
+GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
+│ Invitation Payload:
+3FdouEaEdTWtP6YBH3tjXgBJixiVF921t9DxTPbie5GVkhxjMQH7ipkB9h3RAA6EjGYEF5eugjuC154WRUx71eDRoZkdJ94ucZdyWXEA461BQyaQjS3GzQtimcqMWG9UbP7eGoci3jKnJycuoadLhVd
+```
+
+Existing member of a context can find his context identity by running the
+following command:
+
+```bash
+context identity ls {contextId}
+```
+
+```bash Example
+context identity ls GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
+
+│ Identity                                     |  Owned │
+  21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp | \*
+```
+
+Listed identity is invitorContextIdentity used above.
+
+Invitee can accept the invitation by running the following command:
+
+```bash
+context join {inviteePrivateKey} {invitationPayload}
+```
+
+```bash Example
+context join G5pK45VAegesDwvHqyQsZ6NNQyRPjZ7YQLJSz1XBfpdc
+3FdouEaEdTWtP6YBH3tjXgBJixiVF921t9DxTPbie5GVkhxjMQH7ipkB9h3RAA6EjGYEF5eugjuC154WRUx71eDRoZkdJ94ucZdyWXEA461BQyaQjS3GzQtimcqMWG9UbP7eGoci3jKnJycuoadLhVd
+│ Joined context GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv as 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp,
+waiting for catchup to complete...
+```
+
+You can check the context list to verify that you are part of the context.
+
+```bash
+context ls
+```
+
+```bash Example
+context ls
+│ Context ID                                   | Application ID                               | Last Transaction                            │
+  GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv | 3dTQEovDrrTVqFoTXRDef5M2VQM51osB66XRdTnT7uRb | DoQ99Yty1ygPcc4ek4zsMUNpyAEtaA4MnRC8beGaFtd
+```
