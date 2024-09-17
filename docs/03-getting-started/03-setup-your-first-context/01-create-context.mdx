@@ -34,6 +34,10 @@ Application Details from Applications section of the Admin Dashboard.
 
 ![Application details](/admin-dashboard/application-details-for-context-creation.png)
 
+“contractAppId” is the id of application stored in the contract. Value is
+optional but if provided, it enables admin-dashboard to extract and display the
+application metadata.
+
 ```bash title="Example"
 cargo run -p  meroctl -- --node-name node1 --home data app install --url https://blobby-public.euw3.prod.gcp.calimero.network/bafkreihl5o6etrnpy7dlgixz3onbfb3og4dll2yqsqaebqakuldk6e2qya --metadata '{“contractAppId”: “980265ba072119a9074e429dea477e1c084a94e8d9f645c0158680e6942fb99e” }'
 ```
