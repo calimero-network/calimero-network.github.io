@@ -5,7 +5,7 @@ title: Create Context
 
 ## Create a context using the Admin Dashboard
 
-1. Navigate to the “Contexts” tab and click the "Start New Context" button.
+1. Navigate to the "Contexts" tab and click the "Start New Context" button.
 2. Use the "Browse" button to select an application from the list.
 3. Choose the "Template Application" option.
 4. Press "Start" to initiate the context creation process with the selected
@@ -26,20 +26,25 @@ process.
 Run the following command to install the application:
 
 ```bash
-cargo run -p  meroctl -- --node-name node1 --home data app install --url {url} --metadata '{“contractAppId”: {contractApplicationId} }'
+cargo run -p meroctl -- --node-name node1 --home data \
+   app install --url {url} \
+   --metadata '{"contractAppId": "{contractApplicationId}" }'
 ```
 
-You can find the application URL and contractApplicationId by opening
+You can find the application URL and `contractApplicationId` by opening
 Application Details from Applications section of the Admin Dashboard.
 
 ![Application details](/admin-dashboard/application-details-for-context-creation.png)
 
-“contractAppId” is the id of application stored in the contract. Value is
-optional but if provided, it enables admin-dashboard to extract and display the
+`contractApplicationId` is the id of application stored in the contract. Value is
+optional but if provided, it enables Admin Dashboard to extract and display the
 application metadata.
 
 ```bash title="Example"
-cargo run -p  meroctl -- --node-name node1 --home data app install --url https://blobby-public.euw3.prod.gcp.calimero.network/bafkreihl5o6etrnpy7dlgixz3onbfb3og4dll2yqsqaebqakuldk6e2qya --metadata '{“contractAppId”: “980265ba072119a9074e429dea477e1c084a94e8d9f645c0158680e6942fb99e” }'
+cargo run -p meroctl -- --node-name node1 --home data \
+   app install --url https://blobby-public.euw3.prod.gcp.calimero.network/bafkreihl5o6etrnpy7dlgixz3onbfb3og4dll2yqsqaebqakuldk6e2qya \
+   --metadata '{"contractAppId": "980265ba072119a9074e429dea477e1c084a94e8d9f645c0158680e6942fb99e"}'
+2024-09-18T17:31:05.718772Z  INFO meroctl::cli::app::install: Application installed successfully. Application ID: F1Y3NhtUQe8Mj8TDddvkvtKf5V2f1bcs5tf2fvSyfaE7
 ```
 
 ### Step 2: Create a New Context
@@ -48,11 +53,13 @@ After the application is successfully installed, you can create a new context
 with the installed application using this command:
 
 ```bash
-cargo run -p meroctl -- --node-name node1 --home data  context create --application-id {application id}
+cargo run -p meroctl -- --node-name node1 --home data \
+   context create --application-id {applicationId}
 ```
 
 ```bash title="Example"
-cargo run -p meroctl -- --node-name node1 --home data  context create --application-id A357tXwvVU14wikYLwoy4e1FHEXDynxtsXLpqbHRGmFw23w95XmV2fzqeWjFodk6bRwKTHigsJvFh67U5EtqbKQC
+cargo run -p meroctl -- --node-name node1 --home data \
+   context create --application-id F1Y3NhtUQe8Mj8TDddvkvtKf5V2f1bcs5tf2fvSyfaE7
 ```
 
 Since each context requires a coordinator node, you’ll need to invite the
