@@ -3,14 +3,14 @@ import type * as Preset from '@docusaurus/preset-classic';
 import { themes as prismThemes } from 'prism-react-renderer';
 
 const config: Config = {
-  title: 'Calimero 2.0',
+  title: 'Calimero Network',
   tagline:
     "Calimero Network is a framework which enables building fully decentralized applications, ensuring everyone's data privacy.",
   favicon: 'img/favicon.ico',
   url: 'https://calimero-network.github.io',
   baseUrl: '/',
   organizationName: 'calimero-network',
-  projectName: 'calimero-2.0',
+  projectName: 'calimero-network',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   i18n: {
