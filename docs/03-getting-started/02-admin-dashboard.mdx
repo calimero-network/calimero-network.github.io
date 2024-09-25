@@ -15,23 +15,8 @@ overseeing and controlling various aspects of your node infrastructure.
 The node operates as a server for the Admin Dashboard and can be accessed
 directly through a web browser.
 
-Before you start you need to install dependencies and build the Admin Dashboard
-UI.
-
-Position in the node-ui folder within the root of the project.
-
-```bash title="Terminal"
-cd node-ui
-```
-
-Install dependencies and build the project.
-
-```bash title="Terminal"
-pnpm install && pnpm build
-```
-
-Run the node following the setup in [Getting-started](./01-setup.mdx) and Admin
-dashboard is now available at `http://localhost:NODE_PORT/admin-dashboard/`.
+The Admin Dashboard is locally available at `http://localhost:NODE_PORT/admin-dashboard/` but you can also
+use application deployed on Github Pages at `https://calimero-network.github.io/admin-dashboard/`.
 
 > **_NOTE:_** Update `NODE_PORT` in the placeholder `http://localhost:NODE_PORT`
 > with the `--server-port` value defined during node setup in
@@ -207,7 +192,16 @@ can upload a new application.
 
 ![StartContextSelect](/admin-dashboard-functions/19start-context-select.png)
 
-You can add initialization parameters if your has initialization requirements.
+If your application requires initialization parameters, you can select the 'Initialize application state'
+option during startup.
+
+> **NOTE**: To understand this lets take two examples.
+> 1. Consider a JavaScript class MyClass. In some cases, you can create an instance using `new MyClass()`
+if there are no initialization parameters required.
+> 2. However, if your class requires specific parameters for initialization, you need to pass them like
+this: `new MyClass({ application_name: name })`. This is similar to your WASM application's requirement
+for initialization parameters during its startup process.
+
 
 ![StartContextSelected](/admin-dashboard-functions/20start-context-selected.png)
 
@@ -222,7 +216,6 @@ You can now see created context in the context list.
 
 ### Export
 
-Allows you to export you identity on current device and import it on new device
-so you have seamless experience while onboarding to another device.
+Allows you to export you identity on current device and import it on new device.
 
 ![ContextList](/admin-dashboard-functions/23export-identity.png)
