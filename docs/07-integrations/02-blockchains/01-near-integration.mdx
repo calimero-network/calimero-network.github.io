@@ -42,22 +42,22 @@ The current setup uses a NEAR smart contract to manage configuration variables c
 
 #### Key Components of the NEAR Contract:
 
-##### **Contexts**
+##### Contexts
 - Contexts represent the network or domain that users are part of. They define the boundaries within which transactions and interactions occur.
 - Each context governs the scope of user actions, specifying the rules and permissions for interacting with the blockchain.
 - Contexts ensure that operations are segregated, and users only perform actions within their assigned domain.
 
-##### **Members**
+##### Members
 - Members are users who belong to a specific context. 
 - Each member has a defined role, which determines their level of access and the actions they can perform within that context.
 - Membership is key to verifying and authorizing transactions, ensuring that only permitted users can initiate operations within their assigned context.
 
-##### **Privileges**
+##### Privileges
 - Privileges define the specific roles and access levels of each member within a context.
 - These roles control which operations (such as submitting transactions, reading data, or interacting with the contract) a user can perform.
 - Privileges help to maintain security and governance within the network, ensuring that only authorized members can execute critical operations.
 
-##### **Application**
+##### Application
 - The application is a structured data object within the smart contract that stores application-specific configuration details.
 - It contains essential information such as context rules, membership data, and privilege definitions.
 - The application’s structure allows customization based on the requirements of the dApp (decentralized application) utilizing the contract, providing flexibility for different use cases.
