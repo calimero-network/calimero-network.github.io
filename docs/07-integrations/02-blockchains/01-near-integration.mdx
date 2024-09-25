@@ -61,3 +61,34 @@ The current setup uses a NEAR smart contract to manage configuration variables c
 - The application is a structured data object within the smart contract that stores application-specific configuration details.
 - It contains essential information such as context rules, membership data, and privilege definitions.
 - The application’s structure allows customization based on the requirements of the dApp (decentralized application) utilizing the contract, providing flexibility for different use cases.
+
+
+### 2. Smart Contract Functionalities
+
+The NEAR smart contract is responsible for ensuring that only verified users can perform operations within the platform. The functionalities related to configuration management include:
+
+#### **Verify Context Members**
+- When a user initiates a transaction, the contract checks whether the user is a registered member of the context.
+- It ensures that the user has the required privileges to perform the specific action within that context, thereby safeguarding the network against unauthorized operations.
+
+### **Transaction Flow Challenges**
+
+Despite the robust integration, some challenges have been observed in the transaction flow, particularly regarding how transactions are propagated and handled within the context.
+
+---
+
+## How to Use NEAR Protocol with Calimero
+
+If you are looking to use NEAR Protocol for your own development, you can follow the examples provided in our repository to perform read operations and interact with the blockchain.
+
+### **Read Calls Example**
+
+You can find an example of a read call within the `gen-ext` example in the Calimero GitHub repository:
+
+[gen-ext Example (Read Call)](https://github.com/calimero-network/core/blob/master/apps/gen-ext/src/lib.rs)
+
+This example demonstrates how to execute a read call on the NEAR blockchain to fetch data securely and efficiently.
+
+### **Mutable (Write) Calls**
+
+Please note that **mutable (write) calls are currently unstable**. We have been actively working on resolving issues related to write operations and their propagation across the network.
