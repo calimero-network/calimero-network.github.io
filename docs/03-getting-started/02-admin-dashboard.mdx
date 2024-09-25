@@ -15,8 +15,10 @@ overseeing and controlling various aspects of your node infrastructure.
 The node operates as a server for the Admin Dashboard and can be accessed
 directly through a web browser.
 
-The Admin Dashboard is locally available at `http://localhost:NODE_PORT/admin-dashboard/` but you can also
-use application deployed on Github Pages at `https://calimero-network.github.io/admin-dashboard/`.
+The Admin Dashboard is locally available at
+`http://localhost:NODE_PORT/admin-dashboard/` but you can also use application
+deployed on Github Pages at
+`https://calimero-network.github.io/admin-dashboard/`.
 
 > **_NOTE:_** Update `NODE_PORT` in the placeholder `http://localhost:NODE_PORT`
 > with the `--server-port` value defined during node setup in
@@ -192,16 +194,18 @@ can upload a new application.
 
 ![StartContextSelect](/admin-dashboard-functions/19start-context-select.png)
 
-If your application requires initialization parameters, you can select the 'Initialize application state'
-option during startup.
+If your application requires initialization parameters, you can select the
+'Initialize application state' option during startup.
 
 > **NOTE**: To understand this lets take two examples.
-> 1. Consider a JavaScript class MyClass. In some cases, you can create an instance using `new MyClass()`
-if there are no initialization parameters required.
-> 2. However, if your class requires specific parameters for initialization, you need to pass them like
-this: `new MyClass({ application_name: name })`. This is similar to your WASM application's requirement
-for initialization parameters during its startup process.
-
+>
+> 1. Consider a JavaScript class MyClass. In some cases, you can create an
+>    instance using `new MyClass()` if there are no initialization parameters
+>    required.
+> 2. However, if your class requires specific parameters for initialization, you
+>    need to pass them like this: `new MyClass({ application_name: name })`.
+>    This is similar to your WASM application's requirement for initialization
+>    parameters during its startup process.
 
 ![StartContextSelected](/admin-dashboard-functions/20start-context-selected.png)
 
