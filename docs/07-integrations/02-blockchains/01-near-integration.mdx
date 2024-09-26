@@ -5,100 +5,162 @@ title: NEAR Integration
 
 # NEAR Protocol Integration
 
-Calimero offers integration with the NEAR Protocol, allowing users to authenticate using their NEAR accounts. This integration provides access to essential blockchain functionalities, enabling users to read data directly from the NEAR blockchain and perform write operations securely.
+Calimero offers integration with the NEAR Protocol, allowing users to
+authenticate using their NEAR accounts. This integration provides access to
+essential blockchain functionalities, enabling users to read data directly from
+the NEAR blockchain and perform write operations securely.
 
 ## Logging in with NEAR Wallet
 
-Calimero allows users to authenticate via their NEAR wallet, ensuring secure access to the Admin Dashboard. The process of logging in with a NEAR wallet involves the following steps:
+Calimero allows users to authenticate via their NEAR wallet, ensuring secure
+access to the Admin Dashboard. The process of logging in with a NEAR wallet
+involves the following steps:
 
-### 1. User Initiates Login:
-- The user navigates to the Admin Dashboard and selects the option to "Login with NEAR Wallet."
+### 1. User Initiates Login
 
-### 2. Server Issues Challenge:
-- Upon selecting the login option, the server generates a challenge. This challenge is then presented to the user for signing.
+- The user navigates to the Admin Dashboard and selects the option to "Login
+  with NEAR Wallet."
 
-### 3. Redirect to MyNearWallet:
-- The user is redirected to the [MyNearWallet](https://mynearwallet.com/) page, where they will be asked to sign the server-issued challenge using their NEAR wallet.
+### 2. Server Issues Challenge
 
-### 4. Signature Sent to Backend:
-- After the user signs the challenge, the signature is sent back to the server for verification.
+- Upon selecting the login option, the server generates a challenge. This
+  challenge is then presented to the user for signing.
 
-### 5. Signature Verification:
-- The backend verifies the signature to ensure its authenticity. If the signature is valid, the user's public key is extracted from the signature and added as the user's unique identifier.
-- This public key serves as the user's Decentralized Identifier (DID), not as a context-specific identity. The DID enables decentralized authentication, ensuring that the user can interact with the platform securely across different contexts and applications.
+### 3. Redirect to MyNearWallet
 
-### 6. Successful Login:
-- Once verified, the user is successfully logged into the Admin Dashboard, with their public key (DID) serving as their user ID for future interactions.
+- The user is redirected to the [MyNearWallet](https://mynearwallet.com/) page,
+  where they will be asked to sign the server-issued challenge using their NEAR
+  wallet.
 
-This login flow ensures a secure and seamless authentication process leveraging NEAR's robust blockchain-based security.
+### 4. Signature Sent to Backend
+
+- After the user signs the challenge, the signature is sent back to the server
+  for verification.
+
+### 5. Signature Verification
+
+- The backend verifies the signature to ensure its authenticity. If the
+  signature is valid, the user's public key is extracted from the signature and
+  added as the user's unique identifier.
+- This public key serves as the user's Decentralized Identifier (DID), not as a
+  context-specific identity. The DID enables decentralized authentication,
+  ensuring that the user can interact with the platform securely across
+  different contexts and applications.
+
+### 6. Successful Login
+
+- Once verified, the user is successfully logged into the Admin Dashboard, with
+  their public key (DID) serving as their user ID for future interactions.
+
+This login flow ensures a secure and seamless authentication process leveraging
+NEAR's robust blockchain-based security.
 
 ## Blockchain Integration - NEAR
 
-Calimero offers robust integration with the NEAR Protocol, leveraging its blockchain capabilities to facilitate secure and efficient interactions. This section focuses on the current setup of the NEAR smart contract used for configuration management, highlighting the key concepts of contexts, members, and privileges.
+Calimero offers robust integration with the NEAR Protocol, leveraging its
+blockchain capabilities to facilitate secure and efficient interactions. This
+section focuses on the current setup of the NEAR smart contract used for
+configuration management, highlighting the key concepts of contexts, members,
+and privileges.
 
 ### 1. Current Setup
 
-The current setup uses a NEAR smart contract to manage configuration variables critical to the network’s structure. This contract stores essential information related to user roles, privileges, and network contexts, providing a secure environment for managing blockchain operations.
+The current setup uses a NEAR smart contract to manage configuration variables
+critical to the network’s structure. This contract stores essential information
+related to user roles, privileges, and network contexts, providing a secure
+environment for managing blockchain operations.
 
-#### Key Components of the NEAR Contract:
+#### Key Components of the NEAR Contract
 
 ##### Contexts
-- Contexts represent the network or domain that users are part of. They define the boundaries within which transactions and interactions occur.
-- Each context governs the scope of user actions, specifying the rules and permissions for interacting with the blockchain.
-- Contexts ensure that operations are segregated, and users only perform actions within their assigned domain.
+
+- Contexts represent the network or domain that users are part of. They define
+  the boundaries within which transactions and interactions occur.
+- Each context governs the scope of user actions, specifying the rules and
+  permissions for interacting with the blockchain.
+- Contexts ensure that operations are segregated, and users only perform actions
+  within their assigned domain.
 
 ##### Members
-- Members are users who belong to a specific context. 
-- Each member has a defined role, which determines their level of access and the actions they can perform within that context.
-- Membership is key to verifying and authorizing transactions, ensuring that only permitted users can initiate operations within their assigned context.
+
+- Members are users who belong to a specific context.
+- Each member has a defined role, which determines their level of access and the
+  actions they can perform within that context.
+- Membership is key to verifying and authorizing transactions, ensuring that
+  only permitted users can initiate operations within their assigned context.
 
 ##### Privileges
-- Privileges define the specific roles and access levels of each member within a context.
-- These roles control which operations (such as submitting transactions, reading data, or interacting with the contract) a user can perform.
-- Privileges help to maintain security and governance within the network, ensuring that only authorized members can execute critical operations.
+
+- Privileges define the specific roles and access levels of each member within a
+  context.
+- These roles control which operations (such as submitting transactions, reading
+  data, or interacting with the contract) a user can perform.
+- Privileges help to maintain security and governance within the network,
+  ensuring that only authorized members can execute critical operations.
 
 ##### Application
-- The application is a structured data object within the smart contract that stores application-specific configuration details.
-- It contains essential information such as context rules, membership data, and privilege definitions.
-- The application’s structure allows customization based on the requirements of the dApp (decentralized application) utilizing the contract, providing flexibility for different use cases.
 
+- The application is a structured data object within the smart contract that
+  stores application-specific configuration details.
+- It contains essential information such as context rules, membership data, and
+  privilege definitions.
+- The application’s structure allows customization based on the requirements of
+  the dApp (decentralized application) utilizing the contract, providing
+  flexibility for different use cases.
 
 ### 2. Smart Contract Functionalities
 
-The NEAR smart contract is responsible for ensuring that only verified users can perform operations within the platform. The functionalities related to configuration management include:
+The NEAR smart contract is responsible for ensuring that only verified users can
+perform operations within the platform. The functionalities related to
+configuration management include:
 
 #### **Verify Context Members**
-- When a user initiates a transaction, the contract checks whether the user is a registered member of the context.
-- It ensures that the user has the required privileges to perform the specific action within that context, thereby safeguarding the network against unauthorized operations.
+
+- When a user initiates a transaction, the contract checks whether the user is a
+  registered member of the context.
+- It ensures that the user has the required privileges to perform the specific
+  action within that context, thereby safeguarding the network against
+  unauthorized operations.
 
 ### **Transaction Flow Challenges**
 
-Despite the robust integration, some challenges have been observed in the transaction flow, particularly regarding how transactions are propagated and handled within the context.
+Despite the robust integration, some challenges have been observed in the
+transaction flow, particularly regarding how transactions are propagated and
+handled within the context.
 
 ---
 
 ## How to Use NEAR Protocol with Calimero
 
-If you are looking to use NEAR Protocol for your own development, you can follow the examples provided in our repository to perform read operations and interact with the blockchain.
+If you are looking to use NEAR Protocol for your own development, you can follow
+the examples provided in our repository to perform read operations and interact
+with the blockchain.
 
 ### **Read Calls Example**
 
-You can find an example of a read call within the `gen-ext` example in the Calimero GitHub repository:
+You can find an example of a read call within the `gen-ext` example in the
+Calimero GitHub repository:
 
 [gen-ext Example (Read Call)](https://github.com/calimero-network/core/blob/master/apps/gen-ext/src/lib.rs)
 
-This example demonstrates how to execute a read call on the NEAR blockchain to fetch data securely and efficiently.
+This example demonstrates how to execute a read call on the NEAR blockchain to
+fetch data securely and efficiently.
 
 ### **Mutable (Write) Calls**
 
-Please note that **mutable (write) calls are currently unstable**. We have been actively working on resolving issues related to write operations and their propagation across the network.
+Please note that **mutable (write) calls are currently unstable**. We have been
+actively working on resolving issues related to write operations and their
+propagation across the network.
 
 ---
 
 ## Current Issues with Write Methods
 
-While Calimero offers seamless read operations on the NEAR blockchain, we are working out some technical details to enable write (mutable) operations.
+While Calimero offers seamless read operations on the NEAR blockchain, we are
+working out some technical details to enable write (mutable) operations.
 
 ### Ongoing Improvements
 
-To summarize, we're working on local-first, optimistic execution, which will ensure transactions are only executed once, and are appropriately signed which will prevent duplicate submissions.
+To summarize, we're working on local-first, optimistic execution, which will
+ensure transactions are only executed once, and are appropriately signed which
+will prevent duplicate submissions.
