@@ -99,18 +99,6 @@ Please note that **mutable (write) calls are currently unstable**. We have been 
 
 While Calimero offers seamless read operations on the NEAR blockchain, we are working out some technical details to enable write (mutable) operations.
 
-### Key Challenges:
+### Ongoing Improvements
 
-1. **Duplicate Transaction Submissions**:
-   - When a user submits a transaction, it is propagated across multiple nodes within the context before reaching the smart contract. This can cause multiple peers to attempt to resubmit the same transaction, leading to duplication. These redundant submissions not only slow down the network but can also introduce errors or failed transactions.
-
-2. **Transaction Redundancy**:
-   - The redundant resubmission of transactions unnecessarily consumes network resources such as gas and computational power. This inefficiency also increases the likelihood of errors, resulting in an inconsistent transaction flow and potential delays in processing.
-
-### Ongoing Improvements:
-
-We are actively working on resolving these issues to ensure that write operations are as reliable and efficient as read operations. Our team is focusing on improving the transaction propagation mechanism to eliminate duplication and enhance overall network performance. 
-
-Once these challenges are addressed, we will update the documentation with more stable methods for handling write calls, ensuring smoother interaction with the NEAR blockchain.
-
-In the meantime, we recommend prioritizing read operations or testing write methods with caution, and we will provide updates as soon as improvements are available.
+To summarize, we're working on local-first, optimistic execution, which will ensure transactions are only executed once, and are appropriately signed which will prevent duplicate submissions.
