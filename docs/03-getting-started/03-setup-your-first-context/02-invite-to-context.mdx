@@ -36,8 +36,8 @@ inviteeContextIdentity. Share this public key with the invitor.
 
 ```bash title="Example"
 context identity new
-> │ Private Key: 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7
-> │ Public Key: 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
+│ Private Key: 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7
+│ Public Key: 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
 ```
 
 ![Create Identity](/cli/3-create-identity.png)
@@ -51,8 +51,8 @@ context invite {contextId} {invitorContextIdentity} {inviteeContextIdentity}
 
 ```bash title="Example"
 context invite 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
-> │ Invited 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 to context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
-> │ Invitation Payload: axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
+│ Invited 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 to context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Invitation Payload: axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 ```
 
 ![Context Invite](/cli/4-context-invite.png)
@@ -65,8 +65,8 @@ context identity ls {contextId}
 
 ```bash title="Example"
 context identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
-> │ Identity                                     |  Owned │
-> | DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 | *
+│ Identity                                     |  Owned │
+| DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 | *
 ```
 
 Listed identity is invitorContextIdentity used above.
@@ -81,9 +81,9 @@ context join {inviteePrivateKey} {invitationPayload}
 
 ```bash title="Example"
 context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
-> 2024-10-07T12:18:51.809231Z  INFO calimero_context: Subscribed to context context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
-> 2024-10-07T12:18:51.811102Z  INFO calimero_context: Joined context with pending catchup context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
-> │ Joined context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn as 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9, waiting for catchup to complete...
+2024-10-07T12:18:51.809231Z  INFO calimero_context: Subscribed to context context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+2024-10-07T12:18:51.811102Z  INFO calimero_context: Joined context with pending catchup context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Joined context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn as 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9, waiting for catchup to complete...
 ```
 
 ![Context Join](/cli/5-context-join.png)
@@ -97,8 +97,8 @@ context ls
 
 ```bash title="Example"
 context ls
-> │ Context ID                                   | Application ID                               | Last Transaction
-> │ 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn | Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF | b3ipivssRRm1ehRTSpUD3GKdUpvi3vq311pCT4iLvui
+│ Context ID                                   | Application ID                               | Last Transaction
+│ 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn | Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF | b3ipivssRRm1ehRTSpUD3GKdUpvi3vq311pCT4iLvui
 ```
 
 ![Context List](/cli/8-context-list.png)
@@ -111,9 +111,9 @@ context identity ls {contextId}
 
 ```bash title="Example"
 context identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
-> │ Identity                                     | Owned
-> │ 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 | *
-> │ DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 |
+│ Identity                                     | Owned
+│ 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 | *
+│ DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 |
 ```
 
 ![Context Identity List](/cli/6-identity-list.png)
