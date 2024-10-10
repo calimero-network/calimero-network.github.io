@@ -5,9 +5,9 @@ title: Invite To Context
 
 ## Invite to context with Admin Dashboard
 
-- Currently not available
+> Currently not available
 
-## Invite to context with the CLI using meroctl
+## Invite node to context using interactive CLI
 
 Inviting to the context consists of 3 steps:
 
@@ -36,9 +36,11 @@ inviteeContextIdentity. Share this public key with the invitor.
 
 ```bash title="Example"
 context identity new
-│ Private Key: G5pK45VAegesDwvHqyQsZ6NNQyRPjZ7YQLJSz1XBfpdc
-│ Public Key: 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp
+│ Private Key: 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7
+│ Public Key: 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
 ```
+
+![Create Identity](/cli/3-create-identity.png)
 
 2. Invitor Creates an Invitation Once the invitee’s public key is shared, the
    invitor generates an invitation to the context using the following command:
@@ -48,10 +50,12 @@ context invite {contextId} {invitorContextIdentity} {inviteeContextIdentity}
 ```
 
 ```bash title="Example"
-context invite GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv 62HEbeSo6NKLufZZALVvEUthQGcf6G3A4g1ug2KKjELg 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp
-│ Invited 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp to context GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
-│ Invitation Payload: 3FdouEaEdTWtP6YBH3tjXgBJixiVF921t9DxTPbie5GVkhxjMQH7ipkB9h3RAA6EjGYEF5eugjuC154WRUx71eDRoZkdJ94ucZdyWXEA461BQyaQjS3GzQtimcqMWG9UbP7eGoci3jKnJycuoadLhVd
+context invite 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
+│ Invited 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 to context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Invitation Payload: axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 ```
+
+![Context Invite](/cli/4-context-invite.png)
 
 To check the invitor's identity, use this command:
 
@@ -60,9 +64,9 @@ context identity ls {contextId}
 ```
 
 ```bash title="Example"
-context identity ls GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv
+context identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Identity                                     |  Owned │
-  21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp | *
+| DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 | *
 ```
 
 Listed identity is invitorContextIdentity used above.
@@ -76,9 +80,13 @@ context join {inviteePrivateKey} {invitationPayload}
 ```
 
 ```bash title="Example"
-context join G5pK45VAegesDwvHqyQsZ6NNQyRPjZ7YQLJSz1XBfpdc 3FdouEaEdTWtP6YBH3tjXgBJixiVF921t9DxTPbie5GVkhxjMQH7ipkB9h3RAA6EjGYEF5eugjuC154WRUx71eDRoZkdJ94ucZdyWXEA461BQyaQjS3GzQtimcqMWG9UbP7eGoci3jKnJycuoadLhVd
-│ Joined context GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv as 21A1pcDPMJTH6bQb1xRw1i1JqDRmvysxYp7eEQMnz3sp, waiting for catchup to complete...
+context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
+2024-10-07T12:18:51.809231Z  INFO calimero_context: Subscribed to context context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+2024-10-07T12:18:51.811102Z  INFO calimero_context: Joined context with pending catchup context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Joined context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn as 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9, waiting for catchup to complete...
 ```
+
+![Context Join](/cli/5-context-join.png)
 
 4. Verifying Context Membership To confirm successful joining of the context,
    the invitee can list their contexts with the following command:
@@ -89,6 +97,23 @@ context ls
 
 ```bash title="Example"
 context ls
-│ Context ID                                   | Application ID                               | Last Transaction                            │
-  GjJEnAwfLVPveyUWaGqJspzUXndyJkNWgD7M5uDNQZqv | 3dTQEovDrrTVqFoTXRDef5M2VQM51osB66XRdTnT7uRb | DoQ99Yty1ygPcc4ek4zsMUNpyAEtaA4MnRC8beGaFtd
+│ Context ID                                   | Application ID                               | Last Transaction
+│ 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn | Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF | b3ipivssRRm1ehRTSpUD3GKdUpvi3vq311pCT4iLvui
 ```
+
+![Context List](/cli/8-context-list.png)
+
+5. The invitee can also list identities in the context
+
+```bash title="Node 2"
+context identity ls {contextId}
+```
+
+```bash title="Example"
+context identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Identity                                     | Owned
+│ 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 | *
+│ DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 |
+```
+
+![Context Identity List](/cli/6-identity-list.png)
