@@ -48,15 +48,15 @@ representing the network participants.
 #### Initialize and start coordinator node (separate terminal)
 
 ```bash title="Terminal"
-cargo run -p meroctl -- --node-name coordinator --home data init --server-port 2427 --swarm-port 2527
-cargo run -p meroctl -- --node-name coordinator --home data run --node-type coordinator
+cargo run -p merod -- --node-name coordinator --home data init --server-port 2427 --swarm-port 2527
+cargo run -p merod -- --node-name coordinator --home data run --node-type coordinator
 ```
 
 #### Initialize and start your node (separate terminal)
 
 ```bash title="Terminal"
-cargo run -p meroctl -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528
-cargo run -p meroctl -- --node-name node1 --home data run
+cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528
+cargo run -p merod -- --node-name node1 --home data run
 ```
 
 Node is now initialized and ready for use.
