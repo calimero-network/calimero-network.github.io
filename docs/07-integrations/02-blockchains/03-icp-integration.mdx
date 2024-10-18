@@ -5,57 +5,81 @@ title: ICP Integration
 
 # Internet Computer Protocol (ICP) Integration
 
-Calimero offers integration with the Internet Computer Protocol (ICP), allowing users to authenticate using their Internet Identity (II). This integration provides a secure and user-friendly way to access the Admin Dashboard using ICP's robust authentication system.
+Calimero offers integration with the Internet Computer Protocol (ICP), allowing
+users to authenticate using their Internet Identity (II). This integration
+provides a secure and user-friendly way to access the Admin Dashboard using
+ICP's robust authentication system.
 
 ## Logging in with Internet Identity
 
 The login process with Internet Identity involves these key steps:
 
 ### 1. User Initiates Login
-- The user navigates to the Admin Dashboard and selects the option to "Login with Internet Identity."
+
+- The user navigates to the Admin Dashboard and selects the option to "Login
+  with Internet Identity."
 
 ### 2. Challenge Preparation
-- The system prepares a challenge (encoded as a session public key) before initiating the authentication process.
+
+- The system prepares a challenge (encoded as a session public key) before
+  initiating the authentication process.
 
 ### 3. Internet Identity Authentication
+
 - A popup window opens, connecting to the Internet Identity service.
 - The user authenticates through this popup.
 - The challenge (session public key) is sent to the II service.
 
 ### 4. Delegation Chain Retrieval
-- Upon successful authentication, the II service creates and returns a delegation chain.
-- This delegation chain includes cryptographic proofs of the user's authentication.
+
+- Upon successful authentication, the II service creates and returns a
+  delegation chain.
+- This delegation chain includes cryptographic proofs of the user's
+  authentication.
 
 ### 5. Processing the Authentication Result
+
 - The application receives the delegation chain from the II service.
-- It processes this data, extracting necessary information like the user's public key.
+- It processes this data, extracting necessary information like the user's
+  public key.
 
 ### 6. Login Request Preparation
+
 - The application prepares a login request including:
   - The serialized delegation chain
   - The original challenge payload
   - Wallet metadata (ICP canister ID and wallet name)
 
 ### 7. Server-side Verification
+
 - The login request is sent to the Calimero server.
 - The server verifies the delegation chain and challenge.
 
 ### 8. Successful Login
-- Upon successful verification, the user is logged in and directed to the identity page.
-- The user's Internet Identity becomes their unique identifier for future interactions within the Calimero ecosystem.
 
-This process leverages ICP's delegation chain mechanism for secure, decentralized authentication.
+- Upon successful verification, the user is logged in and directed to the
+  identity page.
+- The user's Internet Identity becomes their unique identifier for future
+  interactions within the Calimero ecosystem.
+
+This process leverages ICP's delegation chain mechanism for secure,
+decentralized authentication.
 
 ## Current Limitations
 
 ### Authentication-Only Functionality
-- At present, the ICP integration is primarily focused on authentication and login functionality.
+
+- At present, the ICP integration is primarily focused on authentication and
+  login functionality.
 
 ## Future Developments
 
 We are actively working on expanding the ICP integration to include:
 
-1. **Read Operations**: Implementing secure methods to read data from the Internet Computer.
-2. **Write Operations**: Developing functionality for users to perform write operations on ICP canisters.
+1. **Read Operations**: Implementing secure methods to read data from the
+   Internet Computer.
+2. **Write Operations**: Developing functionality for users to perform write
+   operations on ICP canisters.
 
-Stay tuned for updates as we continue to enhance our ICP integration capabilities.
+Stay tuned for updates as we continue to enhance our ICP integration
+capabilities.
