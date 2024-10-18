@@ -28,14 +28,14 @@ the user node (invitor).
    using the following command:
 
 ```bash title="Node 2"
-context identity new
+identity new
 ```
 
 This generates a private and public key pair, where the public key is the
 inviteeContextIdentity. Share this public key with the invitor.
 
 ```bash title="Example"
-context identity new
+identity new
 │ Private Key: 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7
 │ Public Key: 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
 ```
@@ -60,11 +60,11 @@ context invite 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn DaSkad6DK7f6fUhjz1Cv
 To check the invitor's identity, use this command:
 
 ```bash title="Node 1"
-context identity ls {contextId}
+identity ls {contextId}
 ```
 
 ```bash title="Example"
-context identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Identity                                     |  Owned │
 | DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 | *
 ```
@@ -106,11 +106,11 @@ context ls
 5. The invitee can also list identities in the context
 
 ```bash title="Node 2"
-context identity ls {contextId}
+identity ls {contextId}
 ```
 
 ```bash title="Example"
-context identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Identity                                     | Owned
 │ 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 | *
 │ DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 |
