@@ -37,12 +37,14 @@ const config: Config = {
           routeBasePath: '/', // Serve the docs at the site's root
           breadcrumbs: true,
           showLastUpdateTime: true,
+          editUrl: ({ versionDocsDirPath, docPath }) =>
+            `https://github.com/calimero-network/calimero-network.github.io/edit/master/${versionDocsDirPath}/${docPath}`,
         },
         blog: false,
         theme: {
           customCss: './src/css/custom.scss',
         },
-      } satisfies Preset.Options,
+      } as Preset.Options,
     ],
   ],
   plugins: ['docusaurus-plugin-sass'],
@@ -160,7 +162,7 @@ const config: Config = {
       //... other Algolia params
       insights: true,
     },
-  } satisfies Preset.ThemeConfig,
+  } as Preset.ThemeConfig,
 };
 
 export default config;
