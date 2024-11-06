@@ -5,6 +5,19 @@ title: Tests
 
 # Run tests
 
+We have script for running tests which prepares environment and runs tests.
+Script can either run all tests or only tests that are affected by changes in
+files.
+
+Run all tests
+
 ```bash title="Terminal"
-./scripts/test.sh
+./scripts/test.sh --all
+```
+
+Run tests in crates defind by changed files and tests in crates that are using
+those files. `changed_files` list contains file paths divided by space.
+
+```bash title="Terminal"
+./scripts/test.sh --local {changed_files}
 ```
