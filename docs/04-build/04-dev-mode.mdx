@@ -31,7 +31,7 @@ Dev mode offers several advantages:
 
 ## Prerequisites
 
-Before using dev mode, ensure you have a node and a coordinator node running.
+Before using dev mode, ensure you have a node running.
 This should be done in a separate terminal window. For more information, see the
 [Setup guide](/getting-started/setup).
 
@@ -87,10 +87,10 @@ Context{contextId} -> Application{appId}
 (i) Watching for changes to "./path/to/binary.wasm"
 ```
 
-Invite coordinator or other local nodes to participate in the context
+Invite other local nodes to participate in the context
 
 ```bash title="Terminal"
-cargo run -p  meroctl -- --node-name coordinator --home data  context join --context-id contextId
+cargo run -p  meroctl -- --node-name node2 --home data  context join --context-id contextId
 ```
 
 Output

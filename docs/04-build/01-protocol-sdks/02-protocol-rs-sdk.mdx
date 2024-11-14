@@ -190,6 +190,10 @@ The `#[app::logic]` attribute macro marks the implementation block as the
 application logic, allowing you to define the methods that interact with the
 application state.
 
+Also, in the `impl` block of your main struct that holds the state, you need to have an 
+`init` method denoted by the `#[app::logic]` attribute macro. That function should not take
+any input, and it should return an instance of your struct. Think of it like a constructor for the main struct.
+
 Consider a method like `get` that retrieves a value from the key-value store:
 
 ```rust
@@ -218,6 +222,16 @@ struct KvStore {
 
 #[app::logic]
 impl KvStore {
+    // highlight-start
+    #[app::init]
+    pub fn init() -> KvStore {
+        KvStore {
+            items: UnorderedMap::new().unwrap(),
+            storage: Element::root(),
+        }
+    }
+    // highlight-end
+
     // highlight-start
     pub fn set(&mut self, key: String, value: String) {
         env::log(&format!("Setting key: {:?} to value: {:?}", key, value));
