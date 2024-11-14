@@ -183,8 +183,8 @@ const params: RpcMutateParams<CreatePost> = {
     },
 };
 
-// Use the mutate method
-const respone: RpcMutateResponse<Post> = await rpcClient.mutate<
+// Use the execute method
+const respone: RpcMutateResponse<Post> = await rpcClient.execute<
 CreatePost,
 Post
 
