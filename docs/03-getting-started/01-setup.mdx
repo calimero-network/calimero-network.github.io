@@ -61,15 +61,14 @@ cargo run -p merod -- --node-name node1 --home data run
 
 Node is now initialized and ready for use.
 
-> **_NOTE:_** A `--protocol` flag defines
-> protocol for the context. Currently, we support Starknet and NEAR protocol. By
-> default, the protocol is set to NEAR protocol, but you can set it explicitly
-> to Starknet by using the following command:
+> **_NOTE:_** A `--protocol` flag defines protocol for the context. Currently,
+> we support Starknet and NEAR protocol. By default, the protocol is set to NEAR
+> protocol, but you can set it explicitly to Starknet by using the following
+> command:
 >
 > ```bash title="Terminal"
 > cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528 --protocol starknet
 > ```
->
 >
 > You can also view these settings in the config.toml file located within the
 > node folder.
