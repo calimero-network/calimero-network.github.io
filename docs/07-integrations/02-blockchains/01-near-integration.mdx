@@ -59,74 +59,62 @@ NEAR's robust blockchain-based security.
 
 Calimero offers robust integration with the NEAR Protocol, leveraging its
 blockchain capabilities to facilitate secure and efficient interactions. This
-section focuses on the current setup of the NEAR smart contract used for
-configuration management, highlighting the key concepts of contexts, members,
-and privileges.
+section focuses on the setup of the NEAR smart contracts used for configuration
+management, highlighting the key concepts of contexts, members, privileges, and
+the new proxy contract functionality.
 
 ### 1. Current Setup
 
-The current setup uses a NEAR smart contract to manage configuration variables
-critical to the network’s structure. This contract stores essential information
-related to user roles, privileges, and network contexts, providing a secure
-environment for managing blockchain operations.
+The current setup uses NEAR smart contracts to manage configuration variables
+essential to the network’s structure. This setup includes two primary contracts:
+the **Context Contract** and the **Proxy Contract**. Together, they store
+essential information related to user roles, privileges, and network contexts
+and provide a flexible structure for proposals and actions. Proposals serve as
+a way to put decisions up for a vote, and if approved, the specified action is
+executed, enabling interactions with other accounts and contracts.
 
-#### Key Components of the NEAR Contract
+#### Key Components of the NEAR Contracts
 
-##### Contexts
+##### Contexts (Context Contract)
 
-- Contexts represent the network or domain that users are part of. They define
-  the boundaries within which transactions and interactions occur.
-- Each context governs the scope of user actions, specifying the rules and
-  permissions for interacting with the blockchain.
-- Contexts ensure that operations are segregated, and users only perform actions
-  within their assigned domain.
+- **Definition**: Contexts represent the network or domain that users are part
+  of. They define the boundaries within which transactions and interactions
+  occur.
+- **Creation and Management**: When a new context is created, a subaccount is
+  automatically generated, and a new instance of the Proxy Contract is deployed
+  on this subaccount.
+- **Role of Context Contract**: The Context Contract is responsible for creating
+  contexts, adding members, editing their privileges, and associating specific
+  applications with a context.
 
-##### Members
+##### Proxy Contract
 
-- Members are users who belong to a specific context.
-- Each member has a defined role, which determines their level of access and the
-  actions they can perform within that context.
-- Membership is key to verifying and authorizing transactions, ensuring that
-  only permitted users can initiate operations within their assigned context.
+- **Definition**: The Proxy Contract is deployed on a subaccount for each new context and serves as a governance mechanism within the context. It supports a decentralized process for making and implementing decisions through a proposal and voting system.
+  
+- **Purpose**: The Proxy Contract allows context members to create proposals that outline specific actions, which must then be voted on by other members of the context. Only if a proposal receives the required number of votes will the specified action be executed, ensuring that decisions are made collectively.
 
-##### Privileges
+- **Proposal Creation**: Any member of a context can create a proposal in the Proxy Contract. Proposals are requests to perform certain actions and contain detailed information about the proposed action. These actions can include:
+  - **Cross-Contract Calls**: Interactions with other smart contracts on the NEAR blockchain.
+  - **Fund Transfers**: Moving funds from the Proxy Contract to a designated address.
+  - **Configuration Adjustments**: Modifying configuration settings within the Proxy Contract itself.
 
-- Privileges define the specific roles and access levels of each member within a
-  context.
-- These roles control which operations (such as submitting transactions, reading
-  data, or interacting with the contract) a user can perform.
-- Privileges help to maintain security and governance within the network,
-  ensuring that only authorized members can execute critical operations.
+- **Voting and Approval Process**:
+  - **Eligibility Check**: The Proxy Contract first verifies that the proposal creator is a registered member of the context by interacting with the Context Contract.
+  - **Voting Requirements**: Context members review and vote on the proposal. Each proposal has a vote threshold defined in the Proxy Contract configuration, which specifies the minimum number of votes required for approval.
+  - **Proposal Approval**: If the proposal reaches the necessary vote count, the Proxy Contract proceeds with executing the proposed action.
 
-##### Application
+- **Execution of Actions**: Once a proposal is approved, the Proxy Contract performs the specified action, ensuring a secure and automated implementation of context decisions.
 
-- The application is a structured data object within the smart contract that
-  stores application-specific configuration details.
-- It contains essential information such as context rules, membership data, and
-  privilege definitions.
-- The application’s structure allows customization based on the requirements of
-  the dApp (decentralized application) utilizing the contract, providing
-  flexibility for different use cases.
+- **Funding Mechanism**:
+  - Members are responsible for ensuring the Proxy Contract is funded to support proposal execution. Funds must be available in the Proxy Contract account to cover actions involving transactions or resource allocation.
+  - This mechanism encourages members to manage the resources needed to implement proposals effectively and to be aware of contract balances.
 
-### 2. Smart Contract Functionalities
+- **Benefits and Use Cases**:
+  - **Decentralized Governance**: The Proxy Contract offers a structured, transparent way for members to propose and approve changes, fostering a collaborative environment within each context.
+  - **Flexible Interaction**: By supporting cross-contract calls, fund transfers, and configuration updates, the Proxy Contract allows contexts to interact with other contracts and adjust settings dynamically as needs evolve.
+  - **Security and Verification**: The built-in membership check and voting thresholds ensure only authorized members can propose and approve actions, maintaining a secure and controlled process for context operations.
 
-The NEAR smart contract is responsible for ensuring that only verified users can
-perform operations within the platform. The functionalities related to
-configuration management include:
-
-#### **Verify Context Members**
-
-- When a user initiates a transaction, the contract checks whether the user is a
-  registered member of the context.
-- It ensures that the user has the required privileges to perform the specific
-  action within that context, thereby safeguarding the network against
-  unauthorized operations.
-
-### **Transaction Flow Challenges**
-
-Despite the robust integration, some challenges have been observed in the
-transaction flow, particularly regarding how transactions are propagated and
-handled within the context.
+Together, the Context and Proxy Contracts allow for secure, decentralized management of roles, permissions, and interactions, facilitating both governance and operational actions within each context.
 
 ---
 
@@ -136,31 +124,12 @@ If you are looking to use NEAR Protocol for your own development, you can follow
 the examples provided in our repository to perform read operations and interact
 with the blockchain.
 
-### **Read Calls Example**
+### **Explore Blockchain Applications**
 
-You can find an example of a read call within the `gen-ext` example in the
-Calimero GitHub repository:
+For further examples of how to interact with the blockchain, check out our comprehensive blockchain applications in the repository. These applications illustrate advanced integrations, including cross-contract interactions, and governance mechanisms through the Proxy and Context Contracts. You can find a variety of sample applications that showcase the capabilities of NEAR Protocol within the Calimero network environment.
 
-[gen-ext Example (Read Call)](https://github.com/calimero-network/core/blob/master/apps/gen-ext/src/lib.rs)
-
-This example demonstrates how to execute a read call on the NEAR blockchain to
-fetch data securely and efficiently.
-
-### **Mutable (Write) Calls**
-
-Please note that **mutable (write) calls are currently unstable**. We have been
-actively working on resolving issues related to write operations and their
-propagation across the network.
+Visit the [Calimero GitHub Repository](https://github.com/calimero-network/) to explore these applications and see practical implementations of blockchain functionalities. These examples are designed to help you implement similar capabilities in your own projects, leveraging Calimero’s NEAR integration for robust, decentralized applications.
 
 ---
 
-## Current Issues with Write Methods
-
-While Calimero offers seamless read operations on the NEAR blockchain, we are
-working out some technical details to enable write (mutable) operations.
-
-### Ongoing Improvements
-
-We're working on local-first, optimistic execution, which will ensure
-transactions are only executed once, and are appropriately signed which will
-prevent duplicate submissions.
+If you need additional details or specific code snippets, please let us know.

@@ -42,15 +42,7 @@ following the instructions on the
 
 ### CLI Setup
 
-Setup coordinator node used for managing the network transactions and peer nodes
-representing the network participants.
-
-#### Initialize and start coordinator node (separate terminal)
-
-```bash title="Terminal"
-cargo run -p merod -- --node-name coordinator --home data init --server-port 2427 --swarm-port 2527
-cargo run -p merod -- --node-name coordinator --home data run --node-type coordinator
-```
+Setup peer nodes representing the network participants.
 
 #### Initialize and start your node (separate terminal)
 
@@ -88,12 +80,6 @@ and then attach to the selected container
 
 ```bash title="Node Terminal"
 docker attach core-app_node_run-1
-```
-
-or
-
-```bash title="Coordinator Terminal"
-docker attach core-coordinator_run-1
 ```
 
 Wait for a few moments and node logs should appear.
