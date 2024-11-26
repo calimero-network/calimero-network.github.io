@@ -69,8 +69,8 @@ The current setup uses NEAR smart contracts to manage configuration variables
 essential to the network’s structure. This setup includes two primary contracts:
 the **Context Contract** and the **Proxy Contract**. Together, they store
 essential information related to user roles, privileges, and network contexts
-and provide a flexible structure for proposals and actions. Proposals serve as
-a way to put decisions up for a vote, and if approved, the specified action is
+and provide a flexible structure for proposals and actions. Proposals serve as a
+way to put decisions up for a vote, and if approved, the specified action is
 executed, enabling interactions with other accounts and contracts.
 
 #### Key Components of the NEAR Contracts
@@ -89,32 +89,65 @@ executed, enabling interactions with other accounts and contracts.
 
 ##### Proxy Contract
 
-- **Definition**: The Proxy Contract is deployed on a subaccount for each new context and serves as a governance mechanism within the context. It supports a decentralized process for making and implementing decisions through a proposal and voting system.
-  
-- **Purpose**: The Proxy Contract allows context members to create proposals that outline specific actions, which must then be voted on by other members of the context. Only if a proposal receives the required number of votes will the specified action be executed, ensuring that decisions are made collectively.
+- **Definition**: The Proxy Contract is deployed on a subaccount for each new
+  context and serves as a governance mechanism within the context. It supports a
+  decentralized process for making and implementing decisions through a proposal
+  and voting system.
+- **Purpose**: The Proxy Contract allows context members to create proposals
+  that outline specific actions, which must then be voted on by other members of
+  the context. Only if a proposal receives the required number of votes will the
+  specified action be executed, ensuring that decisions are made collectively.
 
-- **Proposal Creation**: Any member of a context can create a proposal in the Proxy Contract. Proposals are requests to perform certain actions and contain detailed information about the proposed action. These actions can include:
-  - **Cross-Contract Calls**: Interactions with other smart contracts on the NEAR blockchain.
-  - **Fund Transfers**: Moving funds from the Proxy Contract to a designated address.
-  - **Configuration Adjustments**: Modifying configuration settings within the Proxy Contract itself.
+- **Proposal Creation**: Any member of a context can create a proposal in the
+  Proxy Contract. Proposals are requests to perform certain actions and contain
+  detailed information about the proposed action. These actions can include:
+
+  - **Cross-Contract Calls**: Interactions with other smart contracts on the
+    NEAR blockchain.
+  - **Fund Transfers**: Moving funds from the Proxy Contract to a designated
+    address.
+  - **Configuration Adjustments**: Modifying configuration settings within the
+    Proxy Contract itself.
 
 - **Voting and Approval Process**:
-  - **Eligibility Check**: The Proxy Contract first verifies that the proposal creator is a registered member of the context by interacting with the Context Contract.
-  - **Voting Requirements**: Context members review and vote on the proposal. Each proposal has a vote threshold defined in the Proxy Contract configuration, which specifies the minimum number of votes required for approval.
-  - **Proposal Approval**: If the proposal reaches the necessary vote count, the Proxy Contract proceeds with executing the proposed action.
 
-- **Execution of Actions**: Once a proposal is approved, the Proxy Contract performs the specified action, ensuring a secure and automated implementation of context decisions.
+  - **Eligibility Check**: The Proxy Contract first verifies that the proposal
+    creator is a registered member of the context by interacting with the
+    Context Contract.
+  - **Voting Requirements**: Context members review and vote on the proposal.
+    Each proposal has a vote threshold defined in the Proxy Contract
+    configuration, which specifies the minimum number of votes required for
+    approval.
+  - **Proposal Approval**: If the proposal reaches the necessary vote count, the
+    Proxy Contract proceeds with executing the proposed action.
+
+- **Execution of Actions**: Once a proposal is approved, the Proxy Contract
+  performs the specified action, ensuring a secure and automated implementation
+  of context decisions.
 
 - **Funding Mechanism**:
-  - Members are responsible for ensuring the Proxy Contract is funded to support proposal execution. Funds must be available in the Proxy Contract account to cover actions involving transactions or resource allocation.
-  - This mechanism encourages members to manage the resources needed to implement proposals effectively and to be aware of contract balances.
+
+  - Members are responsible for ensuring the Proxy Contract is funded to support
+    proposal execution. Funds must be available in the Proxy Contract account to
+    cover actions involving transactions or resource allocation.
+  - This mechanism encourages members to manage the resources needed to
+    implement proposals effectively and to be aware of contract balances.
 
 - **Benefits and Use Cases**:
-  - **Decentralized Governance**: The Proxy Contract offers a structured, transparent way for members to propose and approve changes, fostering a collaborative environment within each context.
-  - **Flexible Interaction**: By supporting cross-contract calls, fund transfers, and configuration updates, the Proxy Contract allows contexts to interact with other contracts and adjust settings dynamically as needs evolve.
-  - **Security and Verification**: The built-in membership check and voting thresholds ensure only authorized members can propose and approve actions, maintaining a secure and controlled process for context operations.
+  - **Decentralized Governance**: The Proxy Contract offers a structured,
+    transparent way for members to propose and approve changes, fostering a
+    collaborative environment within each context.
+  - **Flexible Interaction**: By supporting cross-contract calls, fund
+    transfers, and configuration updates, the Proxy Contract allows contexts to
+    interact with other contracts and adjust settings dynamically as needs
+    evolve.
+  - **Security and Verification**: The built-in membership check and voting
+    thresholds ensure only authorized members can propose and approve actions,
+    maintaining a secure and controlled process for context operations.
 
-Together, the Context and Proxy Contracts allow for secure, decentralized management of roles, permissions, and interactions, facilitating both governance and operational actions within each context.
+Together, the Context and Proxy Contracts allow for secure, decentralized
+management of roles, permissions, and interactions, facilitating both governance
+and operational actions within each context.
 
 ---
 
@@ -126,9 +159,18 @@ with the blockchain.
 
 ### **Explore Blockchain Applications**
 
-For further examples of how to interact with the blockchain, check out our comprehensive blockchain applications in the repository. These applications illustrate advanced integrations, including cross-contract interactions, and governance mechanisms through the Proxy and Context Contracts. You can find a variety of sample applications that showcase the capabilities of NEAR Protocol within the Calimero network environment.
+For further examples of how to interact with the blockchain, check out our
+comprehensive blockchain applications in the repository. These applications
+illustrate advanced integrations, including cross-contract interactions, and
+governance mechanisms through the Proxy and Context Contracts. You can find a
+variety of sample applications that showcase the capabilities of NEAR Protocol
+within the Calimero network environment.
 
-Visit the [Calimero GitHub Repository](https://github.com/calimero-network/) to explore these applications and see practical implementations of blockchain functionalities. These examples are designed to help you implement similar capabilities in your own projects, leveraging Calimero’s NEAR integration for robust, decentralized applications.
+Visit the [Calimero GitHub Repository](https://github.com/calimero-network/) to
+explore these applications and see practical implementations of blockchain
+functionalities. These examples are designed to help you implement similar
+capabilities in your own projects, leveraging Calimero’s NEAR integration for
+robust, decentralized applications.
 
 ---
 

@@ -1,88 +1,7 @@
 ---
-id: setup
-title: Setup
+id: ssl-tls
+title: SSL/TLS
 ---
-
-Before you start, make sure you are familiar with
-[Calimero Terminology](/learn/terminology).
-
-## Setup your local node
-
-### Prerequisites
-
-Clone repository from GitHub.
-
-```bash title="Terminal"
-git clone https://github.com/calimero-network/core.git
-```
-
-or
-
-```bash title="Terminal"
-git clone git@github.com:calimero-network/core.git
-```
-
-Position in the root of the project
-
-```bash title="Terminal"
-cd core
-```
-
-And create a data folder for all configuration files.
-
-```bash title="Terminal"
-mkdir data
-```
-
-Make sure you have Rust installed on your machine. If not, you can install it by
-following the instructions on the
-[Rust website](https://www.rust-lang.org/tools/install).
-
-> **_NOTE:_** Use minimum rust version 1.80.0
-
-### CLI Setup
-
-Setup peer nodes representing the network participants.
-
-#### Initialize and start your node (separate terminal)
-
-```bash title="Terminal"
-cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528
-cargo run -p merod -- --node-name node1 --home data run
-```
-
-Node is now initialized and ready for use.
-
-### Docker Setup
-
-You can also use Docker to setup the nodes. The outcome is the same as using
-CLI. If you have already used CLI, you can skip this step.
-
-First build the image
-
-```bash title="Terminal"
-docker buildx build -t 'merod' .
-```
-
-Then setup and run the nodes defined in `docker-compose.yml` file
-
-```bash title="Terminal"
-docker compose up
-```
-
-Connect to the available node by listing running containers
-
-```bash title="Terminal"
-docker ps
-```
-
-and then attach to the selected container
-
-```bash title="Node Terminal"
-docker attach core-app_node_run-1
-```
-
-Wait for a few moments and node logs should appear.
 
 ### SSL/TLS Support
 
@@ -150,8 +69,3 @@ will need to install the generated self-signed certificate.
 > **_NOTE:_** Every time a new certificate is generated (e.g., on the first
 > start of the server or when the IP address changes), you will need to add it
 > to your device's trusted certificates.
-
-### Congratulations on Setting Up Your Node!
-
-Your next step is to add an authentication mechanism to your node by adding a
-decentralized identity.
