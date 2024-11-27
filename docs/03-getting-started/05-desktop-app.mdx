@@ -1,6 +1,6 @@
 # Node Multiplatform Wrapper with Tauri Documentation
 
-This documentation provides a comprehensive guide for developers working with the **Node Multiplatform Wrapper** application, created using **Tauri**, **Node.js**, and **Rust**. This app provides a graphical interface for managing and interacting with the **Calimero node** across different platforms.
+This documentation provides a guide for developers working with the **Node Multiplatform Wrapper** application, created using **Tauri**, **Node.js**, and **Rust**. This app provides a graphical interface for managing and interacting with the **Calimero node** across different platforms.
 
 ---
 
@@ -27,10 +27,10 @@ If **cloning from GitHub for development**:
 
 The application binary can be downloaded from the [GitHub Releases page](https://github.com/calimero-network/node-multiplatform-tauri/releases). Select the appropriate release for your operating system and architecture:
 
-- **macOS (Intel)**: \`x86_64-apple-darwin\`
-- **macOS (ARM)**: \`aarch64-apple-darwin\`
-- **Linux (x86)**: \`x86_64-unknown-linux-gnu\`
-- **Linux (ARM)**: \`aarch64-unknown-linux-gnu\`
+- **macOS (Intel)**: `x86_64-apple-darwin`
+- **macOS (ARM)**: `aarch64-apple-darwin`
+- **Linux (x86)**: `x86_64-unknown-linux-gnu`
+- **Linux (ARM)**: `aarch64-unknown-linux-gnu`
 
 Once downloaded, simply install and run the application file.
 
@@ -38,41 +38,41 @@ Once downloaded, simply install and run the application file.
 
 To install directly from GitHub for development purposes, follow these steps:
 
-\`\`\`bash
+```bash
 git clone https://github.com/calimero-network/node-multiplatform-tauri.git
 cd node-multiplatform-tauri
 pnpm install
-\`\`\`
+```
 
 ### 4. Development Environment
 
 To start the application in development mode:
 
-\`\`\`bash
+```bash
 pnpm run tauri dev
-\`\`\`
+```
 
 **Development Mode Details:**
 
-- The Calimero node binary is stored in the \`src-tauri/bin\` directory.
-- The app automatically downloads the Calimero node binary from GitHub releases according to the specified \`--target\` flag or if the flag is not specified, the user’s operating system.
+- The Calimero node binary is stored in the `src-tauri/bin` directory.
+- The app automatically downloads the Calimero node binary from GitHub releases according to the specified `--target` flag or if the flag is not specified, the user’s operating system.
 
 **Supported Architectures:**
 
 The following \`--target\` flags are supported for different architectures:
 
-- \`--target aarch64-apple-darwin\`: ARM-based macOS (M1 and later)
-- \`--target x86_64-apple-darwin\`: Intel-based macOS
-- \`--target x86_64-unknown-linux-gnu\`: x86_64 Linux systems
-- \`--target aarch64-unknown-linux-gnu\`: ARM-based Linux systems
+- `--target aarch64-apple-darwin`: ARM-based macOS (M1 and later)
+- `--target x86_64-apple-darwin`: Intel-based macOS
+- `--target x86_64-unknown-linux-gnu`: x86_64 Linux systems
+- `--target aarch64-unknown-linux-gnu`: ARM-based Linux systems
 
 ## Build for Production
 
 To create a production build of the application from the GitHub repository, run:
 
-\`\`\`bash
+```bash
 pnpm run tauri build
-\`\`\`
+```
 
 **Production Mode Details:**
 
@@ -184,12 +184,12 @@ Open an administrative dashboard to manage and monitor the selected node in grea
 
 To create a production-ready build of the application from the GitHub repository:
 
-\`\`\`bash
+```bash
 pnpm run tauri build
-\`\`\`
+```
 
 - The build process automatically downloads the appropriate Calimero node binary based on the host or specified architecture.
-- The binary is stored in the \`resources\` folder and then moved to the \`src-tauri/target\` directory upon successful completion.
+- The binary is stored in the `resources` folder and then moved to the `src-tauri/target` directory upon successful completion.
 - Ensure the specified target architecture is supported by the Calimero node binary; otherwise, the build will fail.
 
 ---
@@ -201,7 +201,7 @@ The GitHub Actions workflow automates multi-platform builds and is configured fo
 - **macOS**: Supports ARM (aarch64) and Intel (x86) architectures.
 - **Linux**: Supports ARM (aarch64) and x86 architectures.
 
-The workflow file, located in \`.github/workflows\`, provides continuous integration for various environments, ensuring the application functions consistently across different setups.
+The workflow file, located in `.github/workflows`, provides continuous integration for various environments, ensuring the application functions consistently across different setups.
 
 --- 
 
