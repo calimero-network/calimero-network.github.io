@@ -1,217 +1,40 @@
-# Node Multiplatform Wrapper with Tauri Documentation
-
-This documentation provides a guide for developers working with the **Node Multiplatform Wrapper** application, created using **Tauri**, **Node.js**, and **Rust**. This app provides a graphical interface for managing and interacting with the **Calimero node** across different platforms.
-
+---
+id: desktop-app
+title: Desktop App
 ---
 
-## Description
-
-The **Node Multiplatform Wrapper** is a Tauri-based desktop application designed to simplify the management of Calimero nodes. Built with **React** and **TypeScript** for the frontend and **Rust** for backend commands, this application supports multiple operating systems and architectures. Users can create, manage, and configure nodes directly through the application’s graphical interface, with features for initialization, configuration, logging, and dashboard access.
-
----
-
-## Setup
-
-### 1. Prerequisites
-
-If **downloading from release**:
-- No additional dependencies are required. Simply download the appropriate release for your system and follow the setup instructions in [Download from Release](#download-from-release).
-
-If **cloning from GitHub for development**:
-- Install the following dependencies:
-  - [Node.js](https://nodejs.org/) (version 16 or higher)
-  - [Rust](https://www.rust-lang.org/)
-  - [pnpm](https://pnpm.io/), used as the package manager
-
-### 2. Download from Release
-
-The application binary can be downloaded from the [GitHub Releases page](https://github.com/calimero-network/node-multiplatform-tauri/releases). Select the appropriate release for your operating system and architecture:
-
-- **macOS (Intel)**: `x86_64-apple-darwin`
-- **macOS (ARM)**: `aarch64-apple-darwin`
-- **Linux (x86)**: `x86_64-unknown-linux-gnu`
-- **Linux (ARM)**: `aarch64-unknown-linux-gnu`
-
-Once downloaded, simply install and run the application file.
-
-### 3. Download from GitHub for Development
-
-To install directly from GitHub for development purposes, follow these steps:
-
-```bash
-git clone https://github.com/calimero-network/node-multiplatform-tauri.git
-cd node-multiplatform-tauri
-pnpm install
-```
-
-### 4. Development Environment
-
-To start the application in development mode:
-
-```bash
-pnpm run tauri dev
-```
-
-**Development Mode Details:**
-
-- The Calimero node binary is stored in the `src-tauri/bin` directory.
-- The app automatically downloads the Calimero node binary from GitHub releases according to the specified `--target` flag or if the flag is not specified, the user’s operating system.
-
-**Supported Architectures:**
-
-The following \`--target\` flags are supported for different architectures:
-
-- `--target aarch64-apple-darwin`: ARM-based macOS (M1 and later)
-- `--target x86_64-apple-darwin`: Intel-based macOS
-- `--target x86_64-unknown-linux-gnu`: x86_64 Linux systems
-- `--target aarch64-unknown-linux-gnu`: ARM-based Linux systems
-
-## Build for Production
-
-To create a production build of the application from the GitHub repository, run:
-
-```bash
-pnpm run tauri build
-```
-
-**Production Mode Details:**
-
-- The build process downloads the Calimero node binary according to the architecture specified or defaults to the host architecture.
-- The Calimero node binary will be stored in the \`resources\` folder.
-- If the specified architecture is unsupported, the build process will fail.
-- Once complete, the production build binary is located in the \`src-tauri/target\` folder. The exact path will be displayed in the terminal after the build completes.
-
-## Functionalities
-
-The application offers the following core functionalities for managing Calimero nodes.
-
-### 1. Create Node
-
-Create and initialize a new Calimero node with specified parameters.
-
-> **Note**: The data for each node is stored in the following directory:  
-> `/Users/<username>/Library/Application Support/calimero.node.manager`
-
-#### Steps
-
-1. Click on **Initialize Node** button in the app.
-2. Specify the required parameters (such as node name, configuration settings, etc.).
-3. Confirm and initialize the node.
-
-### 2. Start Node
-
-Start an initialized node to begin operations.
-
-#### Steps
-
-1. Select the desired node from the list of available nodes.
-2. Click on **Start Node** to launch the specified Calimero node.
-
-> **Note**: The node must be initialized and currently stopped to be started.
-
-### Interactive CLI 
-
-The application provides an interactive CLI for managing the Calimero node.
-
-#### Steps
-
-1. After starting the node, you can interact with the node using the input field located below the current node terminal output.
-2. Type in the command you wish to execute and press enter.
-3. The output of the command will be displayed in the node terminal.
-
-### 3. Stop Node
-
-Stop a currently running node.
-
-#### Steps
-
-1. Select the running node you wish to stop from the node list.
-2. Click on **Stop Node**.
-
-> **Note**: The node must be running to be stopped.
-
-### 4. Update Node
-
-Modify the configuration of an existing node to meet updated requirements.
-
-#### Steps
-
-1. Select the node you want to update from the node list.
-2. Navigate to **Update Node**.
-3. Adjust parameters as needed.
-4. Save the updated configuration.
-
-### 5. Get Node Log
-
-Retrieve log files for specific nodes to monitor activities and troubleshoot issues.
-
-#### Steps
-
-1. Select the node you wish to review.
-2. Click **Get Node Log** to download or view the log file.
-
-### 6. Delete Node
-
-Remove an existing node from the application.
-
-#### Steps
-
-1. Select the node you want to delete from the node list.
-2. Click **Delete Node** to permanently remove it.
-
-### 7. Open Dashboard
-
-Open an administrative dashboard to manage and monitor the selected node in greater detail.
-
-> **Note**: The dashboard will open in the default browser.
-
-#### Steps
-
-1. Select the desired node.
-2. Click **Open Dashboard** to access its administrative interface.
-
----
-
-## Additional Features
-
-- **Auto-Start**: Configure the application to automatically start with the operating system and optionally start nodes on app launch.
-- **Interactive CLI**: Engage with nodes using the interactive command-line interface (CLI).
-- **Port Management**: Checks are in place to prevent port conflicts and to ensure nodes do not use the same name as an existing running instance outside the application.
-
----
-
-## Building the Application
-
-To create a production-ready build of the application from the GitHub repository:
-
-```bash
-pnpm run tauri build
-```
-
-- The build process automatically downloads the appropriate Calimero node binary based on the host or specified architecture.
-- The binary is stored in the `resources` folder and then moved to the `src-tauri/target` directory upon successful completion.
-- Ensure the specified target architecture is supported by the Calimero node binary; otherwise, the build will fail.
-
----
-
-## CI/CD Pipeline
-
-The GitHub Actions workflow automates multi-platform builds and is configured for the following:
-
-- **macOS**: Supports ARM (aarch64) and Intel (x86) architectures.
-- **Linux**: Supports ARM (aarch64) and x86 architectures.
-
-The workflow file, located in `.github/workflows`, provides continuous integration for various environments, ensuring the application functions consistently across different setups.
-
---- 
-
-## Contributing
-
-To contribute to the project, follow these guidelines:
-
-1. **Fork and Clone**: Fork the repository and clone your fork locally.
-2. **Create a Branch**: Create a new branch for your feature or fix.
-3. **Testing**: Test your code to ensure compatibility with existing functionality.
-4. **Pull Request**: Submit a pull request detailing your changes.
-
-For additional information and contribution guidelines, refer to the [Calimero Network Documentation](https://calimero-network.github.io/).
+Calimero Node Manager Desktop app is a simple desktop application that allows
+you to manage and interact with Calimero nodes without needing any technical
+knowledge.
+
+## Download and Install the App
+
+1. Go to the
+   [Calimero Node Manager download page](https://github.com/calimero-network/node-multiplatform-tauri/releases).
+2. Select the latest version and download the app for your machine from the
+   assets list:
+
+Download and run the installer. Follow the instructions to install the app.
+
+> **_NOTE:_** Supported OS
+>
+> - Linux: Works on modern distributions like Fedora, Red Hat, CentOS, Ubuntu,
+>   and Debian (64-bit systems)
+> - Mac: Supports macOS for both Intel and Apple Silicon Supported
+
+### Key Features
+
+- Initialize Node: Create and initialize a new node with specified parameters.
+- Update Node: Modify the configuration of an existing node.
+- Start Node: Start a specified node.
+- Stop Node: Stop a running node.
+- Get Node Log: Retrieve the log file for a specified node.
+- Delete Node: Remove a specified node from the application.
+- Open Dashboard: Open the admin dashboard for a specified node.
+
+If you'd like to run the app locally or contribute to its development, you can
+access the source code on our GitHub repository:
+[Node Multiplatform Tauri](https://github.com/calimero-network/node-multiplatform-tauri)
+
+Feel free to explore, fork the repository, and contribute by submitting pull
+requests or reporting issues.
