@@ -63,10 +63,11 @@ const config: Config = {
     },
     announcementBar: {
       id: 'id-0002',
-      content:
-        '**🎉 Come check <a href="https://www.calimero.network/">our new website</a> 🎉**',
-      backgroundColor: '#247E80',
-      textColor: '#fff',
+      content: `
+    **🎉 OPEN REGISTRATIONS FOR HACKATHONS 🎉**
+     <a href="https://dorahacks.io/hackathon/calimero-x-icp/hackers">ICP Hackathon</a> with price pool of 40 000 USD and <a href="https://dorahacks.io/hackathon/calimero-x-starknet/detail">Starknet Hackathon</a> with price pool of 25 000 USD!`,
+      backgroundColor: '#fabc0c',
+      textColor: '#000000',
       isCloseable: true,
     },
     docs: {
@@ -82,39 +83,39 @@ const config: Config = {
       },
       items: [
         {
-          to: '/explore/intro',
+          to: '/introduction/what-is-calimero',
           position: 'left',
-          label: 'Explore',
+          label: 'Introduction',
         },
         {
-          to: '/learn/architecture',
+          to: '/getting-started/setup',
           position: 'left',
-          label: 'Learn',
+          label: 'Getting Started',
         },
         {
-          to: '/build/quickstart',
+          to: '/core-concepts/terminology',
           position: 'left',
-          label: 'Build',
+          label: 'Core Concepts',
         },
         {
-          to: '/contribute/github',
+          to: '/architecture/system-overview',
+          position: 'left',
+          label: 'Architecture',
+        },
+        {
+          to: '/developer-tools/overview',
           position: 'left',
           label: 'Contribute',
         },
         {
-          to: '/resources/community-and-support',
+          to: '/throubleshooting/overview',
           position: 'left',
           label: 'Resources',
         },
         {
-          to: '/integrations/extendability',
+          to: '/contributing/github',
           position: 'left',
-          label: 'Integrations',
-        },
-        {
-          to: '/getting-started/setup',
-          position: 'right',
-          label: 'Getting started',
+          label: 'Contributing',
         },
         {
           type: 'search',
@@ -127,6 +128,11 @@ const config: Config = {
         {
           href: 'https://github.com/calimero-network/core',
           label: 'GitHub',
+          position: 'right',
+        },
+        {
+          href: 'https://www.calimero.network/',
+          label: 'Website',
           position: 'right',
         },
       ],

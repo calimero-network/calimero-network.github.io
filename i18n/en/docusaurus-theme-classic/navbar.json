@@ -3,17 +3,21 @@
     "message": "Calimero Network",
     "description": "The alt text of navbar logo"
   },
-  "item.label.Explore": {
-    "message": "Explore",
-    "description": "Navbar item with label Explore"
+  "item.label.Introduction": {
+    "message": "Introduction",
+    "description": "Navbar item with label Introduction"
   },
-  "item.label.Learn": {
-    "message": "Learn",
-    "description": "Navbar item with label Learn"
+  "item.label.Getting Started": {
+    "message": "Getting Started",
+    "description": "Navbar item with label Getting Started"
   },
-  "item.label.Build": {
-    "message": "Build",
-    "description": "Navbar item with label Build"
+  "item.label.Core Concepts": {
+    "message": "Core Concepts",
+    "description": "Navbar item with label Core Concepts"
+  },
+  "item.label.Architecture": {
+    "message": "Architecture",
+    "description": "Navbar item with label Architecture"
   },
   "item.label.Contribute": {
     "message": "Contribute",
@@ -23,16 +27,16 @@
     "message": "Resources",
     "description": "Navbar item with label Resources"
   },
-  "item.label.Integrations": {
-    "message": "Integrations",
-    "description": "Navbar item with label Integrations"
-  },
-  "item.label.Getting started": {
-    "message": "Getting started",
-    "description": "Navbar item with label Getting started"
+  "item.label.Contributing": {
+    "message": "Contributing",
+    "description": "Navbar item with label Contributing"
   },
   "item.label.GitHub": {
     "message": "GitHub",
     "description": "Navbar item with label GitHub"
+  },
+  "item.label.Website": {
+    "message": "Website",
+    "description": "Navbar item with label Website"
   }
 }
