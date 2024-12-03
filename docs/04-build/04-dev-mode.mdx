@@ -135,6 +135,24 @@ Context `contextId` created!
 Context{contextId} -> Application{appId}
 ```
 
+3. Update applications in a context
+
+```bash title="Terminal"
+# Update with a published application ID
+cargo run -p meroctl -- --home data --node-name node1 context update --context-id <context-id> -a <application-id> --as <identity>
+
+# Update with a local application file (one-time)
+cargo run -p meroctl -- --home data --node-name node1 context update --context-id <context-id> --path ./path/to/file --as <identity>
+
+# Update with a local application file (watch mode / reccuring updates)
+cargo run -p meroctl -- --home data --node-name node1 context update --context-id <context-id> --path ./path/to/file --watch --as <identity>
+```
+The update command allows you to:
+
+- Update a context to use a different published application
+- Install and update to a local application file
+- Watch a local application file for changes and automatically update the contex
+
 ### From development to Publication
 
 When you're ready to move from local development to publishing your application:
