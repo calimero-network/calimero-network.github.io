@@ -1,0 +1,38 @@
+{
+  "logo.alt": {
+    "message": "Calimero Network",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Explore": {
+    "message": "Explore",
+    "description": "Navbar item with label Explore"
+  },
+  "item.label.Learn": {
+    "message": "Learn",
+    "description": "Navbar item with label Learn"
+  },
+  "item.label.Build": {
+    "message": "Build",
+    "description": "Navbar item with label Build"
+  },
+  "item.label.Contribute": {
+    "message": "Contribute",
+    "description": "Navbar item with label Contribute"
+  },
+  "item.label.Resources": {
+    "message": "Resources",
+    "description": "Navbar item with label Resources"
+  },
+  "item.label.Integrations": {
+    "message": "Integrations",
+    "description": "Navbar item with label Integrations"
+  },
+  "item.label.Getting started": {
+    "message": "Getting started",
+    "description": "Navbar item with label Getting started"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}
