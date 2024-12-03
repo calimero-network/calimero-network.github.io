@@ -1,0 +1,129 @@
+---
+id: starknet-integration
+title: Starknet Integration
+---
+
+# Starknet Integration
+
+Calimero offers integration with Starknet, allowing users to authenticate using
+their Starknet accounts. Currently, this integration supports login
+functionality through ArgentX wallet and Metamask Snap, providing a secure and
+user-friendly way to access the Admin Dashboard.
+
+## Logging in with Starknet
+
+Calimero allows users to authenticate via their Starknet wallet, ensuring secure
+access to the Admin Dashboard. The process of logging in with a Starknet wallet
+involves the following steps:
+
+### 1. User Initiates Login
+
+- The user navigates to the Admin Dashboard and selects the option to "Login
+  with Starknet."
+- They are presented with two wallet options: ArgentX and Metamask Snap.
+
+### 2. Wallet Selection
+
+- The user chooses their preferred wallet: ArgentX or Metamask Snap.
+
+### 3. Wallet Connection
+
+#### For ArgentX:
+
+- If ArgentX is installed, the user is prompted to connect their wallet.
+- If not installed, the user is directed to install the ArgentX browser
+  extension.
+
+#### For Metamask Snap:
+
+- If Metamask with Starknet Snap is installed, the user is prompted to connect.
+- If not installed, the user is guided to install Metamask and the Starknet
+  Snap.
+
+### 4. Server Issues Challenge
+
+- Upon selecting the wallet, the server generates a challenge. This challenge is
+  then presented to the user for signing.
+
+### 5. User Signs Challenge
+
+- The user is prompted to sign the server-issued challenge using their selected
+  Starknet wallet.
+
+### 6. Signature Sent to Backend
+
+- After the user signs the challenge, the signature is sent back to the server
+  for verification.
+
+### 7. Signature Verification
+
+The backend verifies the signature to ensure its authenticity using a process
+tailored to Starknet's cryptographic standards. This verification process
+differs depending on whether the user is using ArgentX or Metamask Snap.
+
+#### For ArgentX Wallets:
+
+1. **On-Chain Verification**:
+
+   - The signature is initially verified on-chain using the Starknet network.
+   - A JSON-RPC call is made to the Starknet node, invoking the
+     `isValidSignature` function on the user's wallet contract.
+   - This on-chain verification ensures the signature's validity according to
+     the wallet's implementation.
+
+2. **Message Hash Verification**:
+   - If the on-chain verification succeeds, an additional verification of the
+     message hash is performed off-chain.
+   - This step ensures the integrity of the signed message and prevents any
+     tampering.
+
+#### For Metamask Snap:
+
+1. **Off-Chain Verification**:
+
+   - The signature is verified off-chain using Starknet's cryptographic
+     libraries.
+   - This involves using the `verify` function from the `starknet_crypto`
+     library to check the signature against the provided public key.
+
+2. **Message Hash Verification**:
+   - If the signature is valid, an additional verification of the message hash
+     is performed.
+   - This ensures the integrity of the signed message, similar to the ArgentX
+     process.
+
+#### Final Steps:
+
+- If the signature and hash are valid, the user's Starknet address is extracted
+  from the wallet address used in the verification process.
+- This address serves as the user's Decentralized Identifier (DID), enabling
+  decentralized authentication across different contexts and applications.
+
+### 8. Successful Login
+
+- Once verified, the user is successfully logged into the Admin Dashboard, with
+  their Starknet address (DID) serving as their user ID for future interactions.
+
+This login flow ensures a secure and seamless authentication process leveraging
+Starknet's robust blockchain-based security.
+
+## Current Limitations
+
+### Read-Only Functionality
+
+- At present, the Starknet integration is limited to authentication and login
+  functionality.
+- Read and write operations on the Starknet blockchain are not yet implemented
+  in this version of the integration.
+
+### Future Developments
+
+We are actively working on expanding the Starknet integration to include:
+
+1. **Read Operations**: Implementing secure methods to read data from the
+   Starknet blockchain.
+2. **Write Operations**: Developing functionality for users to perform write
+   operations on the Starknet blockchain.
+
+Stay tuned for updates as we continue to enhance our Starknet integration
+capabilities.

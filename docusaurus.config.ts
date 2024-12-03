@@ -39,6 +39,13 @@ const config: Config = {
           showLastUpdateTime: true,
           editUrl: ({ versionDocsDirPath, docPath }) =>
             `https://github.com/calimero-network/calimero-network.github.io/edit/master/${versionDocsDirPath}/${docPath}`,
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: '0.2.0',
+              path: '',
+            },
+          },
         },
         blog: false,
         theme: {
@@ -111,6 +118,10 @@ const config: Config = {
         },
         {
           type: 'search',
+          position: 'right',
+        },
+        {
+          type: 'docsVersionDropdown',
           position: 'right',
         },
         {

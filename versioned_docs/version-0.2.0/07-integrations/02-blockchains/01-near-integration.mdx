@@ -1,0 +1,177 @@
+---
+id: near-integration
+title: NEAR Integration
+---
+
+# NEAR Protocol Integration
+
+Calimero offers integration with the NEAR Protocol, allowing users to
+authenticate using their NEAR accounts. This integration provides access to
+essential blockchain functionalities, enabling users to read data directly from
+the NEAR blockchain and perform write operations securely.
+
+## Logging in with NEAR Wallet
+
+Calimero allows users to authenticate via their NEAR wallet, ensuring secure
+access to the Admin Dashboard. The process of logging in with a NEAR wallet
+involves the following steps:
+
+### 1. User Initiates Login
+
+- The user navigates to the Admin Dashboard and selects the option to "Login
+  with NEAR Wallet."
+
+### 2. Server Issues Challenge
+
+- Upon selecting the login option, the server generates a challenge. This
+  challenge is then presented to the user for signing.
+
+### 3. Redirect to MyNearWallet
+
+- The user is redirected to the [MyNearWallet](https://mynearwallet.com/) page,
+  where they will be asked to sign the server-issued challenge using their NEAR
+  wallet.
+
+### 4. Signature Sent to Backend
+
+- After the user signs the challenge, the signature is sent back to the server
+  for verification.
+
+### 5. Signature Verification
+
+- The backend verifies the signature to ensure its authenticity. If the
+  signature is valid, the user's public key is extracted from the signature and
+  added as the user's unique identifier.
+- This public key serves as the user's Decentralized Identifier (DID), not as a
+  context-specific identity. The DID enables decentralized authentication,
+  ensuring that the user can interact with the platform securely across
+  different contexts and applications.
+
+### 6. Successful Login
+
+- Once verified, the user is successfully logged into the Admin Dashboard, with
+  their public key (DID) serving as their user ID for future interactions.
+
+This login flow ensures a secure and seamless authentication process leveraging
+NEAR's robust blockchain-based security.
+
+## Blockchain Integration - NEAR
+
+Calimero offers robust integration with the NEAR Protocol, leveraging its
+blockchain capabilities to facilitate secure and efficient interactions. This
+section focuses on the setup of the NEAR smart contracts used for configuration
+management, highlighting the key concepts of contexts, members, privileges, and
+the new proxy contract functionality.
+
+### 1. Current Setup
+
+The current setup uses NEAR smart contracts to manage configuration variables
+essential to the network’s structure. This setup includes two primary contracts:
+the **Context Contract** and the **Proxy Contract**. Together, they store
+essential information related to user roles, privileges, and network contexts
+and provide a flexible structure for proposals and actions. Proposals serve as a
+way to put decisions up for a vote, and if approved, the specified action is
+executed, enabling interactions with other accounts and contracts.
+
+#### Key Components of the NEAR Contracts
+
+##### Contexts (Context Contract)
+
+- **Definition**: Contexts represent the network or domain that users are part
+  of. They define the boundaries within which transactions and interactions
+  occur.
+- **Creation and Management**: When a new context is created, a subaccount is
+  automatically generated, and a new instance of the Proxy Contract is deployed
+  on this subaccount.
+- **Role of Context Contract**: The Context Contract is responsible for creating
+  contexts, adding members, editing their privileges, and associating specific
+  applications with a context.
+
+##### Proxy Contract
+
+- **Definition**: The Proxy Contract is deployed on a subaccount for each new
+  context and serves as a governance mechanism within the context. It supports a
+  decentralized process for making and implementing decisions through a proposal
+  and voting system.
+- **Purpose**: The Proxy Contract allows context members to create proposals
+  that outline specific actions, which must then be voted on by other members of
+  the context. Only if a proposal receives the required number of votes will the
+  specified action be executed, ensuring that decisions are made collectively.
+
+- **Proposal Creation**: Any member of a context can create a proposal in the
+  Proxy Contract. Proposals are requests to perform certain actions and contain
+  detailed information about the proposed action. These actions can include:
+
+  - **Cross-Contract Calls**: Interactions with other smart contracts on the
+    NEAR blockchain.
+  - **Fund Transfers**: Moving funds from the Proxy Contract to a designated
+    address.
+  - **Configuration Adjustments**: Modifying configuration settings within the
+    Proxy Contract itself.
+
+- **Voting and Approval Process**:
+
+  - **Eligibility Check**: The Proxy Contract first verifies that the proposal
+    creator is a registered member of the context by interacting with the
+    Context Contract.
+  - **Voting Requirements**: Context members review and vote on the proposal.
+    Each proposal has a vote threshold defined in the Proxy Contract
+    configuration, which specifies the minimum number of votes required for
+    approval.
+  - **Proposal Approval**: If the proposal reaches the necessary vote count, the
+    Proxy Contract proceeds with executing the proposed action.
+
+- **Execution of Actions**: Once a proposal is approved, the Proxy Contract
+  performs the specified action, ensuring a secure and automated implementation
+  of context decisions.
+
+- **Funding Mechanism**:
+
+  - Members are responsible for ensuring the Proxy Contract is funded to support
+    proposal execution. Funds must be available in the Proxy Contract account to
+    cover actions involving transactions or resource allocation.
+  - This mechanism encourages members to manage the resources needed to
+    implement proposals effectively and to be aware of contract balances.
+
+- **Benefits and Use Cases**:
+  - **Decentralized Governance**: The Proxy Contract offers a structured,
+    transparent way for members to propose and approve changes, fostering a
+    collaborative environment within each context.
+  - **Flexible Interaction**: By supporting cross-contract calls, fund
+    transfers, and configuration updates, the Proxy Contract allows contexts to
+    interact with other contracts and adjust settings dynamically as needs
+    evolve.
+  - **Security and Verification**: The built-in membership check and voting
+    thresholds ensure only authorized members can propose and approve actions,
+    maintaining a secure and controlled process for context operations.
+
+Together, the Context and Proxy Contracts allow for secure, decentralized
+management of roles, permissions, and interactions, facilitating both governance
+and operational actions within each context.
+
+---
+
+## How to Use NEAR Protocol with Calimero
+
+If you are looking to use NEAR Protocol for your own development, you can follow
+the examples provided in our repository to perform read operations and interact
+with the blockchain.
+
+### **Explore Blockchain Applications**
+
+For further examples of how to interact with the blockchain, check out our
+comprehensive blockchain applications in the repository. These applications
+illustrate advanced integrations, including cross-contract interactions, and
+governance mechanisms through the Proxy and Context Contracts. You can find a
+variety of sample applications that showcase the capabilities of NEAR Protocol
+within the Calimero network environment.
+
+Visit the [Calimero GitHub Repository](https://github.com/calimero-network/) to
+explore these applications and see practical implementations of blockchain
+functionalities. These examples are designed to help you implement similar
+capabilities in your own projects, leveraging Calimero’s NEAR integration for
+robust, decentralized applications.
+
+---
+
+If you need additional details or specific code snippets, please let us know.
