@@ -38,5 +38,21 @@
   "item.label.Website": {
     "message": "Website",
     "description": "Navbar item with label Website"
+  },
+  "item.label.Developer Tools": {
+    "message": "Developer Tools",
+    "description": "Navbar item with label Developer Tools"
+  },
+  "item.label.Tutorials": {
+    "message": "Tutorials",
+    "description": "Navbar item with label Tutorials"
+  },
+  "item.label.Throubleshooting": {
+    "message": "Throubleshooting",
+    "description": "Navbar item with label Throubleshooting"
+  },
+  "item.label.Support": {
+    "message": "Support",
+    "description": "Navbar item with label Support"
   }
 }

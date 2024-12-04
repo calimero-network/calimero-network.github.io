@@ -105,17 +105,32 @@ const config: Config = {
         {
           to: '/developer-tools/overview',
           position: 'left',
-          label: 'Contribute',
+          label: 'Developer Tools',
+        },
+        {
+          to: '/tutorials/overview',
+          position: 'left',
+          label: 'Tutorials',
+        },
+        {
+          to: '/resources/manifesto',
+          position: 'left',
+          label: 'Resources',
         },
         {
           to: '/throubleshooting/overview',
           position: 'left',
-          label: 'Resources',
+          label: 'Throubleshooting',
         },
         {
           to: '/contributing/github',
           position: 'left',
           label: 'Contributing',
+        },
+        {
+          to: '/support/community-and-support',
+          position: 'left',
+          label: 'Support',
         },
         {
           type: 'search',
