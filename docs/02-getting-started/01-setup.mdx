@@ -1,10 +1,57 @@
 ---
-id: init-and-run-node
-title: Initialize And Run Node
+id: setup
+title: Setup
 ---
 
-This guide will help you to initialize and run the node. You can do it in two
-ways.
+This guide will help you set up your local node.
+
+Setup consists of few steps and is around 10 minutes long. (mostly waiting for
+project dependencies to download)
+
+1. Clone repository from GitHub (1min)
+2. Position in the root of the project (< 1min)
+3. Create a data folder for all configuration files (< 1min)
+4. Initialize and run node (~7 mins)
+
+### 1. Clone repository from GitHub
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs
+    defaultValue="ssh"
+    values={[
+        {label: 'SSH', value: 'ssh'},
+        {label: 'HTTPS', value: 'https'},
+    ]}>
+
+<TabItem value="https">
+```bash title="Clone using HTTPS"
+git clone https://github.com/calimero-network/core.git
+```
+</TabItem>
+<TabItem value="ssh">
+```bash title="Clone using SSH"
+git clone git@github.com:calimero-network/core.git
+```
+</TabItem>
+</Tabs>
+
+### 2. Position in the root of the project
+
+```bash title="Terminal"
+cd core
+```
+
+### 3. Create a data folder for all configuration files.
+
+```bash title="Terminal"
+mkdir data
+```
+
+### 4. Initialize and run node
+
+You can do it in two ways.
 
 - Using CLI
 - Using Docker compose
@@ -12,9 +59,6 @@ ways.
 If this is your first time initializing the node, the process may take a little
 bit more time until all dependencies are downloaded. It will take around 7
 minutes but can vary depending on your internet connection.
-
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 <Tabs
     defaultValue="cli"
@@ -24,7 +68,7 @@ import TabItem from '@theme/TabItem';
     ]}>
 <TabItem value="cli">
 
-### 1. Initialize node
+#### 1. Initialize node
 
 ```bash title="Terminal"
 cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528
@@ -44,7 +88,7 @@ cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --sw
 >
 > ![NearConfig](/init/near-config.png) >![SnConfgi](/init/sn-config.png)
 
-### 2. Run node
+#### 2. Run node
 
 ```bash title="Terminal"
 cargo run -p merod -- --node-name node1 --home data run
@@ -59,19 +103,19 @@ When you see something like this that means that node is now ready for use.
 </TabItem>
 <TabItem value="docker">
 
-### 1. First build the image
+#### 1. First build the image
 
 ```bash title="Terminal"
 docker buildx build -t 'merod' .
 ```
 
-### 2. Then setup and run the nodes defined in `docker-compose.yml` file
+#### 2. Then setup and run the nodes defined in `docker-compose.yml` file
 
 ```bash title="Terminal"
 docker compose up
 ```
 
-### 3. Connect to the available node by listing running containers
+#### 3. Connect to the available node by listing running containers
 
 ```bash title="Terminal"
 docker ps

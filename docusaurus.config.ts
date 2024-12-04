@@ -113,24 +113,26 @@ const config: Config = {
           label: 'Tutorials',
         },
         {
-          to: '/resources/manifesto',
-          position: 'left',
-          label: 'Resources',
-        },
-        {
-          to: '/throubleshooting/overview',
-          position: 'left',
-          label: 'Throubleshooting',
-        },
-        {
-          to: '/contributing/github',
-          position: 'left',
-          label: 'Contributing',
-        },
-        {
-          to: '/support/community-and-support',
-          position: 'left',
-          label: 'Support',
+          label: 'Other', // Label for the dropdown
+          position: 'right', // Position in the navbar
+          items: [
+            {
+              to: '/resources/manifesto',
+              label: 'Resources',
+            },
+            {
+              to: '/throubleshooting/overview',
+              label: 'Throubleshooting',
+            },
+            {
+              to: '/contributing/github',
+              label: 'Contributing',
+            },
+            {
+              to: '/support/community-and-support',
+              label: 'Support',
+            },
+          ],
         },
         {
           type: 'search',
