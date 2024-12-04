@@ -19,10 +19,6 @@
     "message": "Architecture",
     "description": "Navbar item with label Architecture"
   },
-  "item.label.Contribute": {
-    "message": "Contribute",
-    "description": "Navbar item with label Contribute"
-  },
   "item.label.Resources": {
     "message": "Resources",
     "description": "Navbar item with label Resources"
@@ -54,5 +50,9 @@
   "item.label.Support": {
     "message": "Support",
     "description": "Navbar item with label Support"
+  },
+  "item.label.Other": {
+    "message": "Other",
+    "description": "Navbar item with label Other"
   }
 }

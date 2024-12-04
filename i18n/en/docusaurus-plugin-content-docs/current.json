@@ -7,10 +7,6 @@
     "message": "Introduction",
     "description": "The label for category Introduction in sidebar tutorialSidebar"
   },
-  "sidebar.tutorialSidebar.category.Use cases": {
-    "message": "Use cases",
-    "description": "The label for category Use cases in sidebar tutorialSidebar"
-  },
   "sidebar.tutorialSidebar.category.Getting Started": {
     "message": "Getting Started",
     "description": "The label for category Getting Started in sidebar tutorialSidebar"
@@ -74,5 +70,13 @@
   "sidebar.tutorialSidebar.category.Support": {
     "message": "Support",
     "description": "The label for category Support in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Blockchains Integration": {
+    "message": "Blockchains Integration",
+    "description": "The label for category Blockchains Integration in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Login with Wallets": {
+    "message": "Login with Wallets",
+    "description": "The label for category Login with Wallets in sidebar tutorialSidebar"
   }
 }
