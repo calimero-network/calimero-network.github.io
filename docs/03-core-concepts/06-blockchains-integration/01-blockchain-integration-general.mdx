@@ -8,7 +8,6 @@ title: Blockchain Integrations
 Calimero offers integration with multiple blockchain protocols, allowing users to
 interact with the blockchain and perform read and write operations.
 
-
 ## Current Blockchain Integrations
 
 Calimero currently supports the following blockchain protocols:
@@ -16,13 +15,42 @@ Calimero currently supports the following blockchain protocols:
 - NEAR
 - Starknet
 
+<div style={{display: 'flex', justifyContent: 'center'}}>
+```mermaid
+graph TD
+    A[Calimero] --> B[Integrations]
+    B --> C[NEAR]
+    B --> D[Starknet]
+    
+```
+</div>
+
+---
+
 ## Supported Operations
 
 - Read
-  - Read the data from the Calimero contracts
+  - Read the data from the Calimero contracts.
 - Write
-  - Write data to any contract on the same blockchain protocol through cross-contract calls in the Proxy Contract
+  - Write data to any contract on the same blockchain protocol through cross-contract calls in the Proxy Contract.
 
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+    A[Calimero]
+    B[Context Contract]
+    C[Proxy Contract]
+    D[Transfers]
+    E[Cross-Contract Calls]
+
+    A <--> B
+    A <--> C
+    C --> D
+    C --> E
+```
+
+</div>
 
 ## Supported Functionalities
 
@@ -32,15 +60,26 @@ Calimero currently supports the following blockchain protocols:
 - Configuration of the internal configuration variables
 - Proposal creation and execution
 
+```mermaid
+graph TD
+    A[Proxy Contract] -->|Cross-contract Calls| B[Other Contracts]
+    A -->|Transfers| C[Token Transfers]
+    A -->|Data Storage| D[Key-Value Storage]
+    A -->|Configuration| E[Internal Variables]
+    E -->|Change Votes Required| F[Vote Configuration]
+    E -->|Change Proposal Limits| G[Proposal Limits]
+```
+
+---
 
 ## Functionality Details
 
-- **Cross-contract calls**: Proxy contract allows to make cross-contract calls to
-  the other contracts on the same blockchain protocol. Users need to specify the contract
-  address and the method to call as well as the arguments for that method.
-- **Transfers**: Proxy contract allows to transfer tokens to the specified address.
+- **Cross-contract calls**: Proxy contract allows making cross-contract calls to
+  other contracts on the same blockchain protocol. Users need to specify the contract
+  address, the method to call, and the arguments for that method.
+- **Transfers**: Proxy contract allows transferring tokens to the specified address.
   Users need to specify the recipient address and the amount of tokens to transfer.
-- **Storage of arbitrary data**: Proxy contract allows to store arbitrary data
+- **Storage of arbitrary data**: Proxy contract allows storing arbitrary data
   in the context storage. Users need to specify the key and the value for the data
   to be stored.
 - **Configuration of the internal configuration variables**: Configure the
@@ -48,14 +87,8 @@ Calimero currently supports the following blockchain protocols:
 - **Proposal creation and execution**: Proposals are created by users and
   contain one or multiple actions that are voted on by the users of the context. If a proposal
   is approved, it is automatically executed by the Calimero Proxy Contract.
-  Proposals can be created by any user that is a part of the context and can contain following actions:
-  - Cross-contract calls
-  - Transfers
-  - Storage of arbitrary data
-  - Configuration of the internal configuration variables:
-    - Configure the number of votes required to approve a proposal
-    - Configure the maximum number of active proposals
 
+---
 
 ## Calimero Contracts
 
@@ -64,6 +97,18 @@ Calimero integrates two types of contracts for each blockchain protocol:
 - Context Contract
 - Proxy Contract
 
+<div style={{display: 'flex', justifyContent: 'center'}}>
+```mermaid
+graph TD
+    A[User] -->|Creates Context| B[Context Contract]
+    B -->|Creates| C[Context]
+    B -->|Adds Admin| D[User as Admin]
+    B -->|Deploys| E[Proxy Contract]
+    E -->|Handles| F[Proposals, Votes, Execution]
+    F -->|Executes Actions| G[Blockchain Operations]
+```
+</div>
+---
 
 ### Context Contract
 
@@ -71,59 +116,26 @@ The Context Contract is responsible for creating contexts, adding and removing
 members, editing their privileges, and associating specific applications with a
 context.
 
-When user creates a new context through the Calimero CLI, the Context Contract
-does the following:
-- Creates a new context
-- Adds the user as a member to the context:
-  - Sets the user's privileges as admin
-  - Adds the user to the list of members
-  - Deploys a new instance of the Proxy Contract specific to this context
-
-User can then invite new members to the context, edit their privileges, and remove
-them from the context.
+---
 
 ### Proxy Contract
 
 Each context has its own Proxy Contract instance which is deployed during the
 context creation.
 
-The Proxy Contract is responsible for creating proposals, voting on them, and
-executing the approved proposals.
-
-**Note**: Users are responsible for funding the Proxy Contract, users can get Proxy Contract address
-by calling the `proxy_contract` method of the Context Contract with the context id as an argument and then
-seeding the Proxy Contract with the required tokens.
-
-Each proposal contains one or multiple actions that are voted on by the members of the context.
-If a proposal is approved, it is executed by the Proxy Contract.
-
-Proposals can contain the following actions:
-- Cross-contract calls
-- Transfers
-- Storage of arbitrary data - key-value pairs are stored in the contract storage
-- Configuration of the internal configuration variables of the Proxy Contract
-
-During the proposal approval process, the following happens:
-- The proposal is stored in the contract storage
-- The proposal is voted on by the members of the context - proxy contract verifies
-  that the proposal creator is a registered member of the context by interacting
-  with the Context Contract
-- If the proposal receives the required number of votes, it is executed by the
-  Proxy Contract
-- The proposal is deleted from the contract storage
-
-If the limit of users active proposals is reached, user will need to delete some
-of the existing proposals before creating a new one.
-
-There are two types of configuration variables:
-- Number of votes required to approve a proposal
-- Maximum number of active proposals per user
-
-**Note**: This configuration variables are set on contract level, which means that
-they will be applied to all the proposals and needed vote number.
-
-To change these configuration variables, user needs to create a proposal with the
-corresponding action.
+<div style={{display: 'flex', justifyContent: 'center'}}>
+```mermaid
+graph TD
+    A[User] -->|Creates Proposal| B[Proxy Contract]
+    B -->|Stores Proposal| C[Proposal Storage]
+    C -->|Voting by Members| D{Required Votes Met?}
+    D -->|Yes| E[Execute Proposal]
+    E -->|Proposal Deleted| F[Contract Storage]
+    D -->|No| G[Proposal Discarded]
+    G -->|Optional| H[Delete to Free Space]
+```
+</div>
+---
 
 ### Deployment of Contracts
 
@@ -133,24 +145,34 @@ Context Contract is predeployed on each blockchain by the Calimero team.
 #### Proxy Contract
 Proxy Contract is deployed during the context creation.
 
-Currently, contracts are deployed on Testnet network of each protocol.
+<div style={{display: 'flex', justifyContent: 'center'}}>
 
-**Note**: If you want to deploy the contracts on Mainnet, please contact us.
+```mermaid
+graph TD
+    A[Calimero Team] -->|Pre-deploys| B[Context Contract]
+    B -->|During Context Creation| C[Proxy Contract]
+    C -->|Unique Instance| D[Context-specific Proxy]
+```
 
+</div>
+---
 
-### Limitations
-- Results from the cross-contract calls are not verified or stored.
-- Results from the proposals are not stored.
-- Needed approvals for proposals are applied for every proposal.
-- Executed proposals are not stored.
-- If proxy contract doesn't have enough balance, proposal action will fail (if funds are needed).
-- For reading the data from contracts other then Calimero contracts, users need to
-  implement the corresponding logic in the application layer.
-
-
-### Example applications
+### Example Application
 
 We have an example application that connects to Calimero Proxy Contract and allows
-to create proposals, vote on them, and execute the approved proposals.
+creating proposals, voting on them, and executing the approved proposals.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+```mermaid
+graph TD
+    A[Example Application] -->|Connects to| B[Calimero Proxy Contract]
+    B -->|Handles| C[Proposals]
+    C -->|Create| D[New Proposals]
+    C -->|Vote| E[Proposal Voting]
+    C -->|Execute| F[Approved Proposals]
+    F -->|Perform Actions| G[Blockchain Operations]
+```
+</div>
+---
 
 You can find the example application [here](https://github.com/calimero-network/demo-blockchain-integrations).
