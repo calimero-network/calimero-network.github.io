@@ -130,9 +130,7 @@ graph TD
     B -->|Stores Proposal| C[Proposal Storage]
     C -->|Voting by Members| D{Required Votes Met?}
     D -->|Yes| E[Execute Proposal]
-    E -->|Proposal Deleted| F[Contract Storage]
-    D -->|No| G[Proposal Discarded]
-    G -->|Optional| H[Delete to Free Space]
+    D -->|No| F[Store Vote Count]
 ```
 </div>
 ---
@@ -165,12 +163,15 @@ creating proposals, voting on them, and executing the approved proposals.
 <div style={{display: 'flex', justifyContent: 'center'}}>
 ```mermaid
 graph TD
-    A[Example Application] -->|Connects to| B[Calimero Proxy Contract]
+    A[Application] -->|Connects to| B[Calimero Proxy Contract]
     B -->|Handles| C[Proposals]
     C -->|Create| D[New Proposals]
-    C -->|Vote| E[Proposal Voting]
-    C -->|Execute| F[Approved Proposals]
-    F -->|Perform Actions| G[Blockchain Operations]
+    C -->|Approve| E[Proposal Voting]
+    C -->|Delete| J[Delete Proposal]
+    E -->|Check Votes| F{Required Votes Met?}
+    F -->|Yes| G[Execute Proposal]
+    G -->|Perform Actions| H[Blockchain Operations]
+    F -->|No| I[Store Vote Count]
 ```
 </div>
 ---
