@@ -83,7 +83,9 @@ graph TD
   in the context storage. Users need to specify the key and the value for the data
   to be stored.
 - **Configuration of the internal configuration variables**: Configure the
-  internal configuration variables of the Calimero contracts.
+  internal configuration variables of the Calimero contracts:
+  - **Vote configuration**: Number of votes required for a proposals to be approved (u32)
+  - **Proposal limits**: Maximum number of proposals that one user can have at the same time(u32)
 - **Proposal creation and execution**: Proposals are created by users and
   contain one or multiple actions that are voted on by the users of the context. If a proposal
   is approved, it is automatically executed by the Calimero Proxy Contract.
