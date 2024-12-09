@@ -54,3 +54,17 @@
   border-radius: 4px;
   padding: 0.5rem;
 }
+
+.container_NUpU {
+  min-width: 500px !important;
+  margin: 0 auto;
+
+  @media (max-width: 500px) {
+    min-width: 300px !important;
+  }
+
+  svg {
+    margin: 0 auto;
+    display: flex;
+  }
+}
