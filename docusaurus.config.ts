@@ -196,7 +196,17 @@ const config: Config = {
       //... other Algolia params
       insights: true,
     },
+    mermaid: {
+      theme: {
+        light: 'neutral',
+        dark: 'dark'
+      },
+    },
   } as Preset.ThemeConfig,
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
 };
 
 export default config;
