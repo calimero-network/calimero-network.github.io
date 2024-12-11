@@ -9,8 +9,10 @@ This guide will help you set up Calimero in your device.
 
 There are two main paths:
 
-1. **Install via Script or Homebrew** (Recommended): Quickly install `meroctl` for most users.
-2. **Build from Source**: For developers who want to contribute or modify the framework.
+1. **Install via Script or Homebrew** (Recommended): Quickly install `meroctl`
+   for most users.
+2. **Build from Source**: For developers who want to contribute or modify the
+   framework.
 
 ## Supported Platforms
 
@@ -19,30 +21,37 @@ Calimero currently supports the following operating systems and architectures:
 - **Operating Systems**: macOS, Linux
 - **Architectures**: x86_64, arm64 (Apple Silicon)
 
-If your platform is not supported, please [create an issue on GitHub](https://github.com/calimero-network/core/issues).
+If your platform is not supported, please
+[create an issue on GitHub](https://github.com/calimero-network/core/issues).
 
 ---
 
 ## Install via Script or Homebrew (Recommended)
 
-You can choose to install `meroctl` using either the installation script or Homebrew.
+You can choose to install `meroctl` using either the installation script or
+Homebrew.
 
 ### **Option 1: Installation Script**
 
-The installation script supports multiple terminal environments and will automatically configure your PATH based on your shell.
+The installation script supports multiple terminal environments and will
+automatically configure your PATH based on your shell.
 
 #### Steps
 
 1. Open your terminal and run:
+
    ```bash
    curl -sSf https://raw.githubusercontent.com/calimero-network/core/master/scripts/install.sh | bash
    ```
 
 2. Source the updated PATH:
+
    ```bash
    source <your-shell-config-file>
    ```
-   Replace `<your-shell-config-file>` with `.bashrc`, `.zshrc`, or the relevant configuration file for your shell.
+
+   Replace `<your-shell-config-file>` with `.bashrc`, `.zshrc`, or the relevant
+   configuration file for your shell.
 
 3. Verify the installation:
    ```bash
@@ -60,22 +69,26 @@ The script automatically updates your PATH based on your shell configuration:
 - **Fish**: Modifies `~/.config/fish/config.fish`.
 - **Csh/Tcsh**: Updates `.cshrc`.
 
-To apply the changes immediately, use the `source` command as described in step 2 above.
+To apply the changes immediately, use the `source` command as described in step
+2 above.
 
 ---
 
 ### **Option 2: Homebrew**
 
-If you use Homebrew, you can install `meroctl` directly with the following steps:
+If you use Homebrew, you can install `meroctl` directly with the following
+steps:
 
 #### Steps
 
 1. Add the Calimero Homebrew tap:
+
    ```bash
    brew tap calimero-network/homebrew-tap
    ```
 
 2. Install `meroctl`:
+
    ```bash
    brew install meroctl
    ```
@@ -91,22 +104,26 @@ If the version number appears, the installation was successful.
 
 ## Build from Source (For Contributors)
 
-If you want to contribute to the Calimero framework or customize its functionality, you can build it from source.
+If you want to contribute to the Calimero framework or customize its
+functionality, you can build it from source.
 
 ### Prerequisites
 
-- Ensure Rust is installed. If not, follow the instructions on the [Rust website](https://www.rust-lang.org/tools/install).
+- Ensure Rust is installed. If not, follow the instructions on the
+  [Rust website](https://www.rust-lang.org/tools/install).
 
 ### Troubleshooting
 
 - If Rust dependencies fail, ensure your Rust installation is up-to-date:
+
   ```bash
   rustup update
   ```
 
 - Verify that you have all required permissions to run the node.
 
-For further support, open an issue on [GitHub](https://github.com/calimero-network/core/issues).
+For further support, open an issue on
+[GitHub](https://github.com/calimero-network/core/issues).
 
 ### Setup steps
 
