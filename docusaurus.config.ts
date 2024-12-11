@@ -47,6 +47,10 @@ const config: Config = {
             },
           },
         },
+        gtag: {
+          trackingID: 'G-17PH5ES1RH',
+          anonymizeIP: true,
+        },
         blog: false,
         theme: {
           customCss: './src/css/custom.scss',
