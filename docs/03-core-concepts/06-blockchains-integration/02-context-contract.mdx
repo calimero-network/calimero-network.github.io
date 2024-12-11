@@ -5,18 +5,21 @@ title: Context Contract
 
 # Context Contract
 
-Calimero Context Contract is used to manage the context on the blockchain.
-It is predeployed on each blockchain by the Calimero team.
-It is used to create the context, add members to the context, and configure the
-context.
-
+Calimero Context Contract is used to manage the context on the blockchain. It is
+predeployed on each blockchain by the Calimero team. It is used to create the
+context, add members to the context, and configure the context.
 
 ## Setup
 
-To create context on specific blockchain user will need to add the `--protocol` flag to the `calimero-cli` when initializing the node as explained in the [Setup](/docs/02-getting-started/01-setup) section.
+To create context on specific blockchain user will need to add the `--protocol`
+flag to the `calimero-cli` when initializing the node as explained in the
+[Setup](/getting-started/setup) section.
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 <Tabs
-    defaultValue="ssh"
+    defaultValue="starknet"
     values={[
         {label: 'Starknet', value: 'starknet'},
     ]}>
@@ -28,22 +31,27 @@ cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --sw
 </TabItem>
 </Tabs>
 
-**Note**: NEAR protocol is set by default, so if user wants to use NEAR protocol,
-he doesn't need to specify the `--protocol` flag.
+**Note**: NEAR protocol is set by default, so if user wants to use NEAR
+protocol, he doesn't need to specify the `--protocol` flag.
 
+After the node is initialized, user can see the Context Contract address in the
+`config.toml` file located in the node folder.
 
-After the node is initialized, user can see the Context Contract address in the `config.toml` file located in the node folder.
-
-
-After initialization, user needs to start the node by running the following command:
+After initialization, user needs to start the node by running the following
+command:
 
 ```bash title="Start node"
 cargo run -p merod -- --node-name node1 --home data run
 ```
 
-Before creating the context, user needs to compile the demo-blockchain-integrations application.
-To compile the application, please clone the [demo-blockchain-integrations](https://github.com/calimero-network/demo-blockchain-integrations)
-repository and follow the instructions in the [README](https://github.com/calimero-network/demo-blockchain-integrations/blob/main/README.md).
+Before creating the context, user needs to compile the
+demo-blockchain-integrations application. To compile the application, please
+clone the
+[demo-blockchain-integrations](https://github.com/calimero-network/demo-blockchain-integrations)
+repository and follow the instructions in the
+[README](https://github.com/calimero-network/demo-blockchain-integrations/blob/main/README.md).
 
-After the application is compiled, user needs to install the application on the node and then create the context with the application.
-To create the context and install the application, please follow the [Create Context](/docs/06-tutorials/02-create-context) tutorial.
+After the application is compiled, user needs to install the application on the
+node and then create the context with the application. To create the context and
+install the application, please follow the
+[Create Context](/tutorials/create-context) tutorial.
