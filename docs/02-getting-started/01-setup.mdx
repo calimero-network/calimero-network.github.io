@@ -197,18 +197,27 @@ cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --sw
 ```
 
 > **_NOTE:_** A `--protocol` flag defines protocol for the context. Currently,
-> we support Starknet and NEAR protocol. By default, the protocol is set to NEAR
-> protocol, but you can set it explicitly to Starknet by using the following
-> command:
+> we support Internet Computer (ICP), Starknet and NEAR protocol. By default, the protocol is set to NEAR
+> protocol, but you can set it explicitly to Starknet or ICP by using the following
+> commands:
 >
 > ```bash title="Terminal"
 > cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528 --protocol starknet
+> ```
+>
+> ```bash title="Terminal"
+> cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528 --protocol icp
 > ```
 
 > You can also view these settings in the config.toml file located within the
 > node folder.
 >
-> ![NearConfig](/init/near-config.png) >![SnConfgi](/init/sn-config.png)
+> **Near**
+> ![NearConfig](/init/near-config.png)
+> **Starknet**
+> ![SnConfig](/init/sn-config.png)
+> **Internet Computer (ICP)**
+> ![ICPConfig](/init/icp-config.png)
 
 #### 2. Run node
 

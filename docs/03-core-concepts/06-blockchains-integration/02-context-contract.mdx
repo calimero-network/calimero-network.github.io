@@ -22,13 +22,19 @@ import TabItem from '@theme/TabItem';
     defaultValue="starknet"
     values={[
         {label: 'Starknet', value: 'starknet'},
+         {label: 'ICP', value: 'icp'},
     ]}>
 
-<TabItem value="starknet">
-```bash title="Start node with Starknet protocol"
-cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528 --protocol starknet
-```
-</TabItem>
+    <TabItem value="starknet">
+    ```bash title="Start node with Starknet protocol"
+    cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528 --protocol starknet
+    ```
+    </TabItem>
+    <TabItem value="icp">
+    ```bash title="Start node with Internet Computer (ICP)"
+    cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528 --protocol icp
+    ```
+    </TabItem>
 </Tabs>
 
 **Note**: NEAR protocol is set by default, so if user wants to use NEAR
