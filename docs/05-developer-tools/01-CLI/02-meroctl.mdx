@@ -50,13 +50,11 @@ Here's the basic syntax:
 All commands share the same prefix:
 
 ```bash title="Terminal"
-cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> <command>
+cargo run -p meroctl -- --node-name <node_name> <command>
 ```
 
 ### Parameters:
 
-- `--home`: Specifies the path to the home directory. ( In our example we are
-  using `data` as the home directory)
 - `--node-name`: Specifies the name of the node.
 
 - `--path`: Specifies the absolute path to your WASM file.
@@ -64,13 +62,13 @@ cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> <command>
 Create dev context using installed app
 
 ```bash title="Terminal"
-cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> context create --watch <path>
+cargo run -p meroctl -- --node-name <node_name> context create --watch <path>
 ```
 
 Output
 
 ```bash title="Terminal"
-$ cargo run -p meroctl -- --home data --node-name node1 context create  --watch ./path/to/binary.wasm
+$ cargo run -p meroctl -- --node-name node1 context create  --watch ./path/to/binary.wasm
 Application `<appId>` installed!
 Context `<contextId>` created!
 Context{contextId} -> Application{appId}
@@ -80,7 +78,7 @@ Context{contextId} -> Application{appId}
 Invite other local nodes to participate in the context
 
 ```bash title="Terminal"
-cargo run -p  meroctl -- --node-name node2 --home data  context join --context-id contextId
+cargo run -p  meroctl -- --node-name node2 context join --context-id contextId
 ```
 
 Output
@@ -109,13 +107,13 @@ development environments.
 1. List existing contexts
 
 ```bash title="Terminal"
-$ cargo run -p meroctl -- --home data --node-name node1 context ls
+$ cargo run -p meroctl -- --node-name node1 context ls
 ```
 
 2. Create a context for a published application:
 
 ```bash title="Terminal"
-$ cargo run -p meroctl -- --home data --node-name node1 context create --application-id <appId>
+$ cargo run -p meroctl -- --node-name node1 context create --application-id <appId>
 ```
 
 Output
@@ -129,13 +127,13 @@ Context{contextId} -> Application{appId}
 
 ```bash title="Terminal"
 # Update with a published application ID
-cargo run -p meroctl -- --home data --node-name node1 context update --context-id <context-id> -a <application-id> --as <identity>
+cargo run -p meroctl -- --node-name node1 context update --context-id <context-id> -a <application-id> --as <identity>
 
 # Update with a local application file (one-time)
-cargo run -p meroctl -- --home data --node-name node1 context update --context-id <context-id> --path ./path/to/file --as <identity>
+cargo run -p meroctl -- --node-name node1 context update --context-id <context-id> --path ./path/to/file --as <identity>
 
 # Update with a local application file (watch mode / reccuring updates)
-cargo run -p meroctl -- --home data --node-name node1 context update --context-id <context-id> --path ./path/to/file --watch --as <identity>
+cargo run -p meroctl -- --node-name node1 context update --context-id <context-id> --path ./path/to/file --watch --as <identity>
 ```
 
 The update command allows you to:
@@ -159,7 +157,7 @@ When you're ready to move from local development to publishing your application:
 Install the local app on node for debugging
 
 ```bash title="Terminal"
-cargo run -p meroctl -- --home <path_to_home> --node-name <node_name> app install –-path <path>
+cargo run -p meroctl -- --node-name <node_name> app install –-path <path>
 ```
 
 Output

@@ -27,12 +27,12 @@ import TabItem from '@theme/TabItem';
 
     <TabItem value="starknet">
     ```bash title="Start node with Starknet protocol"
-    cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528 --protocol starknet
+    cargo run -p merod -- --node-name node1 init --server-port 2428 --swarm-port 2528 --protocol starknet
     ```
     </TabItem>
     <TabItem value="icp">
     ```bash title="Start node with Internet Computer (ICP)"
-    cargo run -p merod -- --node-name node1 --home data init --server-port 2428 --swarm-port 2528 --protocol icp
+    cargo run -p merod -- --node-name node1 init --server-port 2428 --swarm-port 2528 --protocol icp
     ```
     </TabItem>
 
@@ -48,7 +48,7 @@ After initialization, user needs to start the node by running the following
 command:
 
 ```bash title="Start node"
-cargo run -p merod -- --node-name node1 --home data run
+cargo run -p merod -- --node-name node1 run
 ```
 
 Before creating the context, user needs to compile the
