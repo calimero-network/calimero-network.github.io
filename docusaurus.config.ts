@@ -93,29 +93,25 @@ const config: Config = {
           label: 'Getting Started',
         },
         {
-          to: '/core-concepts/terminology',
-          position: 'left',
-          label: 'Core Concepts',
-        },
-        {
-          to: '/architecture/system-overview',
-          position: 'left',
-          label: 'Architecture',
-        },
-        {
-          to: '/developer-tools/overview',
-          position: 'left',
-          label: 'Developer Tools',
-        },
-        {
-          to: '/tutorials/overview',
-          position: 'left',
-          label: 'Tutorials',
-        },
-        {
           label: 'Other', // Label for the dropdown
           position: 'right', // Position in the navbar
           items: [
+            {
+              to: '/core-concepts/terminology',
+              label: 'Core Concepts',
+            },
+            {
+              to: '/architecture/system-overview',
+              label: 'Architecture',
+            },
+            {
+              to: '/developer-tools/overview',
+              label: 'Developer Tools',
+            },
+            {
+              to: '/tutorials/overview',
+              label: 'Tutorials',
+            },
             {
               to: '/resources/manifesto',
               label: 'Resources',
@@ -199,7 +195,7 @@ const config: Config = {
     mermaid: {
       theme: {
         light: 'neutral',
-        dark: 'dark'
+        dark: 'dark',
       },
     },
   } as Preset.ThemeConfig,
