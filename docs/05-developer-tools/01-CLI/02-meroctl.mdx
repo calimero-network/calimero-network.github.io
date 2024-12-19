@@ -3,165 +3,145 @@ id: meroctl
 title: Meroctl
 ---
 
-## Overview
+Meroctl is a command-line tool that enables you to use node functionalities.
 
-The meroctl CLI provides a powerful feature called "dev mode" that allows
-developers to test their applications locally before publishing them to the
-network. This mode is particularly useful during the development and testing
-phases of your application.
+```bash title="Terminal"
+meroctl [OPTIONS] --node-name <NAME> <COMMAND>
+```
+
+### Commands:
+
+- `app` Command for managing applications
+- `context` Command for managing contexts
+- `identity` Command for managing applications
+- `json-rpc` Executing read and write Json RPC calls
+- `proxy` Command for managing proxy contract
+- `call` Executing read and write RPC calls
+- `help` Print this message or the help of the given subcommand(s)
+
+:::tip
+
+Run help to get more information about the available options and commands.
+
+```bash title="Terminal"
+meroctl --help
+```
+
+:::
+
+### Options:
+
+- `--home <PATH>` Directory for config and data
+- `-n`, `--node-name <NAME>` Name of node
+- `-h`, `--help` Print help
+- `-output-format <FORMAT>` [default: plain-text] [possible values:
+  json, plain-text]
+- `-V`, `--version` Print version
+
+:::tip
+
+Default location of the config and data directory is `~/.calimero`. You can
+change the location by using the `--home` option.
+
+:::
+
+:::note
 
 All of the communication with your node through the meroctl CLI is protected by
 your nodes private key.
 
-## Why Use Dev Mode?
+:::
 
-Dev mode offers several advantages:
+### Examples:
 
-1. **Local Testing**: Test your application on your local machine without
-   needing to publish it to the network.
-2. **Quick Iterations**: Make changes to your application and immediately test
-   them without going through the full publication process.
-3. **Context Creation**: Automatically create a context and link it to your
-   local application.
-4. **Hot Reload-like Functionality**: Any changes to the binary will
-   automatically reflect in the context, eliminating the need to "upload" the
-   app again after every change.
+| **Command**                                                                           | **Description**                         |
+| ------------------------------------------------------------------------------------- | --------------------------------------- |
+| `meroctl --node-name <NAME> app <COMMAND>`                                            | Command for managing applications       |
+| `meroctl --node-name <NAME> context <COMMAND>`                                        | Command for managing contexts           |
+| `meroctl --node-name <NAME> identity <COMMAND>`                                       | Command for managing identities         |
+| `meroctl --node-name <NAME> json-rpc [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Executing read and write Json RPC calls |
+| `meroctl --node-name <NAME> proxy <COMMAND>`                                          | Command for managing proxy contract     |
+| `meroctl --node-name <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>`     | Executing read and write RPC calls      |
 
-## Prerequisites
-
-Before using dev mode, ensure you have a node running. This should be done in a
-separate terminal window. For more information, see the
-[Setup guide](/getting-started/setup).
-
-To list all supported commands for the cli, run the following command:
+### Manage Applications
 
 ```bash title="Terminal"
-cargo run -p meroctl -- help
+meroctl --node-name <NAME> app <COMMAND>
 ```
 
-Supported commands:
+Commands:
 
-- `context` Manage contexts
-- `app` Manage applications
-- `help` Print this message or the help of the given subcommand(s)
+- `get` Fetch application details
+- `install` Install an application
+- `list` List installed applications
 
-Here's the basic syntax:
-
-All commands share the same prefix:
+### Manage Contexts
 
 ```bash title="Terminal"
-cargo run -p meroctl -- --node-name <node_name> <command>
+meroctl --node-name <NAME> context <COMMAND>
 ```
 
-### Parameters:
+Commands:
 
-- `--node-name`: Specifies the name of the node.
+- `list` List all contexts
+- `create` Create a new context
+- `join` Join an application context
+- `invite` Create invitation to a context for a invitee
+- `get` Fetch details about the context
+- `delete` Delete an context
+- `watch` Watch events from a context
+- `update` Update app in context
 
-- `--path`: Specifies the absolute path to your WASM file.
-
-Create dev context using installed app
+### Manage Identities
 
 ```bash title="Terminal"
-cargo run -p meroctl -- --node-name <node_name> context create --watch <path>
+meroctl --node-name <NAME> identity <COMMAND>
 ```
 
-Output
+Commands:
+
+- `generate` Generate public/private key pair used for context identity
+
+### Executing read and write Json RPC calls
 
 ```bash title="Terminal"
-$ cargo run -p meroctl -- --node-name node1 context create  --watch ./path/to/binary.wasm
-Application `<appId>` installed!
-Context `<contextId>` created!
-Context{contextId} -> Application{appId}
-(i) Watching for changes to "./path/to/binary.wasm"
+meroctl --node-name <NAME> json-rpc [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
 ```
 
-Invite other local nodes to participate in the context
+Arguments:
+
+- `<CONTEXT_ID>` ContextId of the context
+- `<METHOD>` Method to fetch details
+
+Options:
+
+- `--args <ARGS>` JSON arguments to pass to the method
+- `--as <EXECUTOR>` Public key of the executor
+- `--id <ID>` Id of the JsonRpc execute call [default: dontcare]
+
+### Command for managing proxy contract
 
 ```bash title="Terminal"
-cargo run -p  meroctl -- --node-name node2 context join --context-id contextId
+ meroctl --node-name <NAME> proxy <COMMAND>
 ```
 
-Output
+Commands:
+
+- `get` Fetch details about the proxy contract
+
+### Executing read and write RPC calls
 
 ```bash title="Terminal"
-Context <contextId> sucesfully joined
+meroctl --node-name <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
 ```
 
-Create context command will:
+Arguments:
 
-1. Install your application locally.
-2. Create a new context.
-3. Link the context to your local application.
+- `<CONTEXT_ID>` ContextId of the context
+- `<METHOD>` Method to fetch details
 
-### Automatic Updates
+Options:
 
-One of the key benefits of dev mode is its ability to automatically reflect
-changes in your application. When you modify and recompile your WASM binary,
-these changes are immediately available in the context without requiring you to
-"upload" or reinstall the application. This feature provides a seamless
-development experience, similar to "hot reload" functionality in other
-development environments.
-
-### Other useful commands
-
-1. List existing contexts
-
-```bash title="Terminal"
-$ cargo run -p meroctl -- --node-name node1 context ls
-```
-
-2. Create a context for a published application:
-
-```bash title="Terminal"
-$ cargo run -p meroctl -- --node-name node1 context create --application-id <appId>
-```
-
-Output
-
-```bash title="Terminal"
-Context `contextId` created!
-Context{contextId} -> Application{appId}
-```
-
-3. Update applications in a context
-
-```bash title="Terminal"
-# Update with a published application ID
-cargo run -p meroctl -- --node-name node1 context update --context-id <context-id> -a <application-id> --as <identity>
-
-# Update with a local application file (one-time)
-cargo run -p meroctl -- --node-name node1 context update --context-id <context-id> --path ./path/to/file --as <identity>
-
-# Update with a local application file (watch mode / reccuring updates)
-cargo run -p meroctl -- --node-name node1 context update --context-id <context-id> --path ./path/to/file --watch --as <identity>
-```
-
-The update command allows you to:
-
-- Update a context to use a different published application
-- Install and update to a local application file
-- Watch a local application file for changes and automatically update the contex
-
-### From development to Publication
-
-When you're ready to move from local development to publishing your application:
-
-1. Test your application thoroughly using dev mode.
-
-2. When satisfied with your application's performance, follow the steps in the
-   Publish App guide to publish your application to the network.
-
-3. After publication, you can create contexts for your published application
-   using the --application-id flag instead of dev mode.
-
-Install the local app on node for debugging
-
-```bash title="Terminal"
-cargo run -p meroctl -- --node-name <node_name> app install –-path <path>
-```
-
-Output
-
-```bash title="Terminal"
-Application installed successfully. Application ID: <appId>
-```
+- `--args <ARGS>` JSON arguments to pass to the method
+- `--as <EXECUTOR>` Public key of the executor
+- `--id <ID>` Id of the JsonRpc execute call [default: dontcare]
