@@ -78,5 +78,9 @@
   "sidebar.tutorialSidebar.category.Login with Wallets": {
     "message": "Login with Wallets",
     "description": "The label for category Login with Wallets in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.shared": {
+    "message": "shared",
+    "description": "The label for category shared in sidebar tutorialSidebar"
   }
 }

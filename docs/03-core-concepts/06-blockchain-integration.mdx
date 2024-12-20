@@ -1,7 +1,9 @@
 ---
-id: blockchain-integrations
-title: Blockchain Integrations
+id: blockchains-integration
+title: Blockchains Integration
 ---
+
+import InitNode from '../shared/node-init.mdx';
 
 # Blockchain Integrations
 
@@ -16,7 +18,7 @@ Calimero currently supports the following blockchain protocols:
 - Starknet
 - Internet Computer (ICP)
 
-<div style={{ display: 'flex', justifyContent: 'center' }}>
+<div style={{ display: 'flex', justifyContent: 'center'}}>
 
 ```mermaid
 graph TD
@@ -130,7 +132,7 @@ context.
 Each context has its own Proxy Contract instance which is deployed during the
 context creation.
 
-<div style={{display: 'flex', justifyContent: 'center'}}>
+<div style={{display: 'flex', justifyContent: 'center' ,margin: '2rem'}}>
 
 ```mermaid
 graph TD
@@ -143,6 +145,9 @@ D -->|No| F[Store Vote Count]
 
 </div>
 
+Tutorial on how to use proxy contract functionalities is available in
+[tutorials section](../../tutorials/proxy-contract-interaction)
+
 ### Deployment of Contracts
 
 #### Context Contract
@@ -153,7 +158,7 @@ Context Contract is predeployed on each blockchain by the Calimero team.
 
 Proxy Contract is deployed during the context creation.
 
-<div style={{display: 'flex', justifyContent: 'center'}}>
+<div style={{display: 'flex', justifyContent: 'center', margin: '2rem'}}>
 
 ```mermaid
 graph TD
@@ -164,12 +169,24 @@ C -->|Unique Instance| D[Context-specific Proxy]
 
 </div>
 
+:::info
+
+Proxy Contract is deployed on the same blockchain as the Context Contract.
+
+:::
+
+:::warning
+
+Users are responsible for funding the Proxy Contract.
+
+:::
+
 ### Example Application
 
 We have an example application that connects to Calimero Proxy Contract and
 allows creating proposals, voting on them, and executing the approved proposals.
 
-<div style={{display: 'flex', justifyContent: 'center'}}>
+<div style={{display: 'flex', justifyContent: 'center', margin: '2rem' }}>
 ```mermaid
 graph TD
 A[Application] -->|Connects to| B[Calimero Proxy Contract]
@@ -184,5 +201,12 @@ F -->|No| I[Store Vote Count]
 ```
 </div>
 
-Application code can be found
-[here](https://github.com/calimero-network/demo-blockchain-integrations).
+Application showcases all the actions that can be done on the Proxy Contract.
+
+To create context on specific blockchain user will need to add the --protocol
+when initializing the node
+
+<InitNode />
+
+Full source code is available in our GitHub
+[repository](https://github.com/calimero-network/demo-blockchain-integrations).
