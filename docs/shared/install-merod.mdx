@@ -1,0 +1,81 @@
+You can choose to install `merod` using either the installation script or
+Homebrew.
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs
+    defaultValue="homebrew"
+    values={[
+        {label: 'Homebrew', value: 'homebrew'},
+        {label: 'Installation Script', value: 'script'},
+    ]}>
+
+<TabItem value="homebrew">
+If you use Homebrew, you can install `merod` directly with the following
+steps:
+
+#### Steps
+
+1. Add the Calimero Homebrew tap:
+
+   ```bash
+   brew tap calimero-network/homebrew-tap
+   ```
+
+2. Install `merod`:
+
+   ```bash
+   brew install merod
+   ```
+
+3. Verify the installation:
+   ```bash
+   merod --version
+   ```
+
+If the version number appears, the installation was successful.
+
+</TabItem>
+<TabItem value="script">
+The installation script supports multiple terminal environments and will
+automatically configure your PATH based on your shell.
+
+#### Steps
+
+1. Open your terminal and run:
+
+   ```bash
+   curl -sSf https://raw.githubusercontent.com/calimero-network/core/master/scripts/install-merod.sh | bash
+   ```
+
+2. Source the updated PATH:
+
+   ```bash
+   source <your-shell-config-file>
+   ```
+
+   Replace `<your-shell-config-file>` with `.bashrc`, `.zshrc`, or the relevant
+   configuration file for your shell.
+
+3. Verify the installation:
+   ```bash
+   merod --version
+   ```
+
+If the version number appears, the installation was successful.
+
+#### Notes for Shell Environments
+
+The script automatically updates your PATH based on your shell configuration:
+
+- **Bash**: Updates `.bashrc`.
+- **Zsh**: Updates `.zshrc`.
+- **Fish**: Modifies `~/.config/fish/config.fish`.
+- **Csh/Tcsh**: Updates `.cshrc`.
+
+To apply the changes immediately, use the `source` command as described in step
+2 above.
+
+</TabItem>
+</Tabs>

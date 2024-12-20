@@ -3,7 +3,19 @@ id: meroctl
 title: Meroctl
 ---
 
-Meroctl is a command-line tool that enables you to use node functionalities.
+import MeroctlInstallation from '../../shared/install-meroctl.mdx';
+
+Meroctl is a command-line tool that enables you to interact with your Calimero
+node directly from the shell.
+
+<details>
+  <summary>Installation</summary>
+  <p>
+    <MeroctlInstallation />
+  </p>
+</details>
+
+## Usage
 
 ```bash title="Terminal"
 meroctl [OPTIONS] --node-name <NAME> <COMMAND>
@@ -14,7 +26,6 @@ meroctl [OPTIONS] --node-name <NAME> <COMMAND>
 - `app` Command for managing applications
 - `context` Command for managing contexts
 - `identity` Command for managing applications
-- `json-rpc` Executing read and write Json RPC calls
 - `proxy` Command for managing proxy contract
 - `call` Executing read and write RPC calls
 - `help` Print this message or the help of the given subcommand(s)
@@ -54,14 +65,13 @@ your nodes private key.
 
 ### Examples:
 
-| **Command**                                                                           | **Description**                         |
-| ------------------------------------------------------------------------------------- | --------------------------------------- |
-| `meroctl --node-name <NAME> app <COMMAND>`                                            | Command for managing applications       |
-| `meroctl --node-name <NAME> context <COMMAND>`                                        | Command for managing contexts           |
-| `meroctl --node-name <NAME> identity <COMMAND>`                                       | Command for managing identities         |
-| `meroctl --node-name <NAME> json-rpc [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Executing read and write Json RPC calls |
-| `meroctl --node-name <NAME> proxy <COMMAND>`                                          | Command for managing proxy contract     |
-| `meroctl --node-name <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>`     | Executing read and write RPC calls      |
+| **Command**                                                                       | **Description**                     |
+| --------------------------------------------------------------------------------- | ----------------------------------- |
+| `meroctl --node-name <NAME> app <COMMAND>`                                        | Command for managing applications   |
+| `meroctl --node-name <NAME> context <COMMAND>`                                    | Command for managing contexts       |
+| `meroctl --node-name <NAME> identity <COMMAND>`                                   | Command for managing identities     |
+| `meroctl --node-name <NAME> proxy <COMMAND>`                                      | Command for managing proxy contract |
+| `meroctl --node-name <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Executing read and write RPC calls  |
 
 ### Manage Applications
 
@@ -102,23 +112,6 @@ Commands:
 
 - `generate` Generate public/private key pair used for context identity
 
-### Executing read and write Json RPC calls
-
-```bash title="Terminal"
-meroctl --node-name <NAME> json-rpc [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
-```
-
-Arguments:
-
-- `<CONTEXT_ID>` ContextId of the context
-- `<METHOD>` Method to fetch details
-
-Options:
-
-- `--args <ARGS>` JSON arguments to pass to the method
-- `--as <EXECUTOR>` Public key of the executor
-- `--id <ID>` Id of the JsonRpc execute call [default: dontcare]
-
 ### Command for managing proxy contract
 
 ```bash title="Terminal"
@@ -144,4 +137,4 @@ Options:
 
 - `--args <ARGS>` JSON arguments to pass to the method
 - `--as <EXECUTOR>` Public key of the executor
-- `--id <ID>` Id of the JsonRpc execute call [default: dontcare]
+- `--id <ID>` Id of the RPC execute call [default: dontcare]

@@ -1,0 +1,63 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs
+    defaultValue="near"
+    groupId="protocol"
+    values={[
+        {label: 'NEAR', value: 'near'},
+        {label: 'Starknet', value: 'starknet'},
+        {label: 'ICP', value: 'icp'},
+    ]}>
+
+    <TabItem value="near">
+        ```bash title="Terminal"
+        merod --node-name node1 init --server-port 2428 --swarm-port 2528
+        ```
+    </TabItem>
+    <TabItem value="starknet">
+        ```bash title="Terminal"
+        merod --node-name node1 init --server-port 2428 --swarm-port 2528 --protocol starknet
+        ```
+    </TabItem>
+    <TabItem value="icp">
+        ```bash title="Terminal"
+        merod --node-name node1 init --server-port 2428 --swarm-port 2528 --protocol icp
+        ```
+    </TabItem>
+
+</Tabs>
+
+:::tip
+
+A `--protocol` flag defines which chain will be used in the node context. NEAR
+is default protocol so it doesn't need to be specified. List of supported
+protocols can be found in the
+[Blockchains integration](../core-concepts/blockchains-integration)
+
+:::
+
+Node configuration file contains protocol defined metada.
+
+<Tabs
+    defaultValue="near"
+    groupId="protocol"
+    values={[
+        {label: 'NEAR', value: 'near'},
+        {label: 'Starknet', value: 'starknet'},
+        {label: 'ICP', value: 'icp'},
+    ]}>
+
+<TabItem value="near">
+![NearConfig](/init/near-config.png)
+
+</TabItem>
+<TabItem value="starknet">
+![SnConfig](/init/sn-config.png)
+
+</TabItem>
+<TabItem value="icp">
+![ICPConfig](/init/icp-config.png)
+
+</TabItem>
+</Tabs>
