@@ -3,87 +3,45 @@ id: create-context
 title: Create Context
 ---
 
-## Create a context using the Admin Dashboard
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-1. Navigate to the "Contexts" tab and click the "Start New Context" button.
-2. Use the "Browse" button to select an application from the list.
-3. Choose the "Template Application" option.
-4. Press "Start" to initiate the context creation process with the selected
-   application.
+import ContextCreateBinary from '../shared/context-create-binary.mdx';
+import ContextCreateInteractiveCli from '../shared/context-create-interactive-cli.mdx';
+import ContextCreateAdminDashboard from '../shared/context-create-admin-dashboard.mdx';
+import InitNode from '../shared/node-init-binary.mdx';
+import RunNode from '../shared/node-run-binary.mdx';
 
-Visit [Admin Dashboard Page](../../developer-tools/apps/admin-dashboard) to view
-detailed instructions with images.
+### Initialize node
 
-After the context is created, you will be redirected to the context dashboard.
-Keep this page open as you will need the Context ID later.
+<InitNode />
 
-## Create context using interactive CLI
+### Run node
 
-After you have start the node following
-[instructions](../../getting-started/setup), interactive CLI will be available
-within the same terminal.
+<RunNode />
 
-![Interactive CLI](/cli/0-interactive-cli.png)
+### Create a New Context
 
-> **NOTE**: You can see available commands in terminal: call, peers, pool, gc,
-> context, application. In this example we will be using commands for `context`
-> and `application`.
+<Tabs
+    defaultValue="meroctl"
+    values={[
+        {label: 'Meroctl', value: 'meroctl'},
+        {label: 'Interactive cli', value: 'interactive-cli'},
+        {label: 'Admin Dashboard', value: 'admin-dashboard'},
+    ]}>
 
-### Step 1: Install the Application
+<TabItem value="meroctl">
+  <ContextCreateBinary />
+</TabItem>
 
-Run the following command to install the application:
+<TabItem value="interactive-cli">
+  <ContextCreateInteractiveCli />
+</TabItem>
 
-```bash
-application install url {url} {metadata}
-```
+<TabItem value="admin-dashboard">
+  <ContextCreateAdminDashboard />
+</TabItem>
+</Tabs>
 
-> **NOTE**: metadata example:
-
-```bash
-'{"contractAppId": "<application_id>"}'
-```
-
-You can find the application `URL` and `contractAppId` by opening Application
-Details from Applications section of the Admin Dashboard.
-
-You can also install an app that you have available locally with `file`:
-
-```bash
-application install file {path/to/file}
-```
-
-![Application details](/admin-dashboard/application-details-for-context-creation.png)
-
-`contractApplicationId` is the id of application stored in the contract. Value
-is optional but if provided, it enables Admin Dashboard to extract and display
-the application metadata.
-
-```bash title="Example"
-application install url https://blobby-public.euw3.prod.gcp.calimero.network/bafkreihl5o6etrnpy7dlgixz3onbfb3og4dll2yqsqaebqakuldk6e2qya '{"contractAppId": "980265ba072119a9074e429dea477e1c084a94e8d9f645c0158680e6942fb99e"}'
-| Downloading application..
-│ Installed application: Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF
-```
-
-![Application install](/cli/1-install-app.png)
-
-### Step 2: Create a New Context
-
-Conext can be created from the
-[Admin Dashboard Page](../../developer-tools/apps/admin-dashboard) or with
-interactive CLI.
-
-After the application is successfully installed, you can create a new context
-with the installed application using this command:
-
-```bash
-context create {applicationId}
-```
-
-```bash title="Example"
-context create Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF
-2024-10-07T11:55:36.658396Z  INFO calimero_context: Subscribed to context context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
-Created context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn with
-identity DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
-```
-
-![Create context](/cli/2-create-context.png)
+You have now create a new context. Next step is to invite users to join your
+context. Continue with [invitations and joinings](./invitations-and-joinings).
