@@ -4,6 +4,7 @@ title: Build From Source
 ---
 
 import InitNode from '../shared/node-init-source.mdx';
+import RunNode from '../shared/node-run-source.mdx';
 
 ## Setup For Contributors
 
@@ -92,15 +93,7 @@ minutes but can vary depending on your internet connection.
 
 #### 2. Run node
 
-```bash title="Terminal"
-cargo run -p merod -- --node-name node1 run
-```
-
-Wait for a few moments and node logs should appear.
-
-![Node running](/setup/node-running.png)
-
-When you see something like this that means that node is now ready for use.
+<RunNode />
 
 </TabItem>
 <TabItem value="docker">
