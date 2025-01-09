@@ -19,21 +19,28 @@ npm install @calimero-network/calimero-client
 The TypeScript Client SDK consists of several key components:
 
 ### 1. RpcClient (JsonRpcClient)
-Handles communication with the node's RPC server for executing queries and mutations.
 
-### 2. SubscriptionsClient (WsSubscriptionsClient) 
+Handles communication with the node's RPC server for executing queries and
+mutations.
+
+### 2. SubscriptionsClient (WsSubscriptionsClient)
+
 Manages WebSocket connections for real-time updates and event subscriptions.
 
 ### 3. HttpClient (AxiosHttpClient)
+
 Provides HTTP communication capabilities for admin API interactions.
 
 ### 4. Authentication Components
+
 - `AccessTokenWrapper`: Manages JWT token lifecycle
 - `ClientLogin`: Handles user authentication flow
 - `SetupModal`: Configures node URL and application settings
 
 ### 5. Storage Utilities
+
 Manages local storage for:
+
 - Access tokens
 - Refresh tokens
 - Application URLs
@@ -94,12 +101,12 @@ const Setup = () => {
 ### 4. Token Storage
 
 ```typescript
-import { 
-    setAccessToken, 
-    getAccessToken,
-    setRefreshToken,
-    getRefreshToken,
-    clearJWT 
+import {
+  setAccessToken,
+  getAccessToken,
+  setRefreshToken,
+  getRefreshToken,
+  clearJWT,
 } from '@calimero-network/calimero-client';
 
 // Store tokens
@@ -116,37 +123,38 @@ clearJWT();
 
 ## Using RpcClient
 
-Important: Always use the `execute` method instead of deprecated `query` or `mutate` methods.
+Important: Always use the `execute` method instead of deprecated `query` or
+`mutate` methods.
 
 ```typescript
 import { JsonRpcClient } from '@calimero-network/calimero-client';
 
 // Initialize client
 const rpcClient = new JsonRpcClient(
-    process.env.NEXT_PUBLIC_API_URL,
-    "/jsonrpc"
+  process.env.NEXT_PUBLIC_API_URL,
+  '/jsonrpc',
 );
 
 // Define interfaces
 interface CreatePost {
-    title: string;
-    text: string;
+  title: string;
+  text: string;
 }
 
 interface Post {
-    id: string;
-    title: string;
-    text: string;
+  id: string;
+  title: string;
+  text: string;
 }
 
 // Execute a method
 const response = await rpcClient.execute<CreatePost, Post>({
-    applicationId: process.env.NEXT_PUBLIC_APPLICATION_ID,
-    method: "create_post",
-    argsJson: {
-        title: "My First Post",
-        text: "Hello Calimero!"
-    }
+  applicationId: process.env.NEXT_PUBLIC_APPLICATION_ID,
+  method: 'create_post',
+  argsJson: {
+    title: 'My First Post',
+    text: 'Hello Calimero!',
+  },
 });
 ```
 
@@ -157,8 +165,8 @@ import { WsSubscriptionsClient } from '@calimero-network/calimero-client';
 
 // Initialize client
 const wsClient = new WsSubscriptionsClient(
-    process.env.NEXT_PUBLIC_API_URL,
-    "/ws"
+  process.env.NEXT_PUBLIC_API_URL,
+  '/ws',
 );
 
 // Connect to WebSocket
@@ -169,14 +177,14 @@ wsClient.subscribe([process.env.NEXT_PUBLIC_APPLICATION_ID]);
 
 // Handle incoming events
 wsClient.addCallback((event) => {
-    switch (event.type) {
-        case 'StateMutation':
-            console.log('State updated:', event.data.newRoot);
-            break;
-        case 'ExecutionEvent':
-            console.log('Event:', event.data);
-            break;
-    }
+  switch (event.type) {
+    case 'StateMutation':
+      console.log('State updated:', event.data.newRoot);
+      break;
+    case 'ExecutionEvent':
+      console.log('Event:', event.data);
+      break;
+  }
 });
 
 // Cleanup
@@ -204,22 +212,22 @@ const approvals = await contractApi.getNumberOfApprovals(proposalId);
 
 ```typescript
 interface ErrorResponse {
-    code?: number;
-    message: string;
+  code?: number;
+  message: string;
 }
 
 try {
-    const result = await rpcClient.execute(params);
-    if (result.error) {
-        if (result.error.code === 401) {
-            // Handle authentication error
-            clearJWT();
-            redirectToLogin();
-        }
-        console.error('RPC Error:', result.error.message);
+  const result = await rpcClient.execute(params);
+  if (result.error) {
+    if (result.error.code === 401) {
+      // Handle authentication error
+      clearJWT();
+      redirectToLogin();
     }
+    console.error('RPC Error:', result.error.message);
+  }
 } catch (error) {
-    console.error('Unexpected error:', error);
+  console.error('Unexpected error:', error);
 }
 ```
 
@@ -228,6 +236,7 @@ try {
 ### Protected Endpoints (Requires Authentication)
 
 #### Application Management
+
 - `POST /admin-api/root-key` - Create root key
 - `POST /admin-api/install-application` - Install application
 - `POST /admin-api/uninstall-application` - Uninstall application
@@ -235,6 +244,7 @@ try {
 - `GET /admin-api/applications/:app_id` - Get application details
 
 #### Context Management
+
 - `POST /admin-api/contexts` - Create context
 - `GET /admin-api/contexts` - List contexts
 - `GET /admin-api/contexts/:context_id` - Get context details
@@ -247,6 +257,7 @@ try {
 - `POST /admin-api/contexts/join` - Join context
 
 #### Identity Management
+
 - `POST /admin-api/identity/context` - Generate context identity
 - `DELETE /admin-api/identity/keys` - Delete auth keys
 - `POST /admin-api/generate-jwt-token` - Generate JWT token
@@ -256,6 +267,7 @@ try {
 ### Unprotected Endpoints
 
 #### Authentication
+
 - `GET /admin-api/health` - Health check
 - `GET /admin-api/certificate` - Get certificate
 - `POST /admin-api/request-challenge` - Request challenge
@@ -263,13 +275,20 @@ try {
 - `POST /admin-api/refresh-jwt-token` - Refresh JWT token
 
 #### Proposal Management
-- `GET /admin-api/contexts/:context_id/proposals/:proposal_id/approvals/count` - Get proposal approvals count
-- `GET /admin-api/contexts/:context_id/proposals/:proposal_id/approvals/users` - Get proposal approvers
-- `GET /admin-api/contexts/:context_id/proposals/count` - Get active proposals count
+
+- `GET /admin-api/contexts/:context_id/proposals/:proposal_id/approvals/count` -
+  Get proposal approvals count
+- `GET /admin-api/contexts/:context_id/proposals/:proposal_id/approvals/users` -
+  Get proposal approvers
+- `GET /admin-api/contexts/:context_id/proposals/count` - Get active proposals
+  count
 - `POST /admin-api/contexts/:context_id/proposals` - Get proposals
-- `GET /admin-api/contexts/:context_id/proposals/:proposal_id` - Get proposal details
-- `POST /admin-api/contexts/:context_id/proposals/get-context-value` - Get context value
-- `POST /admin-api/contexts/:context_id/proposals/context-storage-entries` - Get context storage entries
+- `GET /admin-api/contexts/:context_id/proposals/:proposal_id` - Get proposal
+  details
+- `POST /admin-api/contexts/:context_id/proposals/get-context-value` - Get
+  context value
+- `POST /admin-api/contexts/:context_id/proposals/context-storage-entries` - Get
+  context storage entries
 - `GET /admin-api/contexts/:context_id/proxy-contract` - Get proxy contract
 
 ## Using Admin API
@@ -283,19 +302,20 @@ const httpClient = new AxiosHttpClient(axios);
 
 // Example: Get context details
 const contextDetails = await httpClient.get<ContextDetails>(
-    `${nodeUrl}/admin-api/contexts/${contextId}`
+  `${nodeUrl}/admin-api/contexts/${contextId}`,
 );
 
 // Example: Create context
 const createContext = await httpClient.post<ContextResponse>(
-    `${nodeUrl}/admin-api/contexts`,
-    contextData
+  `${nodeUrl}/admin-api/contexts`,
+  contextData,
 );
 ```
 
 ## Important Notes
 
-1. Always use the `execute` method for RPC calls instead of deprecated `query` or `mutate`
+1. Always use the `execute` method for RPC calls instead of deprecated `query`
+   or `mutate`
 2. Implement proper error handling for both RPC and WebSocket operations
 3. Ensure proper cleanup of WebSocket connections when they're no longer needed
 4. Store sensitive information securely using the provided storage utilities
