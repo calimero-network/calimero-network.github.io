@@ -64,8 +64,8 @@ const config: Config = {
     announcementBar: {
       id: 'id-0002',
       content: `
-    **🎉 OPEN REGISTRATIONS FOR HACKATHONS 🎉**
-     <a href="https://dorahacks.io/hackathon/calimero-x-icp/hackers">ICP Hackathon</a> with prize pool of 40 000 USD and <a href="https://dorahacks.io/hackathon/calimero-x-starknet/detail">Starknet Hackathon</a> with prize pool of 25 000 USD!`,
+    **🎉 OPEN REGISTRATIONS FOR HACKATHON 🎉**
+     <a href="https://dorahacks.io/hackathon/calimero-x-icp/hackers">ICP Hackathon</a> with prize pool of 40 000 USD`,
       backgroundColor: '#fabc0c',
       textColor: '#000000',
       isCloseable: true,
