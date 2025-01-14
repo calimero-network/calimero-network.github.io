@@ -21,8 +21,8 @@ This tutorial will cover the following topics:
 
 4. **Configuring Nodes** - Setting up nodes with ICP-specific configurations.
 
-5. **Installing a Blockchain Demo Application** - Setup demo application that contains all 
-   functionalities for interaction with smart contracts.
+5. **Installing a Blockchain Demo Application** - Setup demo application that
+   contains all functionalities for interaction with smart contracts.
 
 6. **Creating context** - Create context for a blockchain demo application and
    inviting nodes into the context.
@@ -58,14 +58,13 @@ Script for local devnet is located in Calimero Core repository. First clone the
 [repository](https://github.com/calimero-network/core) and navigate to directory
 `core/contracts/icp/context-config/`.
 
-
 :::caution
 
-Script is implemented in a way that it deletes current dfx enviroment and creates new one. 
-This will delete all previous setups and deployed smart contracts.
+Script is implemented in a way that it deletes current dfx enviroment and
+creates new one. This will delete all previous setups and deployed smart
+contracts.
 
 :::
-
 
 ```bash title="Terminal"
 git clone https://github.com/calimero-network/core
@@ -87,7 +86,7 @@ what tool is missing.
 <details>
   <summary>Running the script should look like the following image</summary>
   <p>
-  <img src="/icp-tutorial/1_start_devnet_script.png" alt="devnetsript" />
+    <img src="/icp-tutorial/1_start_devnet_script.png" alt="devnetsript" />
   </p>
 </details>
 
@@ -110,7 +109,10 @@ Deployment completed successfully!
 <details>
   <summary>Sucessfull deployment image</summary>
   <p>
-  <img src="/icp-tutorial/2_devnet_script_finish.png" alt="FinishDevnetScript" />
+    <img
+      src="/icp-tutorial/2_devnet_script_finish.png"
+      alt="FinishDevnetScript"
+    />
   </p>
 </details>
 
@@ -125,10 +127,9 @@ dfx ping
 <details>
   <summary>Ping response image</summary>
   <p>
-  <img src="/icp-tutorial/3_ping_devnet.png" alt="pingresponse" />
+    <img src="/icp-tutorial/3_ping_devnet.png" alt="pingresponse" />
   </p>
 </details>
-
 
 At this point the ICP devnet is running and we can now deploy our smart
 contracts.
@@ -150,7 +151,7 @@ generate .did file from this contract.
 <details>
   <summary>Greet smart contract source code image</summary>
   <p>
-  <img src="/icp-tutorial/contract_greet.png" alt="greet-source-code" />
+    <img src="/icp-tutorial/contract_greet.png" alt="greet-source-code" />
   </p>
 </details>
 
@@ -179,7 +180,7 @@ cargo build --target wasm32-unknown-unknown –release
 <details>
   <summary>Build output image</summary>
   <p>
-  <img src="/icp-tutorial/4_cargo_build.png" alt="cargo-build" />
+    <img src="/icp-tutorial/4_cargo_build.png" alt="cargo-build" />
   </p>
 </details>
 
@@ -189,10 +190,9 @@ After build command finishes you should have `greet.wasm` file inside the
 <details>
   <summary>Greet .wasm file image</summary>
   <p>
-  <img src="/icp-tutorial/5_cargo_wasm.png" alt="wasm-file" />
+    <img src="/icp-tutorial/5_cargo_wasm.png" alt="wasm-file" />
   </p>
 </details>
-
 
 ### Generate Greet .did file
 
@@ -207,14 +207,14 @@ candid-extractor target/wasm32-unknown-unknown/release/greet.wasm > src/greet/gr
 <details>
   <summary>Terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/6_candid_extractor.png" alt="candid-extractor" />
+    <img src="/icp-tutorial/6_candid_extractor.png" alt="candid-extractor" />
   </p>
 </details>
 
 <details>
   <summary>Greet .did file image</summary>
   <p>
-  <img src="/icp-tutorial/7_greet_did_file.png" alt="did-file" />
+    <img src="/icp-tutorial/7_greet_did_file.png" alt="did-file" />
   </p>
 </details>
 
@@ -234,16 +234,12 @@ dfx canister create greet && dfx deploy
 <details>
   <summary>Deploy terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/8_greet_deploy.png" alt="deploy-terminal-output" />
-    > <br/>
-    > Save the `canister ID` as you
-    > will need it later to call its query and mutate methods.
-    >
-    > In this case the canister ID is: `br5f7-7uaaa-aaaaa-qaaca-cai`
+    <img src="/icp-tutorial/8_greet_deploy.png" alt="deploy-terminal-output" />
+    > <br />> Save the `canister ID` as you > will need it later to call its
+    query and mutate methods. > > In this case the canister ID is:
+    `br5f7-7uaaa-aaaaa-qaaca-cai`
   </p>
 </details>
-
-
 
 ### Test Smart Contract
 
@@ -259,10 +255,9 @@ dfx canister call greet get_greet
 <details>
   <summary>Query terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/9_test_query.png" alt="query-terminal-output" />
+    <img src="/icp-tutorial/9_test_query.png" alt="query-terminal-output" />
   </p>
 </details>
-
 
 ```bash title="Calimero Core Repository Terminal"
 dfx canister call br5f7-7uaaa-aaaaa-qaaca-cai get_greet
@@ -272,10 +267,12 @@ dfx canister call br5f7-7uaaa-aaaaa-qaaca-cai get_greet
 <details>
   <summary>Query terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/10_test_query_core.png" alt="query-terminal-output" />
+    <img
+      src="/icp-tutorial/10_test_query_core.png"
+      alt="query-terminal-output"
+    />
   </p>
 </details>
-
 
 ## Context and Proxy Contract
 
@@ -317,14 +314,12 @@ dfx canister deposit-cycles 1000000000000000000 bkyz2-fmaaa-aaaaa-qaaaq-cai
 >Deposited 1000000000000000000 cycles, updated balance: >2_000_003_061_071_811_962 cycles
 ```
 
-
 <details>
   <summary>Seed contract terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/11_fund_context_contract.png" alt="seed-contract" />
+    <img src="/icp-tutorial/11_fund_context_contract.png" alt="seed-contract" />
   </p>
 </details>
-
 
 Now context contract has cycles deposited and we need to fund the proxy
 contract.
@@ -372,22 +367,22 @@ cargo run -p merod -- --node-name node3 init --server-port 2429 --swarm-port 252
 <details>
   <summary>Node initialization terminal image</summary>
   <p>
-  <img src="/icp-tutorial/12_init_cali_nodes.png" alt="init-nodes" />
+    <img src="/icp-tutorial/12_init_cali_nodes.png" alt="init-nodes" />
   </p>
 </details>
-
 
 You can verify nodes configuration by looking into `~.calimero` folder.
 
 <details>
   <summary>Nodes configuration image</summary>
   <p>
-  <img src="/icp-tutorial/13_verify_node_config.png" alt="nodes-configuration" />
-    > <br />
-    > We can see that protocol is `ICP` and network is `local`.
+    <img
+      src="/icp-tutorial/13_verify_node_config.png"
+      alt="nodes-configuration"
+    />
+    > <br />> We can see that protocol is `ICP` and network is `local`.
   </p>
 </details>
-
 
 More on node initialization can be found [here](/getting-started/setup/).
 
@@ -408,7 +403,7 @@ cargo run -p merod -- --node-name node3 run
 <details>
   <summary>Running nodes terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/14_start_cali_nodes.png" alt="running-nodes" />
+    <img src="/icp-tutorial/14_start_cali_nodes.png" alt="running-nodes" />
   </p>
 </details>
 
@@ -437,12 +432,13 @@ context create <APPLICATION_ID>
 ```
 
 <details>
-  <summary>Application install and create context terminal output image</summary>
+  <summary>
+    Application install and create context terminal output image
+  </summary>
   <p>
-  <img src="/icp-tutorial/16_2_node_1_install_app.png" alt="install-app" />
+    <img src="/icp-tutorial/16_2_node_1_install_app.png" alt="install-app" />
   </p>
 </details>
-
 
 From node2 and node3 terminal we are going to create a new identity which will
 be used for context invitation.
@@ -462,10 +458,9 @@ identity new
 <details>
   <summary>Create identity terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/16_create_new_identity.png" alt="create-identity" />
+    <img src="/icp-tutorial/16_create_new_identity.png" alt="create-identity" />
   </p>
 </details>
-
 
 Now we are going to do the process of invitation where from node1 we invite
 node2 and node3 inside the previously created context.
@@ -473,13 +468,11 @@ node2 and node3 inside the previously created context.
 <details>
   <summary>Joining context terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/16_invite_nodes.png" alt="join-context" />
+    <img src="/icp-tutorial/16_invite_nodes.png" alt="join-context" />
   </p>
 </details>
->
-> More on invitations and joining the context can be found
-> [here](https://calimero-network.github.io/tutorials/invitations-and-joinings)
-
+> > More on invitations and joining the context can be found >
+[here](https://calimero-network.github.io/tutorials/invitations-and-joinings)
 
 Lastly we can check if all nodes are connected in context with:
 
@@ -495,7 +488,7 @@ identity ls <CONTEXT_ID>
 <details>
   <summary>View context members terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/18_verify_context.png" alt="context-members" />
+    <img src="/icp-tutorial/18_verify_context.png" alt="context-members" />
   </p>
 </details>
 
@@ -527,13 +520,11 @@ And for our case it is:
 <details>
   <summary>Postman GET request output image</summary>
   <p>
-  <img src="/icp-tutorial/19_get_proxy_contract.png" alt="context-members" />
-  > <br/>
-  > We get value of
-  > proxy contract id which is: `b77ix-eeaaa-aaaaa-qaada-cai`
+    <img src="/icp-tutorial/19_get_proxy_contract.png" alt="context-members" />
+    > <br />> We get value of > proxy contract id which is:
+    `b77ix-eeaaa-aaaaa-qaada-cai`
   </p>
 </details>
-
 
 Now when we have the proxy contract lets go back to Core repository terminal and
 fund the contract.
@@ -563,7 +554,7 @@ dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_transfer "(record { to = rec
 <details>
   <summary>Fund contract terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/20_fund_proxy_contract.png" alt="fund-contract" />
+    <img src="/icp-tutorial/20_fund_proxy_contract.png" alt="fund-contract" />
   </p>
 </details>
 
@@ -577,7 +568,7 @@ dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_balance_of "(record { owner 
 <details>
   <summary>Verify balance terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/21_verify_balance.png" alt="verify-balance" />
+    <img src="/icp-tutorial/21_verify_balance.png" alt="verify-balance" />
   </p>
 </details>
 
@@ -610,10 +601,12 @@ git clone https://github.com/calimero-network/demo-blockchain-integrations && cd
 <details>
   <summary>Terminal output for started application image</summary>
   <p>
-  <img src="/icp-tutorial/23_start_blockchain_demo_app.png" alt="running-demo-app" />
+    <img
+      src="/icp-tutorial/23_start_blockchain_demo_app.png"
+      alt="running-demo-app"
+    />
   </p>
 </details>
-
 
 For this application we will also need application ID which can be copied from
 any of previous steps or use following command from any of node terminals.
@@ -626,7 +619,7 @@ application ls
 <details>
   <summary>Get application id terminal output image</summary>
   <p>
-  <img src="/icp-tutorial/22_get_app_id.png" alt="get-app-id" />
+    <img src="/icp-tutorial/22_get_app_id.png" alt="get-app-id" />
   </p>
 </details>
 
@@ -636,7 +629,7 @@ and enter the node URL. We will do this process for all 3 nodes.
 <details>
   <summary>Blockchain demo application setup for node1 image</summary>
   <p>
-  <img src="/icp-tutorial/23_login_node1.png" alt="setup-app" />
+    <img src="/icp-tutorial/23_login_node1.png" alt="setup-app" />
   </p>
 </details>
 
@@ -645,7 +638,7 @@ After you login you should see the Blockchain Demo Application
 <details>
   <summary>Blockchain demo application image</summary>
   <p>
-  <img src="/icp-tutorial/24_create_threshold_proposal.png" alt="demo-app" />
+    <img src="/icp-tutorial/24_create_threshold_proposal.png" alt="demo-app" />
   </p>
 </details>
 
@@ -658,7 +651,7 @@ default needs 3 approvals to be executed.
 <details>
   <summary>Create proposal image</summary>
   <p>
-  <img src="/icp-tutorial/25_proposal_creation.png" alt="create-proposal" />
+    <img src="/icp-tutorial/25_proposal_creation.png" alt="create-proposal" />
   </p>
 </details>
 
@@ -667,7 +660,10 @@ We get a popup saying proposal was created.
 <details>
   <summary>Proposal created popup image</summary>
   <p>
-  <img src="/icp-tutorial/26_proposal_popup_1.png" alt="create-proposal-popup" />
+    <img
+      src="/icp-tutorial/26_proposal_popup_1.png"
+      alt="create-proposal-popup"
+    />
   </p>
 </details>
 
@@ -676,7 +672,7 @@ And we can see the proposal, it has only 1 approver on creation.
 <details>
   <summary>Proposal overview image</summary>
   <p>
-  <img src="/icp-tutorial/27_proposal_overview.png" alt="proposal-overview" />
+    <img src="/icp-tutorial/27_proposal_overview.png" alt="proposal-overview" />
   </p>
 </details>
 
@@ -685,7 +681,7 @@ Press `Logout` button and to the same steps but with setup for node2.
 <details>
   <summary>Blockchain demo application setup for node2 image</summary>
   <p>
-  <img src="/icp-tutorial/28_login_node2.png" alt="node2-setup" />
+    <img src="/icp-tutorial/28_login_node2.png" alt="node2-setup" />
   </p>
 </details>
 
@@ -694,7 +690,7 @@ Approve proposal.
 <details>
   <summary>Approved proposal overview image</summary>
   <p>
-  <img src="/icp-tutorial/29_approve_node2.png" alt="approve-proposal" />
+    <img src="/icp-tutorial/29_approve_node2.png" alt="approve-proposal" />
   </p>
 </details>
 
@@ -703,7 +699,10 @@ Proposal approved popup.
 <details>
   <summary>Proposal approved popup image</summary>
   <p>
-  <img src="/icp-tutorial/30_proposal_popup_2.png" alt="approve-proposal-popup" />
+    <img
+      src="/icp-tutorial/30_proposal_popup_2.png"
+      alt="approve-proposal-popup"
+    />
   </p>
 </details>
 
@@ -712,7 +711,7 @@ Now the same steps with the node3.
 <details>
   <summary>Blockchain demo application setup for node3 image</summary>
   <p>
-  <img src="/icp-tutorial/31_login_node3.png" alt="node3-setup" />
+    <img src="/icp-tutorial/31_login_node3.png" alt="node3-setup" />
   </p>
 </details>
 
@@ -721,7 +720,10 @@ Approve proposal.
 <details>
   <summary>Proposal approved popup image</summary>
   <p>
-  <img src="/icp-tutorial/30_proposal_popup_2.png" alt="approve-proposal-popup" />
+    <img
+      src="/icp-tutorial/30_proposal_popup_2.png"
+      alt="approve-proposal-popup"
+    />
   </p>
 </details>
 
@@ -730,10 +732,12 @@ And after third proposal approval we get popup saying proposal was executed.
 <details>
   <summary>Proposal executed popup image</summary>
   <p>
-  <img src="/icp-tutorial/32_execute_proposal_node3.png" alt="execute-proposal-popup" />
+    <img
+      src="/icp-tutorial/32_execute_proposal_node3.png"
+      alt="execute-proposal-popup"
+    />
   </p>
 </details>
-
 
 ### Cross-Contract Call Proposal
 
@@ -746,7 +750,10 @@ So lets create a cross-contract call proposal.
 <details>
   <summary>Create cross-contract call proposal image</summary>
   <p>
-  <img src="/icp-tutorial/33_create_cross_call_proposal.png" alt="create-ccc" />
+    <img
+      src="/icp-tutorial/33_create_cross_call_proposal.png"
+      alt="create-ccc"
+    />
   </p>
 </details>
 
@@ -763,10 +770,12 @@ After we create proposal it will be executed.
 <details>
   <summary>Proposal executed popup image</summary>
   <p>
-  <img src="/icp-tutorial/34_proposal_popup_3.png" alt="proposal-executed-popup" />
+    <img
+      src="/icp-tutorial/34_proposal_popup_3.png"
+      alt="proposal-executed-popup"
+    />
   </p>
 </details>
-
 
 And now for the last step we can run get_greet method from beggining to see if
 greet changed.
@@ -774,13 +783,15 @@ greet changed.
 <details>
   <summary>Terminal ouput for get_greet method image</summary>
   <p>
-  <img src="/icp-tutorial/35_verify_change_method.png" alt="get-greet-image" />
+    <img
+      src="/icp-tutorial/35_verify_change_method.png"
+      alt="get-greet-image"
+    />
   </p>
 </details>
 
-> We can see in
-> terminal the first time we used command output was: Hello, world! And after
-> proposal was executed greet was changed to: Hello, calimero!
+> We can see in terminal the first time we used command output was: Hello,
+> world! And after proposal was executed greet was changed to: Hello, calimero!
 
 ## Conclusion
 
