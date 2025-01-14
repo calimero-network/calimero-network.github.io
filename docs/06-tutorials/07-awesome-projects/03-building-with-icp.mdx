@@ -5,44 +5,66 @@ title: Building with Internet Computer (ICP)
 
 # Building with Internet Computer (ICP)
 
-Step-by-Step Guide to Building an Application for Calimero with Internet Computer (ICP)
+Step-by-Step Guide to Building an Application for Calimero with Internet
+Computer (ICP)
 
 This tutorial will cover the following topics:
 
-1. **Starting a Local Devnet**  - Setting up a local testing environment with a script for launching the devnet.
+1. **Starting a Local Devnet** - Setting up a local testing environment with a
+   script for launching the devnet.
 
-2. **Explaining a Simple Greet Smart Contract**  - An overview of a basic smart contract for ICP.
+2. **Explaining a Simple Greet Smart Contract** - An overview of a basic smart
+   contract for ICP.
 
-3. **Deploying the Smart Contract**  - Step-by-step instructions for deploying the smart contract on ICP.
+3. **Deploying the Smart Contract** - Step-by-step instructions for deploying
+   the smart contract on ICP.
 
-4. **Configuring Nodes**  - Setting up nodes with ICP-specific configurations.
+4. **Configuring Nodes** - Setting up nodes with ICP-specific configurations.
 
-5. **Installing a Blockchain Demo Application**  - Installing a demo application that enables ICP cross-contract calls.
+5. **Installing a Blockchain Demo Application** - Setup demo application that contains all 
+   functionalities for interaction with smart contracts.
 
-6. **Creating context** - Create context for a blockchain demo application and inviting nodes into the context
+6. **Creating context** - Create context for a blockchain demo application and
+   inviting nodes into the context.
 
-6. **Creating a Proposal**  - Creating a proposal to execute cross-contract call to "Greet" smart contract deployed in step 3
-
+7. **Creating a Proposal** - Creating a proposal to execute cross-contract call
+   to "Greet" smart contract deployed in step 3.
 
 ## Requirements
 
-To follow this tutorial, you'll need to clone the following Calimero repositories:
+To follow this tutorial, you'll need to clone the following Calimero
+repositories:
 
 - Calimero Core - [Repository](https://github.com/calimero-network/core)
-- Demo Blockchain Integrations - [Repository](https://github.com/calimero-network/demo-blockchain-integrations)
-- ICP Demo Contract - [Repository](https://github.com/calimero-network/icp-demo-contract)
+- Demo Blockchain Integrations -
+  [Repository](https://github.com/calimero-network/demo-blockchain-integrations)
+- ICP Demo Contract -
+  [Repository](https://github.com/calimero-network/icp-demo-contract)
 
 You also need following tools:
-- **Cargo**: Version `1.86.0-nightly` used for tutorial - [url](https://www.rust-lang.org/tools/install)
-- **DFX** (Dfinity SDK): Version `0.24.3` used for tutorial - [url](https://internetcomputer.org/docs/current/developer-docs/getting-started/install)
-- **Candid Extractor**: Version `0.1.5` used for tutorial - [url](https://crates.io/crates/candid-extractor)
-- **Pnpm**: Version `9.6.0` used for tutorial - [url](https://pnpm.io/installation)
 
+- **Cargo**: Version `1.86.0-nightly` used for tutorial -
+  [url](https://www.rust-lang.org/tools/install)
+- **DFX** (Dfinity SDK): Version `0.24.3` used for tutorial -
+  [url](https://internetcomputer.org/docs/current/developer-docs/getting-started/install)
+- **Candid Extractor**: Version `0.1.5` used for tutorial -
+  [url](https://crates.io/crates/candid-extractor)
+- **Pnpm**: Version `9.6.0` used for tutorial -
+  [url](https://pnpm.io/installation)
 
 ## Starting a Local Devnet
 
-Script for local devnet is located in Calimero Core repository. First clone the [repository](https://github.com/calimero-network/core) and navigate to 
-directory `core/contracts/icp/context-config/`.
+Script for local devnet is located in Calimero Core repository. First clone the
+[repository](https://github.com/calimero-network/core) and navigate to directory
+`core/contracts/icp/context-config/`.
+
+
+:::caution
+
+Script is implemented in a way that it deletes current dfx enviroment and creates new one. 
+This will delete all previous setups and deployed smart contracts.
+
+:::
 
 
 ```bash title="Terminal"
@@ -53,21 +75,21 @@ git clone https://github.com/calimero-network/core
 cd core/contracts/icp/context/config/
 ```
 
-Run the deploy devnet script:
-```bash title="Terminal"
-./deploy_devnet.sh
-```
+Give permissions and Run the deploy devnet script:
 
-If you get permission error try running following:
 ```bash title="Terminal"
 chmod +x ./deploy_devnet.sh && ./deploy_devnet.sh
 ```
 
-If you are missing any of the required tools the script will exit and tell you what tool is missing.
+If you are missing any of the required tools the script will exit and tell you
+what tool is missing.
 
-Running the script should look like the following image:
-
-> ![RunDevnetScript](/icp-tutorial/1_start_devnet_script.png)
+<details>
+  <summary>Running the script should look like the following image</summary>
+  <p>
+  <img src="/icp-tutorial/1_start_devnet_script.png" alt="devnetsript" />
+  </p>
+</details>
 
 When the script finished you should get the following output.
 
@@ -85,36 +107,58 @@ Recipient Principal: mfefj-dsyoh-rb3b2-3yagk-rvb2p-wcb2v-fhu2n-fel2f-wqzjn-yhtxx
 Deployment completed successfully!
 ```
 
-> ![FinishDevnetScript](/icp-tutorial/2_devnet_script_finish.png)
+<details>
+  <summary>Sucessfull deployment image</summary>
+  <p>
+  <img src="/icp-tutorial/2_devnet_script_finish.png" alt="FinishDevnetScript" />
+  </p>
+</details>
 
 Save this information because you will need some values in later steps.
 
 You can also ping the devnet to verify its running with the command:
+
 ```bash title="Terminal"
 dfx ping
 ```
 
-> ![PingDevnet](/icp-tutorial/3_ping_devnet.png)
+<details>
+  <summary>Ping response image</summary>
+  <p>
+  <img src="/icp-tutorial/3_ping_devnet.png" alt="pingresponse" />
+  </p>
+</details>
 
 
-At this point the ICP devnet is running and we can now deploy our smart contracts.
+At this point the ICP devnet is running and we can now deploy our smart
+contracts.
 
 ## Greet Smart Contract for ICP
 
 ### Greet Smart Contract
 
 Greet smart contract has only two methods set_greet and get_greet.
-- ICP Query method **get_greet** - returns greeting which is "Hello, world!" in default case.
-- ICP Update method **set_greet** - has one paremeter which is args_bytes which is `"name":"value"` in JSON.
 
-at the end of the contract we have `ic_cdk::export_candid!()` which is used to generate .did file from this contract.
+- ICP Query method **get_greet** - returns greeting which is "Hello, world!" in
+  default case.
+- ICP Update method **set_greet** - has one paremeter which is args_bytes which
+  is `"name":"value"` in JSON.
 
-> ![ContractGreet](/icp-tutorial/contract_greet.png)
+at the end of the contract we have `ic_cdk::export_candid!()` which is used to
+generate .did file from this contract.
+
+<details>
+  <summary>Greet smart contract source code image</summary>
+  <p>
+  <img src="/icp-tutorial/contract_greet.png" alt="greet-source-code" />
+  </p>
+</details>
 
 ### Clone Repository
 
-Now lets clone the ICP Demo Contract [repository](https://github.com/calimero-network/icp-demo-contract) and navigate to 
-cloned repository.
+Now lets clone the ICP Demo Contract
+[repository](https://github.com/calimero-network/icp-demo-contract) and navigate
+to cloned repository.
 
 ```bash title="Terminal"
 git clone https://github.com/calimero-network/icp-demo-contract
@@ -132,30 +176,52 @@ Now lets first build our contract to get .wasm file from the contract.
 cargo build --target wasm32-unknown-unknown –release
 ```
 
-> ![CargoBuild](/icp-tutorial/4_cargo_build.png)
+<details>
+  <summary>Build output image</summary>
+  <p>
+  <img src="/icp-tutorial/4_cargo_build.png" alt="cargo-build" />
+  </p>
+</details>
 
-After build command finishes you should have `greet.wasm` file inside the `target` folder.
+After build command finishes you should have `greet.wasm` file inside the
+`target` folder.
 
-> ![WasmICP](/icp-tutorial/5_cargo_wasm.png )
+<details>
+  <summary>Greet .wasm file image</summary>
+  <p>
+  <img src="/icp-tutorial/5_cargo_wasm.png" alt="wasm-file" />
+  </p>
+</details>
+
 
 ### Generate Greet .did file
 
-This command extracts the Candid interface (a .did file) from the compiled WebAssembly (.wasm) binary of 
-the greet smart contract and saves it to `src/greet/greet.did`.
+This command extracts the Candid interface (a .did file) from the compiled
+WebAssembly (.wasm) binary of the greet smart contract and saves it to
+`src/greet/greet.did`.
 
 ```bash title="Terminal"
 candid-extractor target/wasm32-unknown-unknown/release/greet.wasm > src/greet/greet.did
 ```
->
->
-> ![CandidTerminal](/icp-tutorial/6_candid_extractor.png)
->
-> ![DidFile](/icp-tutorial/7_greet_did_file.png)
 
+<details>
+  <summary>Terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/6_candid_extractor.png" alt="candid-extractor" />
+  </p>
+</details>
+
+<details>
+  <summary>Greet .did file image</summary>
+  <p>
+  <img src="/icp-tutorial/7_greet_did_file.png" alt="did-file" />
+  </p>
+</details>
 
 ### Deploy Smart Contract
 
-Navigate to `src/greet` and run following command to create canister and deploy contract.
+Navigate to `src/greet` and run following command to create canister and deploy
+contract.
 
 ```bash title="Terminal"
 cd src/greet
@@ -165,22 +231,37 @@ cd src/greet
 dfx canister create greet && dfx deploy
 ```
 
-> ![DeploySC](/icp-tutorial/8_greet_deploy.png)
-> Save the `canister ID` as you will need it later to call its query and mutate methods.
-> 
-> In this case the canister ID is: `br5f7-7uaaa-aaaaa-qaaca-cai`
+<details>
+  <summary>Deploy terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/8_greet_deploy.png" alt="deploy-terminal-output" />
+    > <br/>
+    > Save the `canister ID` as you
+    > will need it later to call its query and mutate methods.
+    >
+    > In this case the canister ID is: `br5f7-7uaaa-aaaaa-qaaca-cai`
+  </p>
+</details>
+
+
 
 ### Test Smart Contract
 
-Smart contract has been deployed on the ICP devnet and now we can test its methods. 
-Through terminal we are going to test the get_greet query method with the following commands.
+Smart contract has been deployed on the ICP devnet and now we can test its
+methods. Through terminal we are going to test the get_greet query method with
+the following commands.
 
 ```bash title="ICP Demo Contract Repository Terminal"
 dfx canister call greet get_greet
 >("Hello, world!")
 ```
 
-> ![QueryICP](/icp-tutorial/9_test_query.png)
+<details>
+  <summary>Query terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/9_test_query.png" alt="query-terminal-output" />
+  </p>
+</details>
 
 
 ```bash title="Calimero Core Repository Terminal"
@@ -188,17 +269,25 @@ dfx canister call br5f7-7uaaa-aaaaa-qaaca-cai get_greet
 >("Hello, world!")
 ```
 
-> ![QueryCore](/icp-tutorial/10_test_query_core.png )
+<details>
+  <summary>Query terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/10_test_query_core.png" alt="query-terminal-output" />
+  </p>
+</details>
+
 
 ## Context and Proxy Contract
 
 At this point we have ICP devnet running and Greet smart contract deployed.
 
-Now we need to seed the context contract and fund proxy contracts in order to make cross-contract calls possible.
+Now we need to seed the context contract and fund proxy contracts in order to
+make cross-contract calls possible.
 
 ### Seed Context Contract
 
-To seed context contract use following commands inside the Calimero Core repository terminal.
+To seed context contract use following commands inside the Calimero Core
+repository terminal.
 
 ```bash title="Calimero Core Repository Terminal"
 dfx identity use default
@@ -228,35 +317,45 @@ dfx canister deposit-cycles 1000000000000000000 bkyz2-fmaaa-aaaaa-qaaaq-cai
 >Deposited 1000000000000000000 cycles, updated balance: >2_000_003_061_071_811_962 cycles
 ```
 
-> ![SeedCC](/icp-tutorial/11_fund_context_contract.png)
 
-Now context contract has cycles deposited and we need to fund the proxy contract.
+<details>
+  <summary>Seed contract terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/11_fund_context_contract.png" alt="seed-contract" />
+  </p>
+</details>
 
+
+Now context contract has cycles deposited and we need to fund the proxy
+contract.
 
 ### Fund Proxy Contract
 
-In order to fund proxy contract we must first create a context within a node. Proxy contract gets deployed from 
-context contract in the process of context cration. 
+In order to fund proxy contract we must first create a context within a node.
+Proxy contract gets deployed from context contract in the process of context
+cration.
 
 For this tutorial we are going to:
+
 - create 3 nodes with ICP set as default protocol.
-- install [blockchain demo application](https://github.com/calimero-network/demo-blockchain-integrations/tree/master/logic)
+- install
+  [blockchain demo application](https://github.com/calimero-network/demo-blockchain-integrations/tree/master/logic)
 - create context for blockchain demo application
 - invite all nodes in the same context
 
-
 Detailed explanation for:
+
 - installing application can be found [here](/tutorials/install-application).
 - creating context can be found [here](/tutorials/create-context).
-- context invitation and join can be found [here](/tutorials/invitations-and-joinings)
+- context invitation and join can be found
+  [here](/tutorials/invitations-and-joinings)
 
-
-After we finish previous steps we will be able to continue with funding the proxy contract.
+After we finish previous steps we will be able to continue with funding the
+proxy contract.
 
 #### Initialize and Start Nodes
 
 As mentioned we are going to create 3 nodes with following commands.
-
 
 ```bash title="Terminal 1"
 cargo run -p merod -- --node-name node1 init --server-port 2428 --swarm-port 2528 --protocol icp
@@ -270,16 +369,29 @@ cargo run -p merod -- --node-name node2 init --server-port 2427 --swarm-port 252
 cargo run -p merod -- --node-name node3 init --server-port 2429 --swarm-port 2529 --protocol icp
 ```
 
-> ![InitNodes](/icp-tutorial/12_init_cali_nodes.png)
+<details>
+  <summary>Node initialization terminal image</summary>
+  <p>
+  <img src="/icp-tutorial/12_init_cali_nodes.png" alt="init-nodes" />
+  </p>
+</details>
+
 
 You can verify nodes configuration by looking into `~.calimero` folder.
 
-> ![InitNodes](/icp-tutorial/13_verify_node_config.png)
-> We can see that protocol is `ICP` and network is `local`.
+<details>
+  <summary>Nodes configuration image</summary>
+  <p>
+  <img src="/icp-tutorial/13_verify_node_config.png" alt="nodes-configuration" />
+    > <br />
+    > We can see that protocol is `ICP` and network is `local`.
+  </p>
+</details>
+
 
 More on node initialization can be found [here](/getting-started/setup/).
 
-Now we are going to start the nodes with the commands: 
+Now we are going to start the nodes with the commands:
 
 ```bash title="Terminal 1"
 cargo run -p merod -- --node-name node1 run
@@ -293,19 +405,26 @@ cargo run -p merod -- --node-name node2 run
 cargo run -p merod -- --node-name node3 run
 ```
 
-> ![InitNodes](/icp-tutorial/14_start_cali_nodes.png)
-
+<details>
+  <summary>Running nodes terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/14_start_cali_nodes.png" alt="running-nodes" />
+  </p>
+</details>
 
 #### Install application
 
 Inside the node1 terminal we are going to install blockchain demo application.
 
-For that we are going to need the application .wasm file which can be created by using [this](https://github.com/calimero-network/demo-blockchain-integrations/blob/master/logic/build.sh)
+For that we are going to need the application .wasm file which can be created by
+using
+[this](https://github.com/calimero-network/demo-blockchain-integrations/blob/master/logic/build.sh)
 script in the Demo Blockchain Integrations repository.
 
-At the time of creating this tutorial `blockchain.wasm` is located in core repository on following path `core/apps/blockchain/blockchain.wasm`.
+At the time of creating this tutorial `blockchain.wasm` is located in core
+repository on following path `core/apps/blockchain/blockchain.wasm`.
 
-Applications are installed with the following: 
+Applications are installed with the following:
 
 ```bash title="Node1 Terminal"
 application install file /Users/frandomovic/Desktop/job/core/apps/blockchain/res/blockchain.wasm
@@ -317,10 +436,16 @@ context create <APPLICATION_ID>
 >Created context <CONTEXT_ID> with identity <CONTEXT_IDENTITY>
 ```
 
-> ![InstallAndCreateContext](/icp-tutorial/16_2_node_1_install_app.png)
+<details>
+  <summary>Application install and create context terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/16_2_node_1_install_app.png" alt="install-app" />
+  </p>
+</details>
 
 
-From node2 and node3 terminal we are going to create a new identity which will be used for context invitation.
+From node2 and node3 terminal we are going to create a new identity which will
+be used for context invitation.
 
 ```bash title="Node2 Terminal"
 identity new
@@ -334,13 +459,27 @@ identity new
 >> Public key: <PUBLIC_KEY>
 ```
 
-> ![CreateIdentity](/icp-tutorial/16_create_new_identity.png)
+<details>
+  <summary>Create identity terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/16_create_new_identity.png" alt="create-identity" />
+  </p>
+</details>
 
-Now we are going to do the process of invitation where from node1 we invite node2 and node3 inside the previously created context.
 
-> More on invitations and joining the context can be found [here](https://calimero-network.github.io/tutorials/invitations-and-joinings)
+Now we are going to do the process of invitation where from node1 we invite
+node2 and node3 inside the previously created context.
+
+<details>
+  <summary>Joining context terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/16_invite_nodes.png" alt="join-context" />
+  </p>
+</details>
 >
-> ![CreateIdentity](/icp-tutorial/16_invite_nodes.png)
+> More on invitations and joining the context can be found
+> [here](https://calimero-network.github.io/tutorials/invitations-and-joinings)
+
 
 Lastly we can check if all nodes are connected in context with:
 
@@ -353,35 +492,51 @@ context ls
 identity ls <CONTEXT_ID>
 ```
 
-> ![ViewContextMembers](/icp-tutorial/18_verify_context.png)
+<details>
+  <summary>View context members terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/18_verify_context.png" alt="context-members" />
+  </p>
+</details>
 
 We can see there are 3 nodes connected in context.
 
 #### Fund Proxy Contract
 
-Now we finished the part with application installation, context creation and invitation.
-We can get back to funding the proxy contract. 
+Now we finished the part with application installation, context creation and
+invitation. We can get back to funding the proxy contract.
 
-To get proxy contract we need to use API GET call for any of the running nodes. 
+To get proxy contract we need to use API GET call for any of the running nodes.
 
 The 3 running nodes are located on:
+
 - https://localhost:2427
 - https://localhost:2428
 - https://localhost:2429.
 
 Any of them can be queried to get the value of proxy contract id.
 
-API endpoint to fetch proxy contract id is: `http://localhost:2428/admin-api/contexts/CONTEXT_ID/proxy-contract`
-> CONTEXT_ID can be copied from previous steps 
+API endpoint to fetch proxy contract id is:
+`http://localhost:2428/admin-api/contexts/CONTEXT_ID/proxy-contract`
 
-And for our case it is: `http://localhost:2428/admin-api/contexts/7krojDziAKRWP8KrUD8aYGL3z5peScNxPXaBWTKCFr2h/proxy-contract`
+> CONTEXT_ID can be copied from previous steps
+
+And for our case it is:
+`http://localhost:2428/admin-api/contexts/7krojDziAKRWP8KrUD8aYGL3z5peScNxPXaBWTKCFr2h/proxy-contract`
+
+<details>
+  <summary>Postman GET request output image</summary>
+  <p>
+  <img src="/icp-tutorial/19_get_proxy_contract.png" alt="context-members" />
+  > <br/>
+  > We get value of
+  > proxy contract id which is: `b77ix-eeaaa-aaaaa-qaada-cai`
+  </p>
+</details>
 
 
-
-> ![ViewContextMembers](/icp-tutorial/19_get_proxy_contract.png)
-> We get value of proxy contract id which is: `b77ix-eeaaa-aaaaa-qaada-cai`
-
-Now when we have the proxy contract lets go back to Core repository terminal and fund the contract.
+Now when we have the proxy contract lets go back to Core repository terminal and
+fund the contract.
 
 ```bash title="Calimero Core Repository Terminal"
 dfx identity use initial
@@ -389,20 +544,28 @@ dfx identity use initial
 ```
 
 To fund the contract we are going to use command:
+
 ```bash
 dfx canister call <LEDGER_CONTRACT_ID> icrc1_transfer "(record { to = record { owner = principal \"<PROXY_CONTRACT_ID> \"; subaccount = null}; amount = 1_000_000_000; fee = null; memo = null; from_subaccount = null; created_at_time = null})"
 ```
-> LEDGER_CONTRACT_ID - this value can be viewed when ./deploy_devnet.sh script finishes. In our case value is: `bd3sg-teaaa-aaaaa-qaaba-cai`
->
-> PROXY_CONTRACT_ID - value we got in previous step. In our case value is: `b77ix-eeaaa-aaaaa-qaada-cai`
 
+> LEDGER_CONTRACT_ID - this value can be viewed when ./deploy_devnet.sh script
+> finishes. In our case value is: `bd3sg-teaaa-aaaaa-qaaba-cai`
+>
+> PROXY_CONTRACT_ID - value we got in previous step. In our case value is:
+> `b77ix-eeaaa-aaaaa-qaada-cai`
 
 ```bash title="Calimero Core Repository Terminal"
 dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_transfer "(record { to = record { owner = principal \"b77ix-eeaaa-aaaaa-qaada-cai"\"; subaccount = null}; amount = 1_000_000_000; fee = null; memo = null; from_subaccount = null; created_at_time = null})"
 > (variant { Ok = 1 : nat })
 ```
 
-> ![FundPC](/icp-tutorial/20_fund_proxy_contract.png)
+<details>
+  <summary>Fund contract terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/20_fund_proxy_contract.png" alt="fund-contract" />
+  </p>
+</details>
 
 And verify the contract balance:
 
@@ -411,125 +574,222 @@ dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_balance_of "(record { owner 
 > (1_000_000_000 : nat)
 ```
 
-> ![VerifyBalance](/icp-tutorial/21_verify_balance.png)
+<details>
+  <summary>Verify balance terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/21_verify_balance.png" alt="verify-balance" />
+  </p>
+</details>
 
 ## Blockchain Demo Application
 
-We will now clone the Blockchain Demo Application [Repository](https://github.com/calimero-network/demo-blockchain-integrations) and run the application.
+We will now clone the Blockchain Demo Application
+[Repository](https://github.com/calimero-network/demo-blockchain-integrations)
+and run the application.
 
-This demo application allows us to create proposals, which are essential for executing cross-contract calls.
-Each created proposal requires minimum of 3 approvals before a proposal is 
-executed thats why in this tutorial we will be using 3 nodes for the first step.
+This demo application allows us to create proposals, which are essential for
+executing cross-contract calls. Each created proposal requires minimum of 3
+approvals before a proposal is executed thats why in this tutorial we will be
+using 3 nodes for the first step.
 
+For this tutorial, we will perform a set_greet cross-contract call directly from
+the node.
 
-For this tutorial, we will perform a set_greet cross-contract call directly from the node.
+At this stage, everything is set up, so let’s proceed by cloning the blockchain
+demo integrations repository and running the application.
 
-At this stage, everything is set up, so let’s proceed by cloning the blockchain demo integrations repository and running the application.
-
-> While the demo focuses on specific functionality, you can customize the application to suit your needs.
-> Instead of building a complete frontend, this demo serves as a foundation that you can extend to create a
-> fully-featured frontend application tailored to your requirements.
+> While the demo focuses on specific functionality, you can customize the
+> application to suit your needs. Instead of building a complete frontend, this
+> demo serves as a foundation that you can extend to create a fully-featured
+> frontend application tailored to your requirements.
 
 ```bash title="Terminal"
 git clone https://github.com/calimero-network/demo-blockchain-integrations && cd demo-blockchain-integrations/app && pnpm install && pnpm run dev
 ```
 
-> ![RunBlockchainDemoApp](/icp-tutorial/23_start_blockchain_demo_app.png)
+<details>
+  <summary>Terminal output for started application image</summary>
+  <p>
+  <img src="/icp-tutorial/23_start_blockchain_demo_app.png" alt="running-demo-app" />
+  </p>
+</details>
 
-For this application we will also need application ID which can be copied from any of previous steps or use
-following command from any of node terminals.
+
+For this application we will also need application ID which can be copied from
+any of previous steps or use following command from any of node terminals.
 
 ```bash title="Node1 Terminal"
 application ls
 > <APPLICATION_ID>
 ```
 
-> ![GetAppId](/icp-tutorial/22_get_app_id.png)
+<details>
+  <summary>Get application id terminal output image</summary>
+  <p>
+  <img src="/icp-tutorial/22_get_app_id.png" alt="get-app-id" />
+  </p>
+</details>
 
-Open web application on given URL and go through the setup, copy application ID and enter the node URL. We will do this process for all 3 nodes.
+Open web application on given URL and go through the setup, copy application ID
+and enter the node URL. We will do this process for all 3 nodes.
 
-> ![LoginNode1](/icp-tutorial/23_login_node1.png)
+<details>
+  <summary>Blockchain demo application setup for node1 image</summary>
+  <p>
+  <img src="/icp-tutorial/23_login_node1.png" alt="setup-app" />
+  </p>
+</details>
 
 After you login you should see the Blockchain Demo Application
 
-> ![DemoApp](/icp-tutorial/24_create_threshold_proposal.png)
+<details>
+  <summary>Blockchain demo application image</summary>
+  <p>
+  <img src="/icp-tutorial/24_create_threshold_proposal.png" alt="demo-app" />
+  </p>
+</details>
 
 ### Change Approval Threshold Proposal
 
-First we are going to create an approval threshold change proposal so future proposals can be executed by only 1 node.
-As mentioned earlier each proposal by default needs 3 approvals to be executed.
+First we are going to create an approval threshold change proposal so future
+proposals can be executed by only 1 node. As mentioned earlier each proposal by
+default needs 3 approvals to be executed.
 
-> ![ProposalCreation1](/icp-tutorial/25_proposal_creation.png)
+<details>
+  <summary>Create proposal image</summary>
+  <p>
+  <img src="/icp-tutorial/25_proposal_creation.png" alt="create-proposal" />
+  </p>
+</details>
 
 We get a popup saying proposal was created.
 
-> ![ProposalPopup1](/icp-tutorial/26_proposal_popup_1.png)
+<details>
+  <summary>Proposal created popup image</summary>
+  <p>
+  <img src="/icp-tutorial/26_proposal_popup_1.png" alt="create-proposal-popup" />
+  </p>
+</details>
 
 And we can see the proposal, it has only 1 approver on creation.
 
-> ![ProposalOverview](/icp-tutorial/27_proposal_overview.png)
+<details>
+  <summary>Proposal overview image</summary>
+  <p>
+  <img src="/icp-tutorial/27_proposal_overview.png" alt="proposal-overview" />
+  </p>
+</details>
 
-Press `Logout` button and to the same steps but with setup for node2. 
+Press `Logout` button and to the same steps but with setup for node2.
 
-> ![Node2Login](/icp-tutorial/28_login_node2.png)
+<details>
+  <summary>Blockchain demo application setup for node2 image</summary>
+  <p>
+  <img src="/icp-tutorial/28_login_node2.png" alt="node2-setup" />
+  </p>
+</details>
 
 Approve proposal.
 
-> ![ApproveNode2](/icp-tutorial/29_approve_node2.png)
+<details>
+  <summary>Approved proposal overview image</summary>
+  <p>
+  <img src="/icp-tutorial/29_approve_node2.png" alt="approve-proposal" />
+  </p>
+</details>
 
 Proposal approved popup.
 
-> ![ProposalPopup2](/icp-tutorial/30_proposal_popup_2.png)
+<details>
+  <summary>Proposal approved popup image</summary>
+  <p>
+  <img src="/icp-tutorial/30_proposal_popup_2.png" alt="approve-proposal-popup" />
+  </p>
+</details>
 
+Now the same steps with the node3.
 
-
-Now the same steps with the node3. 
-
-> ![Node3Login](/icp-tutorial/31_login_node3.png)
+<details>
+  <summary>Blockchain demo application setup for node3 image</summary>
+  <p>
+  <img src="/icp-tutorial/31_login_node3.png" alt="node3-setup" />
+  </p>
+</details>
 
 Approve proposal.
 
-> ![ProposalPopup3](/icp-tutorial/30_proposal_popup_2.png)
+<details>
+  <summary>Proposal approved popup image</summary>
+  <p>
+  <img src="/icp-tutorial/30_proposal_popup_2.png" alt="approve-proposal-popup" />
+  </p>
+</details>
 
 And after third proposal approval we get popup saying proposal was executed.
 
-> ![ApproveNode3](/icp-tutorial/32_execute_proposal_node3.png)
+<details>
+  <summary>Proposal executed popup image</summary>
+  <p>
+  <img src="/icp-tutorial/32_execute_proposal_node3.png" alt="execute-proposal-popup" />
+  </p>
+</details>
+
 
 ### Cross-Contract Call Proposal
 
-At this point proposal approval threshold is 1, meaning proposal will be executed on creation.
-This means when we create cross-contract call proposal it will insantly be executed.
+At this point proposal approval threshold is 1, meaning proposal will be
+executed on creation. This means when we create cross-contract call proposal it
+will insantly be executed.
 
 So lets create a cross-contract call proposal.
 
-> ![CCCProposal](/icp-tutorial/33_create_cross_call_proposal.png)
+<details>
+  <summary>Create cross-contract call proposal image</summary>
+  <p>
+  <img src="/icp-tutorial/33_create_cross_call_proposal.png" alt="create-ccc" />
+  </p>
+</details>
 
 Values for this form can be found in previous steps and for our case they are:
 
 - **Contract ID**: br5f7-7uaaa-aaaaa-qaaca-cai
 - **Method Name**: set_greet (defined in .did file form previous steps)
 - **Deposit**: 0
-- **Arguments**: for this smart contract we will be using "name" as key and "calimero" as value.
+- **Arguments**: for this smart contract we will be using "name" as key and
+  "calimero" as value.
 
 After we create proposal it will be executed.
 
-> ![ExecuteProposal](/icp-tutorial/34_proposal_popup_3.png)
+<details>
+  <summary>Proposal executed popup image</summary>
+  <p>
+  <img src="/icp-tutorial/34_proposal_popup_3.png" alt="proposal-executed-popup" />
+  </p>
+</details>
 
 
-And now for the last step we can run get_greet method from beggining to see if greet changed.
+And now for the last step we can run get_greet method from beggining to see if
+greet changed.
 
-> ![GreetChange](/icp-tutorial/35_verify_change_method.png)
-> We can see in terminal the first time we used command output was:
-> Hello, world!
-> And after proposal was executed greet was changed to:
-> Hello, calimero!
+<details>
+  <summary>Terminal ouput for get_greet method image</summary>
+  <p>
+  <img src="/icp-tutorial/35_verify_change_method.png" alt="get-greet-image" />
+  </p>
+</details>
 
+> We can see in
+> terminal the first time we used command output was: Hello, world! And after
+> proposal was executed greet was changed to: Hello, calimero!
 
 ## Conclusion
 
-This tutorial has covered all the essential steps developers need to build an application for Calimero and ICP,
-from setting up the environment to deploying a fully functional smart contract. 
-By following this guide, you should now have a solid understanding of the development workflow and how to build your own ICP application for Calimero.
+This tutorial has covered all the essential steps developers need to build an
+application for Calimero and ICP, from setting up the environment to deploying a
+fully functional smart contract. By following this guide, you should now have a
+solid understanding of the development workflow and how to build your own ICP
+application for Calimero.
 
-Feel free to use our demo applications as a starting point to build and customize your own application.
-If you have any questions or need assistance, don't hesitate to reach out to us on Socials. We're here to help!
+Feel free to use our demo applications as a starting point to build and
+customize your own application. If you have any questions or need assistance,
+don't hesitate to reach out to us on Socials. We're here to help!
