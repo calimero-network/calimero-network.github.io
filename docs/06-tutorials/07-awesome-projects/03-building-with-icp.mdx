@@ -578,12 +578,24 @@ We will now clone the Blockchain Demo Application
 [Repository](https://github.com/calimero-network/demo-blockchain-integrations)
 and run the application.
 
-This demo application allows us to create proposals, which are essential for
-executing cross-contract calls. Each created proposal requires minimum of 3
-approvals before a proposal is executed thats why in this tutorial we will be
-using 3 nodes for the first step.
+This demo application utilizes the Calimero proxy smart contract, which enables proposal creation.
 
-For this tutorial, we will perform a set_greet cross-contract call directly from
+The proxy contract supports the following types of proposals:
+
+- **External function call** - Enables cross-contract call execution.
+- **Transfer** - Allows transferring funds.
+- **Set approval threshold** - Specifies the number of approvals required for proposal execution.
+- **Set active proposal limit** - Defines the maximum number of active proposals.
+- **Set context variables** - Allows setting key-value pairs for context variables.
+
+:::info
+
+By deafult each proposal needs 3 approvals before it is executed.
+
+:::
+
+In this tutorial we are going to use 3 nodes to be able to execute proposals and we will 
+perform a `set_greet` cross-contract call directly from
 the node.
 
 At this stage, everything is set up, so let’s proceed by cloning the blockchain
@@ -766,6 +778,20 @@ Values for this form can be found in previous steps and for our case they are:
   "calimero" as value.
 
 After we create proposal it will be executed.
+
+:::note
+
+It's important to note that in this tutorial, we use a function call that does not require a deposit for execution.
+
+On the other hand, there are examples where cross-contract calls require a deposit. For instance, in the case of an ERC20 token implementation, the following steps typically occur:
+
+1. The contract detects that an attached deposit is present.
+2. It calls the deployed ledger contract to enable the external contract (the contract being called) to withdraw funds. Before doing so, it sets the allowance to 0 to prevent vulnerabilities related to the Attack Vector.
+3. It then calls the ledger contract again to set the allowance equal to the deposit attached to the call.
+4. The external contract is called, and it must contain logic to withdraw the funds that have been allocated for it in the ledger contract.
+5. After the cross-contract call is completed, the proxy contract sets the allowance back to 0 to ensure security.
+
+:::
 
 <details>
   <summary>Proposal executed popup image</summary>
