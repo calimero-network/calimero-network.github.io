@@ -45,63 +45,14 @@ minutes but can vary depending on your internet connection.
 
 #### 1. Initialize node
 
-<Tabs
-    defaultValue="near"
-    groupId="protocol"
-    values={[
-        {label: 'NEAR', value: 'near'},
-        {label: 'Starknet', value: 'starknet'},
-        {label: 'ICP', value: 'icp'},
-    ]}>
-
-<TabItem value="near">
 ```bash title="Terminal"
 merod --node-name node1 init --server-port 2428 --swarm-port 2528
 ```
-</TabItem>
-<TabItem value="starknet">
-```bash title="Terminal"
-merod --node-name node1 init --server-port 2428 --swarm-port 2528 --protocol starknet
-```
-</TabItem>
-<TabItem value="icp">
-```bash title="Terminal"
-merod --node-name node1 init --server-port 2428 --swarm-port 2528 --protocol icp
-```
-</TabItem>
-</Tabs>
-
-:::tip
-
-A `--protocol` flag defines protocol for the node contexts.
-
-:::
 
 Node configuration file contains protocol defined metada. Node file is located
 under `~/.calimero` folder.
 
-<Tabs
-    defaultValue="near"
-    groupId="protocol"
-    values={[
-        {label: 'NEAR', value: 'near'},
-        {label: 'Starknet', value: 'starknet'},
-        {label: 'ICP', value: 'icp'},
-    ]}>
-
-<TabItem value="near">
-![NearConfig](/init/near-config.png)
-
-</TabItem>
-<TabItem value="starknet">
-![SnConfig](/init/sn-config.png)
-
-</TabItem>
-<TabItem value="icp">
-![ICPConfig](/init/icp-config.png)
-
-</TabItem>
-</Tabs>
+<img src="/init/node-config.png" alt="node-config" />
 
 #### 2. Run node
 
