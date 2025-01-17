@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ### Install the Application
 
 Run the following command to install the application:
@@ -16,9 +19,37 @@ application install url {url} {metadata}
 
 ### Create a New Context
 
+<Tabs
+    defaultValue="near"
+    values={[
+        {label: 'Near', value: 'near'},
+        {label: 'Starknet', value: 'starknet'},
+        {label: 'ICP', value: 'icp'},
+    ]}>
+
+<TabItem value="near">
 ```bash title="Node Terminal"
-context create {applicationId}
+context create {applicationId} --protocol near
 ```
+</TabItem>
+
+<TabItem value="starknet">
+```bash title="Node Terminal"
+context create {applicationId} --protocol starknet
+```
+</TabItem>
+
+<TabItem value="icp">
+```bash title="Node Terminal"
+context create {applicationId} --protocol icp
+```
+</TabItem>
+
+</Tabs>
+
+:::tip
+`--protocol` flag specifies the protocol to use for the context.
+:::
 
 ```bash title="Output"
 context create Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF
