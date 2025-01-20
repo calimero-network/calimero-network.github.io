@@ -46,6 +46,7 @@ const config: Config = {
               path: '',
             },
           },
+          exclude: ['**/shared/**'],
         },
         blog: false,
         theme: {
