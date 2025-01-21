@@ -9,7 +9,9 @@ Run the following command to install the application:
 application install url {url} {metadata}
 ```
 
-:::note metadata example:
+:::note
+
+metadata example:
 
 ```bash
 '{"contractAppId": "<application_id>"}'
@@ -28,27 +30,34 @@ application install url {url} {metadata}
     ]}>
 
 <TabItem value="near">
+
 ```bash title="Node Terminal"
 context create {applicationId} --protocol near
+
 ```
+
 </TabItem>
 
 <TabItem value="starknet">
-```bash title="Node Terminal"
-context create {applicationId} --protocol starknet
-```
+
+````bash title="Node Terminal"
+context create {applicationId} --protocol starknet```
 </TabItem>
 
 <TabItem value="icp">
+
 ```bash title="Node Terminal"
 context create {applicationId} --protocol icp
-```
+````
+
 </TabItem>
 
 </Tabs>
 
 :::tip
+
 `--protocol` flag specifies the protocol to use for the context.
+
 :::
 
 ```bash title="Output"

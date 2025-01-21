@@ -16,24 +16,29 @@ This tutorial will cover the following topics:
 1. **Starting a Local Devnet** - Setting and configuring a local devnet using
    dfx through a script.
 
-2. **Configuring Nodes** - Setting and configuring nodes, installing demo application, creating context and inviting nodes into the context.
+2. **Configuring Nodes** - Setting and configuring nodes, installing demo
+   application, creating context and inviting nodes into the context.
 
-4. **Installing a Blockchain Demo Application** - Setup demo application that
+3. **Installing a Blockchain Demo Application** - Setup demo application that
    contains all functionalities for interaction with smart contracts.
 
-5. **Creating a Proposal** - Creating a proposal to execute cross-contract call
+4. **Creating a Proposal** - Creating a proposal to execute cross-contract call
    to "Greet" smart contract deployed in step 3.
 
 :::note
+
 For easier guidance, we have named each terminal block by their purpose.
+
 :::
 
 ## Requirements
 
 To follow this tutorial, you'll need the following:
 
-- Calimero ICP Devnet - [Repository](https://github.com/calimero-network/icp-devnet)
-- Calimero Core - Installation instructions - [Instructions](/getting-started/setup#installation)
+- Calimero ICP Devnet -
+  [Repository](https://github.com/calimero-network/icp-devnet)
+- Calimero Core - Installation instructions -
+  [Instructions](/getting-started/setup#installation)
 - Demo Blockchain Integrations -
   [Repository](https://github.com/calimero-network/demo-blockchain-integrations)
 
@@ -50,8 +55,8 @@ You also need following tools:
 
 ## Configuring a Local Devnet
 
-We have prepared a script that will deploy the contracts and create needed accounts on local environment.
-The script does the following:
+We have prepared a script that will deploy the contracts and create needed
+accounts on local environment. The script does the following:
 
 - Creates accounts needed for ledger deployment.
 - Deploys the context, ledger and example external contract.
@@ -89,9 +94,12 @@ The repository contains two scripts:
 <TabItem value="addon">
   `deploy_devnet_addon.sh` - Deploys the contracts and creates needed account on already existing dfx environment.
 
-  :::note
-  dfx environment needs to be started before running this script.
-  :::
+:::note
+
+dfx environment needs to be started before running this script.
+
+:::
+
 </TabItem>
 </Tabs>
 
@@ -117,28 +125,42 @@ Deployment completed successfully!
 ```
 
 :::note
+
 Leave this terminal open as you will need values in later steps.
+
 :::
 
 ## Context and Proxy Contract
 
 ### Context contract
 
-Calimero context contract is used to create and manage contexts and their members.
-<lb/>
-More information about context contract can be found [here](/core-concepts/blockchains-integration#context-contract).
-To see the context contract implementation, refer to the [calimero-network/core](https://github.com/calimero-network/core/tree/master/contracts/icp/context-config) repository.
+Calimero context contract is used to create and manage contexts and their
+members.
+
+<lb />
+More information about context contract can be found
+[here](/core-concepts/blockchains-integration#context-contract). To see the
+context contract implementation, refer to the
+[calimero-network/core](https://github.com/calimero-network/core/tree/master/contracts/icp/context-config)
+repository.
 
 ### Proxy contract
 
-Proxy contract is used to handle blockchain operations such as cross-contract calls and trasnfers as well as storing variables.
-<lb/>
-More information about proxy contract can be found [here](/core-concepts/blockchains-integration#functionality-details).
-To see the proxy contract implementation, refer to the [calimero-network/core](https://github.com/calimero-network/core/tree/master/contracts/icp/context-proxy) repository.
-## Setting up and configuring nodes
+Proxy contract is used to handle blockchain operations such as cross-contract
+calls and trasnfers as well as storing variables.
+
+<lb />
+More information about proxy contract can be found
+[here](/core-concepts/blockchains-integration#functionality-details). To see the
+proxy contract implementation, refer to the
+[calimero-network/core](https://github.com/calimero-network/core/tree/master/contracts/icp/context-proxy)
+repository. ## Setting up and configuring nodes
 
 :::info
-By deafult proposal needs 3 approvals before it is executed so we will setup 3 nodes.
+
+By deafult proposal needs 3 approvals before it is executed so we will setup 3
+nodes.
+
 :::
 
 - Initialize and start 3 nodes
@@ -164,8 +186,8 @@ merod --node-name node3 init --server-port 2429 --swarm-port 2529
 ```
 
 The output should look like this:
+
 <img src="/icp-tutorial/12_init_cali_nodes.png" alt="init-nodes" />
-  
 You can verify nodes initialization files by looking into `~/.calimero` folder.
 
 More on node initialization can be found [here](/getting-started/setup/).
@@ -192,9 +214,12 @@ After running the nodes you should see the similar to this one:
 
 Inside the node1 terminal we are going to install blockchain demo application.
 
-1. Clone the [Demo Blockchain Integrations](https://github.com/calimero-network/demo-blockchain-integrations) repository.
+1. Clone the
+   [Demo Blockchain Integrations](https://github.com/calimero-network/demo-blockchain-integrations)
+   repository.
 2. Navigate to the `logic` directory.
-3. Build the application using the `build.sh` script, script will compile wasm file in /res directory.
+3. Build the application using the `build.sh` script, script will compile wasm
+   file in /res directory.
 4. Copy the `blockchain.wasm` file path
 
 Applications are installed with the following command:
@@ -212,7 +237,9 @@ context create <APPLICATION_ID> --protocol icp
 ```
 
 After creating context we need to add node2 and node3 to it.
-<br/> To be able to do that we need to create identities for node2 and node3 with whom they will join to the created context.
+
+<br /> To be able to do that we need to create identities for node2 and node3
+with whom they will join to the created context.
 
 ```bash title="Node2 Terminal"
 identity new
@@ -230,7 +257,8 @@ The output should look like this:
 
 <img src="/icp-tutorial/16_create_new_identity.png" alt="create-identity" />
 
-After creating identities we can invite node2 and node3 to join the created context.
+After creating identities we can invite node2 and node3 to join the created
+context.
 
 ```bash title="Node1 Terminal"
 context invite <CONTEXT_ID> <CONTEXT_IDENTITY> <PUBLIC_KEY_OF_NODE2>
@@ -257,9 +285,10 @@ context join <PRIVATE_KEY_OF_NODE3> <INVITATION_PAYLOAD>
 ```
 
 The output in terminal after inviting and joining nodes should look like this:
+
 <img src="/icp-tutorial/16_invite_nodes.png" alt="join-context" />
 
-<br/>
+<br />
 
 More on invitations and joining the context can be found
 [here](https://calimero-network.github.io/tutorials/invitations-and-joinings)
@@ -281,8 +310,9 @@ We can see there are 3 nodes connected in context.
 
 #### Fund Proxy Contract
 
-We have now installed the application and created context. To be able to fully use proxy contract we need to fund it.
-To get proxy contract address we need to use API GET call to retrieve it from the node.
+We have now installed the application and created context. To be able to fully
+use proxy contract we need to fund it. To get proxy contract address we need to
+use API GET call to retrieve it from the node.
 
 The 3 running nodes are located on:
 
@@ -301,10 +331,12 @@ And for our case it is:
 `http://localhost:2428/admin-api/contexts/7krojDziAKRWP8KrUD8aYGL3z5peScNxPXaBWTKCFr2h/proxy-contract`
 
 Example of request in postman:
+
 <img src="/icp-tutorial/19_get_proxy_contract.png" alt="context-members" />
 
-With proxy contract id we can now fund it using dfx native commands.
-Reopen the terminal you used to execute devnet deployment script and do the following commands:
+With proxy contract id we can now fund it using dfx native commands. Reopen the
+terminal you used to execute devnet deployment script and do the following
+commands:
 
 Switch to initial identity.
 
@@ -320,11 +352,13 @@ dfx canister call <LEDGER_CONTRACT_ID> icrc1_transfer "(record { to = record { o
 ```
 
 > LEDGER_CONTRACT_ID - this value can be viewed when ./deploy_devnet.sh script
-> finishes. 
-> <br/> In our case value its: `bd3sg-teaaa-aaaaa-qaaba-cai`
+> finishes.
 >
-> PROXY_CONTRACT_ID - value we got in previous step. 
-> <br/> In our case value its: `b77ix-eeaaa-aaaaa-qaada-cai`
+> <br /> In our case value its: `bd3sg-teaaa-aaaaa-qaaba-cai`
+>
+> PROXY_CONTRACT_ID - value we got in previous step.
+>
+> <br /> In our case value its: `b77ix-eeaaa-aaaaa-qaada-cai`
 
 ```bash title="ICP Setup Terminal Terminal"
 dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_transfer "(record { to = record { owner = principal \"b77ix-eeaaa-aaaaa-qaada-cai"\"; subaccount = null}; amount = 1_000_000_000; fee = null; memo = null; from_subaccount = null; created_at_time = null})"
@@ -340,7 +374,8 @@ dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_balance_of "(record { owner 
 
 ## Blockchain Demo Application
 
-This application is used to demonstrate how to interact with Calimero Proxy contract through creating, approving and executing proposals.
+This application is used to demonstrate how to interact with Calimero Proxy
+contract through creating, approving and executing proposals.
 
 The proxy contract supports the following types of proposals:
 
@@ -359,22 +394,26 @@ demo serves as a foundation that you can extend to create a fully-featured
 frontend application tailored to your requirements.
 
 Navigate to frontend directory and install dependencies.
+
 ```bash title="Terminal"
 cd demo-blockchain-integrations/app && pnpm install
 ```
 
-Since we have 3 nodes we will need to setup frontend for each of them.
-Open 3 terminals side by side and run the following commands in each of them from /app directory:
+Since we have 3 nodes we will need to setup frontend for each of them. Open 3
+terminals side by side and run the following commands in each of them from /app
+directory:
 
 ```bash title="Terminal 1 | Terminal 2 | Terminal 3"
 pnpm run dev
 ```
 
-After running the frontend you should see the following output in each of the terminals:
+After running the frontend you should see the following output in each of the
+terminals:
 
 <img src="/icp-tutorial/Demo_blockchain_app_start.png" alt="frontend-running" />
 
-Open the applications in by clicking on the link in each of the terminals and you will see form with input fields for node URL and application ID.
+Open the applications in by clicking on the link in each of the terminals and
+you will see form with input fields for node URL and application ID.
 
 To get application ID you can use following command from any of node terminals:
 
@@ -389,12 +428,15 @@ The node URL of the nodes are respectively:
 - http://localhost:2428
 - http://localhost:2429
 
+After submitting the form you will be redirected to admin dashboard where you
+will see the login page with wallet selector.
 
-After submitting the form you will be redirected to admin dashboard where you will see the login page with wallet selector.
-<lb/>
-Select a wallet you wish to login with and afterwards you will be prompted to select the context and context identity you wish to use.
-<lb/>
-After selecting both you will be logged in and automatically redirected to the application.
+<lb />
+Select a wallet you wish to login with and afterwards you will be prompted to
+select the context and context identity you wish to use.
+<lb />
+After selecting both you will be logged in and automatically redirected to the
+application.
 
 ### Change Approval Threshold Proposal
 
@@ -402,13 +444,18 @@ First we are going to create an approval threshold change proposal so future
 proposals can be executed by only 1 node. As mentioned earlier each proposal by
 default needs 3 approvals to be executed.
 
-1. Click on "Create Proposal" button and select "Change number of approvals needed" from dropdown.
-2. In the input field set the number of approvals to 1 (this means that proposal will be executed on creation).
+1. Click on "Create Proposal" button and select "Change number of approvals
+   needed" from dropdown.
+2. In the input field set the number of approvals to 1 (this means that proposal
+   will be executed on creation).
 3. Click on "Create Proposal" button to create the proposal.
 
-After proposal is created you will get the alert that proposal is created and it will be shown in other frontend applications by selecting it in select field.
+After proposal is created you will get the alert that proposal is created and it
+will be shown in other frontend applications by selecting it in select field.
 
-After selecting proposal on other frontend applications (node2 and node3) you can see that it is created and can be approved by clicking on "Approve Proposal" button.
+After selecting proposal on other frontend applications (node2 and node3) you
+can see that it is created and can be approved by clicking on "Approve Proposal"
+button.
 
 ### Cross-Contract Call Proposal
 
@@ -418,21 +465,31 @@ will insantly be executed.
 
 We have created a demo external contract that contains following methods:
 
-- **test_method_no_transfer** - This method does not require a deposit for execution, it sets sent arguments in its storage.
-- **test_method** - This method requires a deposit for execution, it first transfers the funds to the contract from proxy contract and then sets sent arguments in its storage, if the transfer is completed successfully.
+- **test_method_no_transfer** - This method does not require a deposit for
+  execution, it sets sent arguments in its storage.
+- **test_method** - This method requires a deposit for execution, it first
+  transfers the funds to the contract from proxy contract and then sets sent
+  arguments in its storage, if the transfer is completed successfully.
 - **get_calls** - This method returns all calls stored in the contract.
 - **clear_state** - This method clears the storage of the contract.
 
-You can see the contract itself and its implementation [here](https://github.com/calimero-network/core/tree/master/contracts/icp/context-proxy/mock/external).
+You can see the contract itself and its implementation
+[here](https://github.com/calimero-network/core/tree/master/contracts/icp/context-proxy/mock/external).
 
 When creating cross-contract call proposal we need to provide following values:
 
-- **Contract ID**: br5f7-7uaaa-aaaaa-qaaca-cai - Address of the external contract - shown in terminal output of dfx deployment script for demo external contract
-- **Method Name**: test_method_no_transfer - Name of the method that will be called
-- **Deposit**: 0 - Deposit for transfer, in this case we are not transferring any funds so we can set it to 0
-- **Arguments**: someKey: someValue - Key and value pairs for arguments that are sent to the external contract
+- **Contract ID**: br5f7-7uaaa-aaaaa-qaaca-cai - Address of the external
+  contract - shown in terminal output of dfx deployment script for demo external
+  contract
+- **Method Name**: test_method_no_transfer - Name of the method that will be
+  called
+- **Deposit**: 0 - Deposit for transfer, in this case we are not transferring
+  any funds so we can set it to 0
+- **Arguments**: someKey: someValue - Key and value pairs for arguments that are
+  sent to the external contract
 
-After we create proposal it will be executed, and the success of the execution can be checked by running following command in terminal:
+After we create proposal it will be executed, and the success of the execution
+can be checked by running following command in terminal:
 
 ```bash title="DFX terminal"
 dfx canister call <DEMO_EXTERNAL_CONTRACT_ID> get_calls
