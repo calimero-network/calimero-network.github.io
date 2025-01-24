@@ -1,0 +1,49 @@
+---
+id: near-wallet
+title: Near Wallet
+---
+
+## Logging in with NEAR Wallet
+
+Calimero allows users to authenticate via their NEAR wallet, ensuring secure
+access to the Admin Dashboard. The process of logging in with a NEAR wallet
+involves the following steps:
+
+### 1. User Initiates Login
+
+- The user navigates to the Admin Dashboard and selects the option to "Login
+  with NEAR Wallet."
+
+### 2. Server Issues Challenge
+
+- Upon selecting the login option, the server generates a challenge. This
+  challenge is then presented to the user for signing.
+
+### 3. Redirect to MyNearWallet
+
+- The user is redirected to the [MyNearWallet](https://mynearwallet.com/) page,
+  where they will be asked to sign the server-issued challenge using their NEAR
+  wallet.
+
+### 4. Signature Sent to Backend
+
+- After the user signs the challenge, the signature is sent back to the server
+  for verification.
+
+### 5. Signature Verification
+
+- The backend verifies the signature to ensure its authenticity. If the
+  signature is valid, the user's public key is extracted from the signature and
+  added as the user's unique identifier.
+- This public key serves as the user's Decentralized Identifier (DID), not as a
+  context-specific identity. The DID enables decentralized authentication,
+  ensuring that the user can interact with the platform securely across
+  different contexts and applications.
+
+### 6. Successful Login
+
+- Once verified, the user is successfully logged into the Admin Dashboard, with
+  their public key (DID) serving as their user ID for future interactions.
+
+This login flow ensures a secure and seamless authentication process leveraging
+NEAR's robust blockchain-based security.

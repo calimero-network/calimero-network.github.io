@@ -1,0 +1,323 @@
+---
+id: client-ts-sdk
+title: TypeScript Client SDK
+---
+
+## Getting Started with Calimero SDK for Typescript
+
+Our TypeScript Client SDK is a powerful tool designed to simplify the process of
+interacting with decentralized peer-to-peer applications installed on the node.
+
+Install the SDK using npm:
+
+```bash
+npm install @calimero-network/calimero-client
+```
+
+## Core Components
+
+The TypeScript Client SDK consists of several key components:
+
+### 1. RpcClient (JsonRpcClient)
+
+Handles communication with the node's RPC server for executing queries and
+mutations.
+
+### 2. SubscriptionsClient (WsSubscriptionsClient)
+
+Manages WebSocket connections for real-time updates and event subscriptions.
+
+### 3. HttpClient (AxiosHttpClient)
+
+Provides HTTP communication capabilities for admin API interactions.
+
+### 4. Authentication Components
+
+- `AccessTokenWrapper`: Manages JWT token lifecycle
+- `ClientLogin`: Handles user authentication flow
+- `SetupModal`: Configures node URL and application settings
+
+### 5. Storage Utilities
+
+Manages local storage for:
+
+- Access tokens
+- Refresh tokens
+- Application URLs
+- Context identities
+
+## Authentication Setup
+
+### 1. Client Login Component
+
+```typescript
+import { ClientLogin } from '@calimero-network/calimero-client';
+
+const LoginPage = () => {
+    return (
+        <ClientLogin
+            getNodeUrl={() => process.env.NEXT_PUBLIC_API_URL}
+            getApplicationId={() => process.env.NEXT_PUBLIC_APPLICATION_ID}
+            successRedirect={() => navigate('/dashboard')}
+        />
+    );
+};
+```
+
+### 2. Token Management
+
+```typescript
+import { AccessTokenWrapper } from '@calimero-network/calimero-client';
+
+const App = () => {
+    return (
+        <AccessTokenWrapper
+            getNodeUrl={() => process.env.NEXT_PUBLIC_API_URL}
+        >
+            <YourApp />
+        </AccessTokenWrapper>
+    );
+};
+```
+
+### 3. Initial Setup
+
+```typescript
+import { SetupModal } from '@calimero-network/calimero-client';
+
+const Setup = () => {
+    return (
+        <SetupModal
+            successRoute={() => navigate('/dashboard')}
+            getNodeUrl={() => localStorage.getItem('nodeUrl')}
+            setNodeUrl={(url) => localStorage.setItem('nodeUrl', url)}
+            getApplicationId={() => localStorage.getItem('appId')}
+            setApplicationId={(id) => localStorage.setItem('appId', id)}
+        />
+    );
+};
+```
+
+### 4. Token Storage
+
+```typescript
+import {
+  setAccessToken,
+  getAccessToken,
+  setRefreshToken,
+  getRefreshToken,
+  clearJWT,
+} from '@calimero-network/calimero-client';
+
+// Store tokens
+setAccessToken(accessToken);
+setRefreshToken(refreshToken);
+
+// Retrieve tokens
+const accessToken = getAccessToken();
+const refreshToken = getRefreshToken();
+
+// Clear tokens on logout
+clearJWT();
+```
+
+## Using RpcClient
+
+Important: Always use the `execute` method instead of deprecated `query` or
+`mutate` methods.
+
+```typescript
+import { JsonRpcClient } from '@calimero-network/calimero-client';
+
+// Initialize client
+const rpcClient = new JsonRpcClient(
+  process.env.NEXT_PUBLIC_API_URL,
+  '/jsonrpc',
+);
+
+// Define interfaces
+interface CreatePost {
+  title: string;
+  text: string;
+}
+
+interface Post {
+  id: string;
+  title: string;
+  text: string;
+}
+
+// Execute a method
+const response = await rpcClient.execute<CreatePost, Post>({
+  applicationId: process.env.NEXT_PUBLIC_APPLICATION_ID,
+  method: 'create_post',
+  argsJson: {
+    title: 'My First Post',
+    text: 'Hello Calimero!',
+  },
+});
+```
+
+## Using SubscriptionsClient
+
+```typescript
+import { WsSubscriptionsClient } from '@calimero-network/calimero-client';
+
+// Initialize client
+const wsClient = new WsSubscriptionsClient(
+  process.env.NEXT_PUBLIC_API_URL,
+  '/ws',
+);
+
+// Connect to WebSocket
+await wsClient.connect();
+
+// Subscribe to application events
+wsClient.subscribe([process.env.NEXT_PUBLIC_APPLICATION_ID]);
+
+// Handle incoming events
+wsClient.addCallback((event) => {
+  switch (event.type) {
+    case 'StateMutation':
+      console.log('State updated:', event.data.newRoot);
+      break;
+    case 'ExecutionEvent':
+      console.log('Event:', event.data);
+      break;
+  }
+});
+
+// Cleanup
+wsClient.disconnect();
+```
+
+## Contract API Integration
+
+```typescript
+import { ContractApiDataSource } from '@calimero-network/calimero-client';
+
+const contractApi = new ContractApiDataSource(httpClient);
+
+// Get proposals
+const proposals = await contractApi.getContractProposals();
+
+// Get proposal details
+const details = await contractApi.getProposalDetails(proposalId);
+
+// Get number of approvals
+const approvals = await contractApi.getNumberOfApprovals(proposalId);
+```
+
+## Error Handling
+
+```typescript
+interface ErrorResponse {
+  code?: number;
+  message: string;
+}
+
+try {
+  const result = await rpcClient.execute(params);
+  if (result.error) {
+    if (result.error.code === 401) {
+      // Handle authentication error
+      clearJWT();
+      redirectToLogin();
+    }
+    console.error('RPC Error:', result.error.message);
+  }
+} catch (error) {
+  console.error('Unexpected error:', error);
+}
+```
+
+## Admin API Endpoints
+
+### Protected Endpoints (Requires Authentication)
+
+#### Application Management
+
+- `POST /admin-api/root-key` - Create root key
+- `POST /admin-api/install-application` - Install application
+- `POST /admin-api/uninstall-application` - Uninstall application
+- `GET /admin-api/applications` - List applications
+- `GET /admin-api/applications/:app_id` - Get application details
+
+#### Context Management
+
+- `POST /admin-api/contexts` - Create context
+- `GET /admin-api/contexts` - List contexts
+- `GET /admin-api/contexts/:context_id` - Get context details
+- `DELETE /admin-api/contexts/:context_id` - Delete context
+- `GET /admin-api/contexts/:context_id/users` - Get context users
+- `GET /admin-api/contexts/:context_id/client-keys` - Get context client keys
+- `GET /admin-api/contexts/:context_id/storage` - Get context storage
+- `GET /admin-api/contexts/:context_id/identities` - Get context identities
+- `POST /admin-api/contexts/invite` - Invite to context
+- `POST /admin-api/contexts/join` - Join context
+
+#### Identity Management
+
+- `POST /admin-api/identity/context` - Generate context identity
+- `DELETE /admin-api/identity/keys` - Delete auth keys
+- `POST /admin-api/generate-jwt-token` - Generate JWT token
+- `GET /admin-api/did` - Fetch DID
+- `DELETE /admin-api/did` - Delete DID
+
+### Unprotected Endpoints
+
+#### Authentication
+
+- `GET /admin-api/health` - Health check
+- `GET /admin-api/certificate` - Get certificate
+- `POST /admin-api/request-challenge` - Request challenge
+- `POST /admin-api/add-client-key` - Add client key
+- `POST /admin-api/refresh-jwt-token` - Refresh JWT token
+
+#### Proposal Management
+
+- `GET /admin-api/contexts/:context_id/proposals/:proposal_id/approvals/count` -
+  Get proposal approvals count
+- `GET /admin-api/contexts/:context_id/proposals/:proposal_id/approvals/users` -
+  Get proposal approvers
+- `GET /admin-api/contexts/:context_id/proposals/count` - Get active proposals
+  count
+- `POST /admin-api/contexts/:context_id/proposals` - Get proposals
+- `GET /admin-api/contexts/:context_id/proposals/:proposal_id` - Get proposal
+  details
+- `POST /admin-api/contexts/:context_id/proposals/get-context-value` - Get
+  context value
+- `POST /admin-api/contexts/:context_id/proposals/context-storage-entries` - Get
+  context storage entries
+- `GET /admin-api/contexts/:context_id/proxy-contract` - Get proxy contract
+
+## Using Admin API
+
+Any endpoints not exposed throught the SDK you can use like this:
+
+```typescript
+import { AxiosHttpClient } from '@calimero-network/calimero-client';
+
+const httpClient = new AxiosHttpClient(axios);
+
+// Example: Get context details
+const contextDetails = await httpClient.get<ContextDetails>(
+  `${nodeUrl}/admin-api/contexts/${contextId}`,
+);
+
+// Example: Create context
+const createContext = await httpClient.post<ContextResponse>(
+  `${nodeUrl}/admin-api/contexts`,
+  contextData,
+);
+```
+
+## Important Notes
+
+1. Always use the `execute` method for RPC calls instead of deprecated `query`
+   or `mutate`
+2. Implement proper error handling for both RPC and WebSocket operations
+3. Ensure proper cleanup of WebSocket connections when they're no longer needed
+4. Store sensitive information securely using the provided storage utilities
+5. Use the built-in token refresh mechanism to maintain sessions
+6. All protected endpoints require valid JWT authentication

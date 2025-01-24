@@ -1,0 +1,47 @@
+---
+id: create-context
+title: Create Context
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+import ContextCreateBinary from '../shared/context-create-binary.mdx';
+import ContextCreateInteractiveCli from '../shared/context-create-interactive-cli.mdx';
+import ContextCreateAdminDashboard from '../shared/context-create-admin-dashboard.mdx';
+import InitNode from '../shared/node-init-binary.mdx';
+import RunNode from '../shared/node-run-binary.mdx';
+
+### Initialize node
+
+<InitNode />
+
+### Run node
+
+<RunNode />
+
+### Create a New Context
+
+<Tabs
+    defaultValue="meroctl"
+    values={[
+        {label: 'Meroctl', value: 'meroctl'},
+        {label: 'Interactive cli', value: 'interactive-cli'},
+        {label: 'Admin Dashboard', value: 'admin-dashboard'},
+    ]}>
+
+<TabItem value="meroctl">
+  <ContextCreateBinary />
+</TabItem>
+
+<TabItem value="interactive-cli">
+  <ContextCreateInteractiveCli />
+</TabItem>
+
+<TabItem value="admin-dashboard">
+  <ContextCreateAdminDashboard />
+</TabItem>
+</Tabs>
+
+You have now create a new context. Next step is to invite users to join your
+context. Continue with [invitations and joinings](./invitations-and-joinings).
