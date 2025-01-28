@@ -47,7 +47,7 @@ const config: Config = {
               path: 'next',
             },
             '0.3.0': {
-              label: 'Stable',
+              label: 'Stable(0.3.0)',
               path: '',
               badge: false,
             },

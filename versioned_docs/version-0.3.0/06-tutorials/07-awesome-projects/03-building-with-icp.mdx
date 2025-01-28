@@ -71,7 +71,7 @@ git clone https://github.com/calimero-network/icp-devnet
 
 cd icp-devnet
 
-chmod +x ./deploy_devnet_addon.sh && ./deploy_devnet_addon.sh
+chmod +x ./deploy_devnet_addon.sh
 
 ```
 
@@ -226,7 +226,7 @@ Applications are installed with the following command:
 
 ```bash title="Node1 Terminal"
 application install file <PATH_TO_blockchain.wasm_FILE>
->Application installed <APPLICATION_ID>
+>Installed application: <APPLICATION_ID>
 ```
 
 After installing the application we can create context:
@@ -348,7 +348,19 @@ dfx identity use initial
 To fund the contract we are going to use command:
 
 ```bash
-dfx canister call <LEDGER_CONTRACT_ID> icrc1_transfer "(record { to = record { owner = principal \"<PROXY_CONTRACT_ID> \"; subaccount = null}; amount = 1_000_000_000; fee = null; memo = null; from_subaccount = null; created_at_time = null})"
+dfx canister call <LEDGER_CONTRACT_ID> icrc1_transfer '(
+  record {
+    to = record {
+      owner = principal "<PROXY_CONTRACT_ID>";
+      subaccount = null;
+    };
+    amount = 1_000_000_000;
+    fee = null;
+    memo = null;
+    from_subaccount = null;
+    created_at_time = null;
+  }
+)'
 ```
 
 > LEDGER_CONTRACT_ID - this value can be viewed when ./deploy_devnet.sh script
@@ -361,14 +373,31 @@ dfx canister call <LEDGER_CONTRACT_ID> icrc1_transfer "(record { to = record { o
 > <br /> In our case value its: `b77ix-eeaaa-aaaaa-qaada-cai`
 
 ```bash title="ICP Setup Terminal Terminal"
-dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_transfer "(record { to = record { owner = principal \"b77ix-eeaaa-aaaaa-qaada-cai"\"; subaccount = null}; amount = 1_000_000_000; fee = null; memo = null; from_subaccount = null; created_at_time = null})"
+dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_transfer '(
+  record {
+    to = record {
+      owner = principal "b77ix-eeaaa-aaaaa-qaada-cai";
+      subaccount = null;
+    };
+    amount = 1_000_000_000;
+    fee = null;
+    memo = null;
+    from_subaccount = null;
+    created_at_time = null;
+  }
+)'
 > (variant { Ok = 1 : nat })
 ```
 
 And verify the contract balance:
 
 ```bash title="ICP Setup Terminal Terminal"
-dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_balance_of "(record { owner = principal \"b77ix-eeaaa-aaaaa-qaada-cai\"; subaccount = null })"
+dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_balance_of '(
+  record {
+    owner = principal "b77ix-eeaaa-aaaaa-qaada-cai";
+    subaccount = null;
+  }
+)'
 > (1_000_000_000 : nat)
 ```
 
