@@ -39,11 +39,17 @@ const config: Config = {
           showLastUpdateTime: true,
           editUrl: ({ versionDocsDirPath, docPath }) =>
             `https://github.com/calimero-network/calimero-network.github.io/edit/master/${versionDocsDirPath}/${docPath}`,
-          lastVersion: 'current',
+          disableVersioning: false,
+          lastVersion: '0.3.0',
           versions: {
             current: {
-              label: '0.2.0',
+              banner: 'unreleased',
+              path: 'next',
+            },
+            '0.3.0': {
+              label: 'Stable(0.3.0)',
               path: '',
+              badge: false,
             },
           },
           exclude: ['**/shared/**', '**/_*.{js,jsx,ts,tsx,md,mdx}'],
@@ -138,6 +144,7 @@ const config: Config = {
         {
           type: 'docsVersionDropdown',
           position: 'right',
+          dropdownActiveClassDisabled: true, // Prevents switching to the current version
         },
         {
           href: 'https://github.com/calimero-network/core',
