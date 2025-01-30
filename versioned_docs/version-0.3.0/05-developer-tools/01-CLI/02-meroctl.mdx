@@ -98,9 +98,26 @@ Commands:
 - `join` Join an application context
 - `invite` Create invitation to a context for a invitee
 - `get` Fetch details about the context
+  <!-- prettier-ignore -->
+  <details>
+  <summary>`get` subcommands</summary>
+
+      - `info` Get context information
+      - `client-keys` Get client keys
+      - `storage` Get storage information
+      - `identities (-owned)` Get all identities in the context. Use `-owned` to get
+        only owned identities
+
+              ```bash Terminal
+              meroctl --node-name <NAME> context get <contextId> <SUBCOMMAND>
+              ```
+
+      </details>
+
 - `delete` Delete an context
 - `watch` Watch events from a context
 - `update` Update app in context
+- `peers` Show a number of connected peers
 
 ### Manage Identities
 
