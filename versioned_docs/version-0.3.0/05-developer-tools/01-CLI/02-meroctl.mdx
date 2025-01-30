@@ -28,6 +28,7 @@ meroctl [OPTIONS] --node-name <NAME> <COMMAND>
 - `identity` Command for managing applications
 - `proxy` Command for managing proxy contract
 - `call` Executing read and write RPC calls
+- `peers` Show a number of connected peers
 - `help` Print this message or the help of the given subcommand(s)
 
 :::tip
@@ -98,6 +99,22 @@ Commands:
 - `join` Join an application context
 - `invite` Create invitation to a context for a invitee
 - `get` Fetch details about the context
+  <!-- prettier-ignore -->
+  <details>
+  <summary>`get` subcommands</summary>
+
+      - `info` Get context information
+      - `client-keys` Get client keys
+      - `storage` Get storage information
+      - `identities (-owned)` Get all identities in the context. Use `--owned` to get
+        only owned identities
+
+              ```bash Terminal
+              meroctl --node-name <NAME> context get <contextId> <SUBCOMMAND>
+              ```
+
+      </details>
+
 - `delete` Delete an context
 - `watch` Watch events from a context
 - `update` Update app in context
@@ -121,6 +138,12 @@ Commands:
 Commands:
 
 - `get` Fetch details about the proxy contract
+
+### Show a number of connected peers
+
+```bash title="Terminal"
+meroctl --node-name <NAME> peers
+```
 
 ### Executing read and write RPC calls
 
