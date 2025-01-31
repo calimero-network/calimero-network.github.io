@@ -20,6 +20,9 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
+      - name: Install dependencies
+        run: pnpm install
+
       # Check for Markdown/MDX changes
       - name: Check for Markdown/MDX changes
         env:
