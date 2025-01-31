@@ -18,8 +18,7 @@ If the node doesn't have application installed, you need to install the applicat
 If the application is already installed, you can skip this step.
 
 ```bash
-$ meroctl app install --path /path/to/app
->> <app-id>
+meroctl app install --path /path/to/app
 ```
 
 After the application is installed, you can create new context:
@@ -34,22 +33,19 @@ After the application is installed, you can create new context:
 
 <TabItem value="near">
 ```bash title="Terminal"
-$ meroctl context create --application-id <app-id> --protocol near
->> <context-id>
+meroctl context create --application-id <app-id> --protocol near
 ```
 </TabItem>
 
 <TabItem value="starknet">
 ```bash title="Terminal"
-$ meroctl context create --application-id <app-id> --protocol starknet
->> <context-id>
+meroctl context create --application-id <app-id> --protocol starknet
 ```
 </TabItem>
 
 <TabItem value="icp">
 ```bash title="Terminal"
-$ meroctl context create --application-id <app-id> --protocol icp
->> <context-id>
+meroctl context create --application-id <app-id> --protocol icp
 ```
 </TabItem>
 
