@@ -3,32 +3,54 @@ id: install-application
 title: Install application
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 We have created simple and easy to use example application called `only-peers`.
 Application enables writing posts and leaving comments. To try out application
 you need to create new context where application will be installed.
 
 ### Create new context
 
-To create new context, node CLI has to be used. There are two possible options
-of creating new context.
+To create new context, node CLI has to be used.
 
-1. If the node already has application installed, create new context using
-   command:
+If the node doesn't have application installed, you need to install the
+application first. If the application is already installed, you can skip this
+step.
 
-```bash title="Terminal"
-$ meroctl context create --application <app-id>
->> <context-id>
+```bash
+meroctl app install --path /path/to/app
 ```
 
-2. If application is not installed then install the application and create new
-   context using commands:
+After the application is installed, you can create new context:
 
+<Tabs
+    defaultValue="near"
+    values={[
+        {label: 'Near', value: 'near'},
+        {label: 'Starknet', value: 'starknet'},
+        {label: 'ICP', value: 'icp'},
+    ]}>
+
+<TabItem value="near">
 ```bash title="Terminal"
-$ meroctl app install --path /path/to/app
->> <app-id>
-$ meroctl context create --application <app-id>
->> <context-id>
+meroctl context create --application-id <app-id> --protocol near
 ```
+</TabItem>
+
+<TabItem value="starknet">
+```bash title="Terminal"
+meroctl context create --application-id <app-id> --protocol starknet
+```
+</TabItem>
+
+<TabItem value="icp">
+```bash title="Terminal"
+meroctl context create --application-id <app-id> --protocol icp
+```
+</TabItem>
+
+</Tabs>
 
 You are now part of the context and can start using the application.
 
