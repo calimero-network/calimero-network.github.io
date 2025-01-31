@@ -1,0 +1,35 @@
+name: Code Style Checks
+
+on:
+  push:
+    branches: ['master']
+  pull_request:
+
+jobs:
+  check-code-style:
+    name: Check Code Style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # Check for Markdown/MDX changes
+      - name: Check for Markdown/MDX changes
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        shell: bash
+        run: |
+          echo "Checking for Markdown/MDX changes..."
+          if echo "$ALL_CHANGED_FILES" | grep -qE '\.mdx?$'; then
+             if ! pnpm check:md; then
+              echo "Markdown or MDX files are not properly formatted."
+              exit 1  # Exit with a non-zero status code to indicate failure
+             fi
+          fi
