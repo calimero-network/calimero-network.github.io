@@ -29,6 +29,7 @@ meroctl [OPTIONS] --node-name <NAME> <COMMAND>
 - `proxy` Command for managing proxy contract
 - `call` Executing read and write RPC calls
 - `peers` Show a number of connected peers
+- `bootstrap` Setup two nodes inside the same context
 - `help` Print this message or the help of the given subcommand(s)
 
 :::tip
@@ -118,6 +119,7 @@ Commands:
 - `delete` Delete an context
 - `watch` Watch events from a context
 - `update` Update app in context
+- `peers` Show a number of connected peers
 
 ### Manage Identities
 
@@ -161,3 +163,25 @@ Options:
 - `--args <ARGS>` JSON arguments to pass to the method
 - `--as <EXECUTOR>` Public key of the executor
 - `--id <ID>` Id of the RPC execute call [default: dontcare]
+
+### Setup two nodes inside the same context
+
+```bash title="Terminal"
+meroctl --node-name <NAME> bootstrap <COMMAND> --merod-path <MEROD_PATH> --protocol <PROTOCOL> --app-path [APP_PATH]
+```
+
+Command initializes and run `node1` and `node2` in the same context.
+
+Arguments:
+
+- `<MEROD_PATH>` Full path to
+  [merod](https://calimero-network.github.io/developer-tools/CLI/merod) binary.
+- `<PROTOCOL>` One of supported protocols for context creation. (e.g. near,
+  starknet, icp)
+- `<APP_PATH>` Path to the app wasm file. If not specified, the default
+  [core-template-app](https://github.com/calimero-network/core-app-template)
+  will be used
+
+Commands:
+
+- `start`: Start bootstrap process
