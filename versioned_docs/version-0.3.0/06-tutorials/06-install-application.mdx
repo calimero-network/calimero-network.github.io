@@ -19,8 +19,13 @@ application first. If the application is already installed, you can skip this
 step.
 
 ```bash
-meroctl app install --path /path/to/app
+meroctl --node-name node1 app install --path /path/to/app
 ```
+
+:::note 
+
+If you want to install an application that is published in rthe egistry, check `meroctl --node-name node1 app install -h` for options
+:::
 
 After the application is installed, you can create new context:
 
@@ -34,19 +39,19 @@ After the application is installed, you can create new context:
 
 <TabItem value="near">
 ```bash title="Terminal"
-meroctl context create --application-id <app-id> --protocol near
+meroctl --node-name node1 context create --application-id <app-id> --protocol near
 ```
 </TabItem>
 
 <TabItem value="starknet">
 ```bash title="Terminal"
-meroctl context create --application-id <app-id> --protocol starknet
+meroctl --node-name node1 context create --application-id <app-id> --protocol starknet
 ```
 </TabItem>
 
 <TabItem value="icp">
 ```bash title="Terminal"
-meroctl context create --application-id <app-id> --protocol icp
+meroctl --node-name node1 context create --application-id <app-id> --protocol icp
 ```
 </TabItem>
 
