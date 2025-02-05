@@ -67,17 +67,9 @@
     "message": "Support",
     "description": "The label for category Support in sidebar tutorialSidebar"
   },
-  "sidebar.tutorialSidebar.category.Blockchains Integration": {
-    "message": "Blockchains Integration",
-    "description": "The label for category Blockchains Integration in sidebar tutorialSidebar"
-  },
   "sidebar.tutorialSidebar.category.Login with Wallets": {
     "message": "Login with Wallets",
     "description": "The label for category Login with Wallets in sidebar tutorialSidebar"
-  },
-  "sidebar.tutorialSidebar.category.shared": {
-    "message": "shared",
-    "description": "The label for category shared in sidebar tutorialSidebar"
   },
   "version.label": {
     "message": "Next",
