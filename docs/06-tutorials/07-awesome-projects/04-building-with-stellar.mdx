@@ -52,7 +52,8 @@ You also need following tools:
 
 ### Contracts overview
 
-Both contracts are written in Rust, you can find their implementations in the following repositories:
+Both contracts are written in Rust, you can find their implementations in the
+following repositories:
 
 - [Context contract](https://github.com/calimero-network/core/tree/master/contracts/stellar/context-config)
 - [Proxy contract](https://github.com/calimero-network/core/tree/master/contracts/stellar/context-proxy)
@@ -70,9 +71,9 @@ More information about context contract can be found
 
 ### Proxy contract
 
-With each context creation a proxy contract for that context is deployed.
-Proxy contract is used to handle blockchain operations such as cross-contract
-calls and transfers as well as storing variables.
+With each context creation a proxy contract for that context is deployed. Proxy
+contract is used to handle blockchain operations such as cross-contract calls
+and transfers as well as storing variables.
 
 <lb />
 More information about proxy contract can be found
@@ -260,7 +261,8 @@ Example of request in postman:
 
 With proxy contract id we can now fund it using Stellar CLI.
 
-To be able to fund the contract we need to create a testnet account and seed it with tokens.
+To be able to fund the contract we need to create a testnet account and seed it
+with tokens.
 
 You can create a testnet account and automatically fund it by using Stellar CLI:
 
@@ -280,6 +282,7 @@ stellar keys address <NAME_OF_ACCOUNT>
 ```
 
 Now you can fund the contract by using the following command:
+
 ```bash
 stellar contract invoke \
   --id CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC \
@@ -293,11 +296,12 @@ stellar contract invoke \
 
 Where:
 
-- `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` is the address of the
-  Stellar testnet ledger contract.
+- `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` is the address of
+  the Stellar testnet ledger contract.
 - `<ACCOUNT_ADDRESS>` is the address of the account you created.
 - `<PROXY_CONTRACT_ID>` is the address of the proxy contract you want to fund.
-- `100000000` is the amount of lumens you want to fund the contract with. (1 XLM = 10000000)
+- `100000000` is the amount of lumens you want to fund the contract with. (1 XLM
+  = 10000000)
 
 To verify contract balance you can check it on Stellar Explorer by visiting:
 
@@ -394,7 +398,8 @@ At this point proposal approval threshold is 1, meaning proposal will be
 executed on creation. This means when we create cross-contract call proposal it
 will instantly be executed.
 
-We have created a `<DEMO_EXTERNAL_CONTRACT_ID>` and deployed it on Stellar testnet.
+We have created a `<DEMO_EXTERNAL_CONTRACT_ID>` and deployed it on Stellar
+testnet.
 
 Its address is:
 
@@ -404,11 +409,11 @@ CAJF5BPK4AT7UNVF4NDXMUXDKXCBFV56H2TNMUJIX6WUSNFP4UMH7W46
 
 It contains following methods:
 
-- **no_deposit** - This method does not require a deposit for
-  execution, it sets sent arguments in its storage.
-- **deposit** - This method requires a deposit for execution, it first
-  transfers the funds to the contract from proxy contract and then sets sent
-  arguments in its storage, if the transfer is completed successfully.
+- **no_deposit** - This method does not require a deposit for execution, it sets
+  sent arguments in its storage.
+- **deposit** - This method requires a deposit for execution, it first transfers
+  the funds to the contract from proxy contract and then sets sent arguments in
+  its storage, if the transfer is completed successfully.
 - **get_calls** - This method returns all calls stored in the contract.
 - **clear_state** - This method clears the storage of the contract.
 
@@ -424,16 +429,18 @@ When creating cross-contract call proposal we need to provide following values:
   called
 - **Deposit**: 0 - Deposit for transfer, in this case we are not transferring
   any funds so we can set it to 0
-- **Arguments**: The following arguments correspond to the deposit method parameters:
+- **Arguments**: The following arguments correspond to the deposit method
+  parameters:
 
-  | Type | Value |
-  |------|--------|
+  | Type    | Value                 |
+  | ------- | --------------------- |
   | address | `{PROXY_CONTRACT_ID}` |
-  | i128 | 10000000 |
-  | string | "testKEY" |
-  | string | "testVALUE" |
+  | i128    | 10000000              |
+  | string  | "testKEY"             |
+  | string  | "testVALUE"           |
 
 Supported Soroban argument types:
+
 - `i32` - 32-bit signed integer
 - `u32` - 32-bit unsigned integer
 - `i64` - 64-bit signed integer
@@ -447,7 +454,8 @@ Supported Soroban argument types:
 - `bytes` - Byte array
 
 After we create proposal it will be executed, and the success of the execution
-can be checked calling demo external contract method **get_value** with Stellar CLI:
+can be checked calling demo external contract method **get_value** with Stellar
+CLI:
 
 ```bash
 stellar contract invoke \
@@ -467,10 +475,12 @@ There you will see the current funds attached to the contract.
 
 :::caution
 
-The implementation of cross-contract call with deposit is based on the following steps:
+The implementation of cross-contract call with deposit is based on the following
+steps:
+
 1. The contract detects that an attached deposit is present.
-2. It calls the ledger contract to enable the external contract (the
-   contract being called) to withdraw funds.
+2. It calls the ledger contract to enable the external contract (the contract
+   being called) to withdraw funds.
 3. The external contract is called, and it must contain logic to withdraw the
    funds that have been allocated for it in the ledger contract.
 4. After the cross-contract call is completed, the proxy contract sets the
@@ -483,8 +493,8 @@ The implementation of cross-contract call with deposit is based on the following
 This tutorial has covered all the essential steps developers need to build an
 application for Calimero and Stellar, from environment overview to deploying a
 fully functional smart contract. By following this guide, you should now have a
-solid understanding of the development workflow and how to build your own Stellar
-application for Calimero.
+solid understanding of the development workflow and how to build your own
+Stellar application for Calimero.
 
 Feel free to use our demo applications as a starting point to build and
 customize your own application. If you have any questions or need assistance,
