@@ -127,7 +127,8 @@ network = "testnet"
 contract_id = <CONFIG_CONTRACT_ID>
 ```
 
-If you use `self` for signer then you also need to change `public` and `secret` key.
+If you use `self` for signer then you also need to change `public` and `secret`
+key.
 
 ```
 [context.config.signer.self.stellar.testnet]
@@ -136,12 +137,13 @@ public_key = <YOUR_PUBLIC_KEY>
 secret_key = <YOUR_SECRET_KEY>
 ```
 
-The values auto-generated only represent the format needed for self signing feature and are not 
-real Stellar accounts. To create your own Stellar account with CLI follow the Stellar [Docs](https://developers.stellar.org/docs/build/guides/cli)
+The values auto-generated only represent the format needed for self signing
+feature and are not real Stellar accounts. To create your own Stellar account
+with CLI follow the Stellar
+[Docs](https://developers.stellar.org/docs/build/guides/cli)
 
-
-If signer is changed to `signer = "relayer"` you don't need to changed anything as
-relayer will handle all the blockchain operations.
+If signer is changed to `signer = "relayer"` you don't need to changed anything
+as relayer will handle all the blockchain operations.
 
 :::
 
