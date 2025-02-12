@@ -115,6 +115,36 @@ The output should look like this:
 <img src="/icp-tutorial/12_init_cali_nodes.png" alt="init-nodes" />
 You can verify nodes initialization files by looking into `~/.calimero` folder.
 
+:::note Self signer vs. Relayer signer
+
+In `config.toml` file you can see default configuration:
+
+```
+[context.config.stellar]
+signer = "self"
+protocol = "stellar"
+network = "testnet"
+contract_id = <CONFIG_CONTRACT_ID>
+```
+
+If you use `self` for signer then you also need to change `public` and `secret` key.
+
+```
+[context.config.signer.self.stellar.testnet]
+rpc_url = "https://soroban-testnet.stellar.org/"
+public_key = <YOUR_PUBLIC_KEY>
+secret_key = <YOUR_SECRET_KEY>
+```
+
+The values auto-generated only represent the format needed for self signing feature and are not 
+real Stellar accounts. To create your own Stellar account with CLI follow the Stellar [Docs](https://developers.stellar.org/docs/build/guides/cli)
+
+
+If signer is changed to `signer = "relayer"` you don't need to changed anything as
+relayer will handle all the blockchain operations.
+
+:::
+
 More on node initialization can be found [here](/getting-started/setup/).
 
 Now we are going to start the nodes with the commands:
