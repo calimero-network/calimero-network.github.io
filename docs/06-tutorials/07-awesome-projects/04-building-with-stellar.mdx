@@ -433,12 +433,10 @@ You can see the contract itself and its implementation
 When creating cross-contract call proposal we need to provide following values:
 
 - **Contract ID**: `{DEMO_EXTERNAL_CONTRACT_ID}` - Address of the external
-  contract - shown in terminal output of dfx deployment script for demo external
   contract
-- **Method Name**: test_method_no_transfer - Name of the method that will be
+- **Method Name**: `deposit` - Name of the contract method that will be
   called
-- **Deposit**: 0 - Deposit for transfer, in this case we are not transferring
-  any funds so we can set it to 0
+- **Deposit**: 10000000 - Deposit for transfer (1 XLM)
 - **Arguments**: The following arguments correspond to the deposit method
   parameters:
 
@@ -446,8 +444,10 @@ When creating cross-contract call proposal we need to provide following values:
   | ------- | --------------------- |
   | address | `{PROXY_CONTRACT_ID}` |
   | i128    | 10000000              |
-  | string  | "testKEY"             |
-  | string  | "testVALUE"           |
+  | string  | testKEY               |
+  | string  | testVALUE             |
+
+<img src="/stellar-tutorial/stellar_proposal_deposit_call.png" alt="create-ccc" style={{ width: "50%" }} />
 
 Supported Soroban argument types:
 
