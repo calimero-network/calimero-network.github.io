@@ -25,7 +25,7 @@ meroctl [OPTIONS] --node-name <NAME> <COMMAND>
 
 - `app` Command for managing applications
 - `context` Command for managing contexts
-- `identity` Command for managing applications
+- `identity` Command for creating an empty identity
 - `proxy` Command for managing proxy contract
 - `call` Executing read and write RPC calls
 - `peers` Show a number of connected peers
@@ -71,7 +71,7 @@ your nodes private key.
 | --------------------------------------------------------------------------------- | ----------------------------------- |
 | `meroctl --node-name <NAME> app <COMMAND>`                                        | Command for managing applications   |
 | `meroctl --node-name <NAME> context <COMMAND>`                                    | Command for managing contexts       |
-| `meroctl --node-name <NAME> identity <COMMAND>`                                   | Command for managing identities     |
+| `meroctl --node-name <NAME> identity <COMMAND>`                                   | Command for creating identities     |
 | `meroctl --node-name <NAME> proxy <COMMAND>`                                      | Command for managing proxy contract |
 | `meroctl --node-name <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Executing read and write RPC calls  |
 
@@ -95,31 +95,74 @@ meroctl --node-name <NAME> context <COMMAND>
 
 Commands:
 
+- `alias` Create an alias for a context 
 - `list` List all contexts
 - `create` Create a new context
 - `join` Join an application context
 - `invite` Create invitation to a context for a invitee
 - `get` Fetch details about the context
-  <!-- prettier-ignore -->
   <details>
   <summary>`get` subcommands</summary>
-
       - `info` Get context information
       - `client-keys` Get client keys
       - `storage` Get storage information
-      - `identities (-owned)` Get all identities in the context. Use `--owned` to get
-        only owned identities
+  </details>
 
-              ```bash Terminal
-              meroctl --node-name <NAME> context get <contextId> <SUBCOMMAND>
-              ```
-
-      </details>
-
+- `identity` Create a context identity or it's alias
 - `delete` Delete an context
 - `watch` Watch events from a context
 - `update` Update app in context
 - `peers` Show a number of connected peers
+
+### Managing Context Identities and Aliases
+
+The `context identity` command supports alias management to simplify working with public keys across contexts:
+
+```bash
+meroctl --node-name <NAME> context identity <COMMAND>
+```
+
+Commands:
+
+- `list` List identities in a context
+  - Use `--owned` to get only owned identities
+
+    ```bash
+    meroctl --node-name <NAME> context identity <contextId or alias> --owend
+    ```
+
+- `alias` Manage identity aliases
+  - `add <name> <identity> --context <context-id or alias>` Create new alias for an identity
+  - `remove <name> --context <context-id or alias>` Remove an identity alias
+  - `get <name> --context <context-id or alias>` Look up an identity's hash by alias
+
+### Context Management with Aliases
+
+The `context` command includes alias management as a subcommand to simplify working with context IDs:
+
+```bash
+meroctl --node-name <NAME> context <COMMAND>
+```
+
+The alias subcommand structure:
+
+```bash
+meroctl --node-name <NAME> context alias <COMMAND>
+```
+
+- `add <name> <context-id>` Create new alias for a context
+- `remove <name>` Remove a context alias
+- `get <name>` Look up a context by alias
+
+Additional context commands support using aliases:
+- `create --as <alias> ...` Create context with an identity alias
+- `get <context-alias>` Get context info using alias
+- `invite <context-alias> <inviter-alias> <invitee-alias>` Create invitation using aliases
+- And more...
+
+:::tip
+See the Invitations and Joinings guide for detailed examples of using aliases to streamline context management.
+:::
 
 ### Manage Identities
 
