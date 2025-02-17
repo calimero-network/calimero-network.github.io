@@ -24,19 +24,20 @@ import RunNode from '../shared/node-run-binary.mdx';
 <Tabs
   defaultValue="meroctl"
   values={[
-    {label: 'Meroctl', value: 'meroctl'},
-    {label: 'Interactive cli', value: 'interactive-cli'},
-    {label: 'Admin Dashboard', value: 'admin-dashboard'},
-  ]}>
-<TabItem value="meroctl">
-<ContextCreateBinary />
-</TabItem>
-<TabItem value="interactive-cli">
-<ContextCreateInteractiveCli />
-</TabItem>
-<TabItem value="admin-dashboard">
-<ContextCreateAdminDashboard />
-</TabItem>
+    { label: 'Meroctl', value: 'meroctl' },
+    { label: 'Interactive cli', value: 'interactive-cli' },
+    { label: 'Admin Dashboard', value: 'admin-dashboard' },
+  ]}
+>
+  <TabItem value="meroctl">
+    <ContextCreateBinary />
+  </TabItem>
+  <TabItem value="interactive-cli">
+    <ContextCreateInteractiveCli />
+  </TabItem>
+  <TabItem value="admin-dashboard">
+    <ContextCreateAdminDashboard />
+  </TabItem>
 </Tabs>
 
 You have now created a new context.
@@ -47,4 +48,5 @@ To create an alias for this context, use:
 context alias add my_context <context_id>
 ```
 
-Next step is to invite users to join your context. Continue with [invitations and joinings](./invitations-and-joinings).
+Next step is to invite users to join your context. Continue with
+[invitations and joinings](./invitations-and-joinings).
