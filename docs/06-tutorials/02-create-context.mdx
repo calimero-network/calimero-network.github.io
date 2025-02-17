@@ -5,7 +5,6 @@ title: Create Context
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-
 import ContextCreateBinary from '../shared/context-create-binary.mdx';
 import ContextCreateInteractiveCli from '../shared/context-create-interactive-cli.mdx';
 import ContextCreateAdminDashboard from '../shared/context-create-admin-dashboard.mdx';
@@ -23,32 +22,29 @@ import RunNode from '../shared/node-run-binary.mdx';
 ### Create a New Context
 
 <Tabs
-    defaultValue="meroctl"
-    values={[
-        {label: 'Meroctl', value: 'meroctl'},
-        {label: 'Interactive cli', value: 'interactive-cli'},
-        {label: 'Admin Dashboard', value: 'admin-dashboard'},
-    ]}>
-
+  defaultValue="meroctl"
+  values={[
+    {label: 'Meroctl', value: 'meroctl'},
+    {label: 'Interactive cli', value: 'interactive-cli'},
+    {label: 'Admin Dashboard', value: 'admin-dashboard'},
+  ]}>
 <TabItem value="meroctl">
-  <ContextCreateBinary />
+<ContextCreateBinary />
 </TabItem>
-
 <TabItem value="interactive-cli">
-  <ContextCreateInteractiveCli />
+<ContextCreateInteractiveCli />
 </TabItem>
-
 <TabItem value="admin-dashboard">
-  <ContextCreateAdminDashboard />
+<ContextCreateAdminDashboard />
 </TabItem>
 </Tabs>
 
-You have now create a new context.
-:::tip
-If you want to create an alias for this context use
-```bash title="Alias"
+You have now created a new context.
+
+To create an alias for this context, use:
+
+```bash title="Terminal"
 context alias add my_context <context_id>
 ```
-:::
-Next step is to invite users to join your
-context. Continue with [invitations and joinings](./invitations-and-joinings).
+
+Next step is to invite users to join your context. Continue with [invitations and joinings](./invitations-and-joinings).

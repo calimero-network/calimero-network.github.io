@@ -95,17 +95,16 @@ meroctl --node-name <NAME> context <COMMAND>
 
 Commands:
 
-- `alias` Create an alias for a context 
+- `alias` Create an alias for a context
 - `list` List all contexts
 - `create` Create a new context
 - `join` Join an application context
 - `invite` Create invitation to a context for a invitee
 - `get` Fetch details about the context
+
   <details>
-  <summary>`get` subcommands</summary>
-      - `info` Get context information
-      - `client-keys` Get client keys
-      - `storage` Get storage information
+    <summary>`get` subcommands</summary>- `info` Get context information -
+    `client-keys` Get client keys - `storage` Get storage information
   </details>
 
 - `identity` Create a context identity or it's alias
@@ -116,7 +115,8 @@ Commands:
 
 ### Managing Context Identities and Aliases
 
-The `context identity` command supports alias management to simplify working with public keys across contexts:
+The `context identity` command supports alias management to simplify working
+with public keys across contexts:
 
 ```bash
 meroctl --node-name <NAME> context identity <COMMAND>
@@ -125,6 +125,7 @@ meroctl --node-name <NAME> context identity <COMMAND>
 Commands:
 
 - `list` List identities in a context
+
   - Use `--owned` to get only owned identities
 
     ```bash
@@ -132,13 +133,16 @@ Commands:
     ```
 
 - `alias` Manage identity aliases
-  - `add <name> <identity> --context <context-id or alias>` Create new alias for an identity
+  - `add <name> <identity> --context <context-id or alias>` Create new alias for
+    an identity
   - `remove <name> --context <context-id or alias>` Remove an identity alias
-  - `get <name> --context <context-id or alias>` Look up an identity's hash by alias
+  - `get <name> --context <context-id or alias>` Look up an identity's hash by
+    alias
 
 ### Context Management with Aliases
 
-The `context` command includes alias management as a subcommand to simplify working with context IDs:
+The `context` command includes alias management as a subcommand to simplify
+working with context IDs:
 
 ```bash
 meroctl --node-name <NAME> context <COMMAND>
@@ -155,14 +159,15 @@ meroctl --node-name <NAME> context alias <COMMAND>
 - `get <name>` Look up a context by alias
 
 Additional context commands support using aliases:
+
 - `create --as <alias> ...` Create context with an identity alias
 - `get <context-alias>` Get context info using alias
-- `invite <context-alias> <inviter-alias> <invitee-alias>` Create invitation using aliases
+- `invite <context-alias> <inviter-alias> <invitee-alias>` Create invitation
+  using aliases
 - And more...
 
-:::tip
-See the Invitations and Joinings guide for detailed examples of using aliases to streamline context management.
-:::
+:::tip See the Invitations and Joinings guide for detailed examples of using
+aliases to streamline context management. :::
 
 ### Manage Identities
 

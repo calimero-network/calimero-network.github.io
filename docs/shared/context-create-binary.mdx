@@ -2,47 +2,47 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 <Tabs
-    defaultValue="near"
-    values={[
-        {label: 'Near', value: 'near'},
-        {label: 'Starknet', value: 'starknet'},
-        {label: 'ICP', value: 'icp'},
-        {label: 'Stellar', value: 'stellar'},
-    ]}>
-
+  defaultValue="near"
+  values={[
+    {label: 'Near', value: 'near'},
+    {label: 'Starknet', value: 'starknet'},
+    {label: 'ICP', value: 'icp'},
+    {label: 'Stellar', value: 'stellar'},
+  ]}>
 <TabItem value="near">
+
 ```bash title="Terminal"
 meroctl --node-name node1 context create --watch {application_path} --protocol near
 ```
-</TabItem>
 
+</TabItem>
 <TabItem value="starknet">
+
 ```bash title="Terminal"
 meroctl --node-name node1 context create --watch {application_path} --protocol starknet
 ```
-</TabItem>
 
+</TabItem>
 <TabItem value="icp">
+
 ```bash title="Terminal"
 meroctl --node-name node1 context create --watch {application_path} --protocol icp
 ```
-</TabItem>
 
+</TabItem>
 <TabItem value="stellar">
+
 ```bash title="Terminal"
 meroctl --node-name node1 context create --watch {application_path} --protocol stellar
 ```
-</TabItem>
 
+</TabItem>
 </Tabs>
 
 :::tip
 
-`--watch` flag enables watching for changes of wasm files and updating context
-with the new version.
-
-`--protocol` flag specifies the protocol to use for the context.
-
-`--as` flag creates an alias for your identity in your context, you can use it instead of the PublicKey
-
-:::
+- `--watch` flag enables watching for changes of wasm files and updating context
+  with the new version
+- `--protocol` flag specifies the protocol to use for the context
+- `--as` flag creates an alias for your identity in your context, you can use it
+  instead of the PublicKey :::
