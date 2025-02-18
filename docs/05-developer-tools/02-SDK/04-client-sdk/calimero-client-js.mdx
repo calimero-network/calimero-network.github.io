@@ -268,9 +268,38 @@ try {
 
 ##### Create routes
 
-- `POST /admin-api/alias/create/context` - Generate context identity
-- `POST /admin-api/alias/create/application` - Generate context identity
-- `POST /admin-api/alias/create/identity/:context` - Generate context identity
+```http title="POST /admin-api/alias/create/context"
+{
+  "alias": "string",
+  "value": {
+    "contextId": "ContextId"
+  }
+}
+```
+
+- Generate context identity
+
+```http title="POST /admin-api/alias/create/identity/{context_id}"
+{
+  "alias": "string",
+  "value": {
+    "identity": "PublicKey"
+  }
+}
+```
+
+- Creates an alias for an identity within a specific context.
+
+```http title="POST /admin-api/alias/create/application"
+{
+  "alias": "string",
+  "value": {
+    "applicationId": "ApplicationId"
+  }
+}
+```
+
+- Creates an alias for an application ID.
 
 ##### Lookup routes
 
