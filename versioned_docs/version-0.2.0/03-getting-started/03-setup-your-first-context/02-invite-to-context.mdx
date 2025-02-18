@@ -45,11 +45,11 @@ identity new
    invitor generates an invitation to the context using the following command:
 
 ```bash title="Node 1"
-context invite {contextId} {invitorContextIdentity} {inviteeContextIdentity}
+context invite {contextId} {inviteeContextIdentity} --as {invitorContextIdentity}
 ```
 
 ```bash title="Example"
-context invite 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
+context invite 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
 │ Invited 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 to context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Invitation Payload: axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 ```

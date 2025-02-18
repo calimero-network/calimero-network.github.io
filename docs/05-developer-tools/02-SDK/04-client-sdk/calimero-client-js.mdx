@@ -264,6 +264,28 @@ try {
 - `GET /admin-api/did` - Fetch DID
 - `DELETE /admin-api/did` - Delete DID
 
+#### Alias Management
+
+##### Create routes
+
+- `POST /admin-api/alias/create/context` - Generate context identity
+- `POST /admin-api/alias/create/application` - Generate context identity
+- `POST /admin-api/alias/create/identity/:context` - Generate context identity
+
+##### Lookup routes
+
+- `POST /admin-api/alias/lookup/context/:name` - Generate context identity
+- `POST /admin-api/alias/lookup/application/:name` - Generate context identity
+- `POST /admin-api/alias/lookup/identity/:context/:name` - Generate context
+  identity
+
+##### Delete routes
+
+- `POST /admin-api/alias/delete/context/:name` - Generate context identity
+- `POST /admin-api/alias/delete/application/:name` - Generate context identity
+- `POST /admin-api/alias/delete/identity/:context/:name` - Generate context
+  identity
+
 ### Unprotected Endpoints
 
 #### Authentication
