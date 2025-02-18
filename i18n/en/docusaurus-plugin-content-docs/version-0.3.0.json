@@ -1,6 +1,6 @@
 {
   "version.label": {
-    "message": "Stable",
+    "message": "Legacy (0.3.0)",
     "description": "The label for version 0.3.0"
   },
   "sidebar.tutorialSidebar.category.Introduction": {
