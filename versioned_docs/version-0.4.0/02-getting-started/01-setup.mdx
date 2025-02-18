@@ -1,0 +1,67 @@
+---
+id: setup
+title: Setup
+---
+
+import MerodInstallation from '../shared/install-merod.mdx';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Setup
+
+This guide will help you set up Calimero in your device.
+
+There are two main paths:
+
+1. **Install via Script or Homebrew** (Recommended): Quickly install `merod` for
+   most users.
+2. [**Build from Source**](./build-from-source): For developers who want to
+   contribute or modify the framework.
+
+### Supported Platforms
+
+Calimero currently supports the following operating systems and architectures:
+
+- **Operating Systems**: macOS, Linux
+- **Architectures**: x86_64, arm64 (Apple Silicon)
+
+:::note
+
+If your platform is not supported, please
+[create an issue on GitHub](https://github.com/calimero-network/core/issues).
+:::
+
+### Installation
+
+<MerodInstallation />
+
+### Next Steps
+
+Initialize and run node
+
+If this is your first time initializing the node, the process may take a little
+bit more time until all dependencies are downloaded. It will take around 7
+minutes but can vary depending on your internet connection.
+
+#### 1. Initialize node
+
+```bash title="Terminal"
+merod --node-name node1 init --server-port 2428 --swarm-port 2528
+```
+
+Node configuration file contains protocol defined metada. Node file is located
+under `~/.calimero` folder.
+
+<img src="/init/node-config.png" alt="node-config" />
+
+#### 2. Run node
+
+```bash title="Terminal"
+merod --node-name node1 run
+```
+
+Wait for a few moments and node logs should appear.
+
+![Node running](/setup/node-running.png)
+
+When you see something like this that means that node is now ready for use.
