@@ -107,7 +107,7 @@ Commands:
     `client-keys` Get client keys - `storage` Get storage information
   </details>
 
-- `identity` Create a context identity or it's alias
+- `identity` Create or list a context identity or it's alias
 - `delete` Delete an context
 - `watch` Watch events from a context
 - `update` Update app in context
@@ -129,7 +129,7 @@ Commands:
   - Use `--owned` to get only owned identities
 
     ```bash
-    meroctl --node-name <NAME> context identity <contextId or alias> --owend
+    meroctl --node-name <NAME> context identity list <contextId or alias> --owned
     ```
 
 - `alias` Manage identity aliases
@@ -162,8 +162,8 @@ Additional context commands support using aliases:
 
 - `create --as <alias> ...` Create context with an identity alias
 - `get <context-alias>` Get context info using alias
-- `invite <context-alias> <invitee-alias> --as <inviter-alias>` Create
-  invitation using aliases
+- `invite <context-alias> <invitee-alias> --as <inviter-alias>` Create invitation
+  using aliases
 - And more...
 
 :::tip See the Invitations and Joinings guide for detailed examples of using
