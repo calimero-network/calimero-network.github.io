@@ -267,6 +267,57 @@ try {
 - `POST /admin-api/get-alias` - Get an identity alias
 - `POST /admin-api/remove-alias` - Remove an identity alias
 
+#### Alias Management
+
+##### Create routes
+
+```http title="POST /admin-api/alias/create/context"
+{
+  "alias": "string",
+  "value": {
+    "contextId": "ContextId"
+  }
+}
+```
+
+- Generate context identity
+
+```http title="POST /admin-api/alias/create/identity/{context_id}"
+{
+  "alias": "string",
+  "value": {
+    "identity": "PublicKey"
+  }
+}
+```
+
+- Creates an alias for an identity within a specific context.
+
+```http title="POST /admin-api/alias/create/application"
+{
+  "alias": "string",
+  "value": {
+    "applicationId": "ApplicationId"
+  }
+}
+```
+
+- Creates an alias for an application ID.
+
+##### Lookup routes
+
+- `POST /admin-api/alias/lookup/context/:name` - Generate context identity
+- `POST /admin-api/alias/lookup/application/:name` - Generate context identity
+- `POST /admin-api/alias/lookup/identity/:context/:name` - Generate context
+  identity
+
+##### Delete routes
+
+- `POST /admin-api/alias/delete/context/:name` - Generate context identity
+- `POST /admin-api/alias/delete/application/:name` - Generate context identity
+- `POST /admin-api/alias/delete/identity/:context/:name` - Generate context
+  identity
+
 ### Unprotected Endpoints
 
 #### Authentication

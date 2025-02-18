@@ -218,7 +218,7 @@ After creating identities we can invite node2 and node3 to join the created
 context.
 
 ```bash title="Node1 Terminal"
-context invite <CONTEXT_ID> <CONTEXT_IDENTITY> <PUBLIC_KEY_OF_NODE2>
+context invite <CONTEXT_ID> <PUBLIC_KEY_OF_NODE2> --as <CONTEXT_IDENTITY>
 >> Invitation payload: <INVITATION_PAYLOAD>
 ```
 
@@ -233,7 +233,7 @@ context join <PRIVATE_KEY_OF_NODE2> <INVITATION_PAYLOAD>
 Repeat the same steps for Node3.
 
 ```bash title="Node1 Terminal"
-context invite <CONTEXT_ID> <CONTEXT_IDENTITY> <PUBLIC_KEY_OF_NODE3>
+context invite <CONTEXT_ID> <PUBLIC_KEY_OF_NODE3> --as <CONTEXT_IDENTITY>
 ```
 
 ```bash title="Node3 Terminal"
