@@ -1,0 +1,78 @@
+{
+  "version.label": {
+    "message": "Stable (0.4.0)",
+    "description": "The label for version 0.4.0"
+  },
+  "sidebar.tutorialSidebar.category.Introduction": {
+    "message": "Introduction",
+    "description": "The label for category Introduction in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Getting Started": {
+    "message": "Getting Started",
+    "description": "The label for category Getting Started in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Core Concepts": {
+    "message": "Core Concepts",
+    "description": "The label for category Core Concepts in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Architecture": {
+    "message": "Architecture",
+    "description": "The label for category Architecture in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Node": {
+    "message": "Node",
+    "description": "The label for category Node in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Developer Tools": {
+    "message": "Developer Tools",
+    "description": "The label for category Developer Tools in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.CLI": {
+    "message": "CLI",
+    "description": "The label for category CLI in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.SDK": {
+    "message": "SDK",
+    "description": "The label for category SDK in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Protocol SDKs": {
+    "message": "Protocol SDKs",
+    "description": "The label for category Protocol SDKs in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Client SDKs": {
+    "message": "Client SDKs",
+    "description": "The label for category Client SDKs in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Apps": {
+    "message": "Apps",
+    "description": "The label for category Apps in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Tutorials": {
+    "message": "Tutorials",
+    "description": "The label for category Tutorials in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Login with Wallets": {
+    "message": "Login with Wallets",
+    "description": "The label for category Login with Wallets in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Awesome Projects (DEMOs)": {
+    "message": "Awesome Projects (DEMOs)",
+    "description": "The label for category Awesome Projects (DEMOs) in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Resources": {
+    "message": "Resources",
+    "description": "The label for category Resources in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Throubleshooting": {
+    "message": "Throubleshooting",
+    "description": "The label for category Throubleshooting in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Contributing": {
+    "message": "Contributing",
+    "description": "The label for category Contributing in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Support": {
+    "message": "Support",
+    "description": "The label for category Support in sidebar tutorialSidebar"
+  }
+}
