@@ -220,12 +220,13 @@ use calimero_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use calimero_sdk::types::Error;
 use calimero_sdk::{app, env};
 use calimero_storage::collections::UnorderedMap;
+use std::collections::BTreeMap;
 
 #[app::state]
 #[derive(Default, BorshSerialize, BorshDeserialize)]
 #[borsh(crate = "calimero_sdk::borsh")]
 struct KvStore {
-    entries: UnorderedMap<String, String>,
+    items: UnorderedMap<String, String>,
 }
 
 #[app::logic]
@@ -243,7 +244,7 @@ impl KvStore {
     pub fn set(&mut self, key: String, value: String) -> Result<(), Error> {
         env::log(&format!("Setting key: {:?} to value: {:?}", key, value));
 
-        self.entries.insert(key, value)?;
+        self.items.insert(key, value)?;
 
         Ok(())
     }
@@ -574,7 +575,7 @@ pub fn set(&mut self, key: String, value: String) -> Result<(), Error> {
 pub fn remove(&mut self, key: &str) -> Result<String, Error> {
     app::emit!(Event::Removed { key });
 
-    self.entries.remove(key)?.ok_or_else(|| Error::msg("key not found"))
+    self.items.remove(key)?.ok_or_else(|| Error::msg("key not found"))
 }
 ```
 
