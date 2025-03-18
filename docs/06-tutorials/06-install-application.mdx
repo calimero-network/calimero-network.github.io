@@ -38,6 +38,7 @@ After the application is installed, you can create new context:
         {label: 'Starknet', value: 'starknet'},
         {label: 'ICP', value: 'icp'},
         {label: 'Stellar', value: 'stellar'},
+        {label: 'Ethereum, value: 'etherium'}
     ]}>
 
 <TabItem value="near">
@@ -61,6 +62,12 @@ meroctl --node-name node1 context create --application-id <app-id> --protocol ic
 <TabItem value="stellar">
 ```bash title="Terminal"
 meroctl --node-name node1 context create --application-id <app-id> --protocol stellar
+```
+</TabItem>
+
+<TabItem value="etherium">
+```bash title="Terminal"
+meroctl --node-name node1 context create --application-id <app-id> --protocol etherium
 ```
 </TabItem>
 
