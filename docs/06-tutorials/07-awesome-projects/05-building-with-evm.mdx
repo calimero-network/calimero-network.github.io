@@ -1,14 +1,14 @@
 ---
-id: building-with-etherium
-title: Building with Etherium
+id: building-with-ethereum
+title: Building with Ethereum
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Building with Etherium
+# Building with Ethereum
 
-Step-by-Step Guide to Building an Application for Calimero with Etherium
+Step-by-Step Guide to Building an Application for Calimero with Ethereum
 
 This tutorial will cover the following topics:
 
@@ -45,7 +45,7 @@ You also need following tools:
   [url](https://www.rust-lang.org/tools/install)
 - **Pnpm**: Version `9.6.0` used for tutorial -
   [url](https://pnpm.io/installation)
-- **Foundry**: For local Etherium development - 
+- **Foundry**: For local Ethereum development - 
   [Instructions](https://book.getfoundry.sh/getting-started/installation)
 
 ## Smart contract overview
@@ -62,7 +62,7 @@ following repositories:
 
 ### Context contract
 
-Context contract is deployed on Etherium sepolia network and implemented into Calimero.
+Context contract is deployed on Ethereum sepolia network and implemented into Calimero.
 It is used to create and manage contexts and their members.
 
 <lb />
@@ -120,9 +120,9 @@ You can verify nodes initialization files by looking into `~/.calimero` folder.
 In `config.toml` file you can see default configuration:
 
 ```
-[context.config.etherium]
+[context.config.ethereum]
 signer = "relayer"
-protocol = "etherium"
+protocol = "ethereum"
 network = "sepolia"
 contract_id = <CONFIG_CONTRACT_ID>
 ```
@@ -138,7 +138,7 @@ secret_key = <YOUR_SECRET_KEY>
 ```
 
 The values auto-generated only represent the format needed for self signing
-feature and are not real Etherium accounts. To create your own Etherium account
+feature and are not real Ethereum accounts. To create your own Ethereum account
 with CLI follow the Foundry
 [Docs](https://book.getfoundry.sh/reference/cast/cast-wallet-new)
 
@@ -189,7 +189,7 @@ application install file <PATH_TO_blockchain.wasm_FILE>
 After installing the application we can create context:
 
 ```bash title="Node1 Terminal"
-context create <APPLICATION_ID> --protocol etherium
+context create <APPLICATION_ID> --protocol ethereum
 >Created context <CONTEXT_ID> with identity <CONTEXT_IDENTITY>
 ```
 
@@ -402,7 +402,7 @@ At this point proposal approval threshold is 1, meaning proposal will be
 executed on creation. This means when we create cross-contract call proposal it
 will instantly be executed.
 
-We have created a `<DEMO_EXTERNAL_CONTRACT_ID>` and deployed it on Etherium
+We have created a `<DEMO_EXTERNAL_CONTRACT_ID>` and deployed it on Ethereum
 sepolia.
 
 Its address is:
@@ -445,7 +445,7 @@ When creating cross-contract call proposal we need to provide following values:
   style={{ width: '50%' }}
 />
 
-Supported Etherium argument types:
+Supported Ethereum argument types:
 
 - `bool` - Boolean value, representing true or false.
 - `string` - Text string, used for storing sequences of characters.
@@ -461,7 +461,7 @@ Supported Etherium argument types:
 - `array(uint256)` - Array of 256-bit unsigned integers.
 - `tuple` - A fixed-size collection of values, which can be of different types.
 
-These types are used to define the parameters and return values of smart contract functions in Etherium-based blockchains.
+These types are used to define the parameters and return values of smart contract functions in Ethereum-based blockchains.
 
 After we create proposal it will be executed, and the success of the execution
 can be checked calling demo external contract method **get_value** with Forge
@@ -498,10 +498,10 @@ steps:
 ## Conclusion
 
 This tutorial has covered all the essential steps developers need to build an
-application for Calimero and Etherium, from environment overview to deploying a
+application for Calimero and Ethereum, from environment overview to deploying a
 fully functional smart contract. By following this guide, you should now have a
 solid understanding of the development workflow and how to build your own
-Etherium application for Calimero.
+Ethereum application for Calimero.
 
 Feel free to use our demo applications as a starting point to build and
 customize your own application. If you have any questions or need assistance,
