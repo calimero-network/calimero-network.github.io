@@ -45,15 +45,15 @@ You also need following tools:
   [url](https://www.rust-lang.org/tools/install)
 - **Pnpm**: Version `9.6.0` used for tutorial -
   [url](https://pnpm.io/installation)
-- **Foundry**: For local Ethereum development - 
+- **Foundry**: For local Ethereum development -
   [Instructions](https://book.getfoundry.sh/getting-started/installation)
 
 ## Smart contract overview
 
 ### Contracts overview
 
-Both contracts are written in Solidity, you can find their implementations in the
-following repositories:
+Both contracts are written in Solidity, you can find their implementations in
+the following repositories:
 
 - [Context contract](https://github.com/calimero-network/calimero-evm-contracts/tree/master/context-config)
 - [Proxy contract](https://github.com/calimero-network/calimero-evm-contracts/tree/master/context-proxy)
@@ -62,8 +62,8 @@ following repositories:
 
 ### Context contract
 
-Context contract is deployed on Ethereum sepolia network and implemented into Calimero.
-It is used to create and manage contexts and their members.
+Context contract is deployed on Ethereum sepolia network and implemented into
+Calimero. It is used to create and manage contexts and their members.
 
 <lb />
 More information about context contract can be found
@@ -306,8 +306,9 @@ Where:
 - `<PROXY_CONTRACT_ID>` is the address of the proxy contract you want to fund.
 - `1eth` is the amount of eth you want to fund the contract with.
 
-For more information about transferring funds checkout this [link](https://book.getfoundry.sh/reference/cast/cast-send)
-To verify contract balance you can check it on Etherscan Explorer by visiting:
+For more information about transferring funds checkout this
+[link](https://book.getfoundry.sh/reference/cast/cast-send) To verify contract
+balance you can check it on Etherscan Explorer by visiting:
 
 `https://sepolia.etherscan.io/address/<PROXY_CONTRACT_ID>`
 
@@ -413,8 +414,8 @@ CAJF5BPK4AT7UNVF4NDXMUXDKXCBFV56H2TNMUJIX6WUSNFP4UMH7W46
 
 It contains following methods:
 
-- **setValueNoDeposit** - This method does not require a deposit for execution, it sets
-  sent arguments in its storage.
+- **setValueNoDeposit** - This method does not require a deposit for execution,
+  it sets sent arguments in its storage.
 - **deposit** - This method requires a deposit for execution, it first transfers
   the funds to the contract from proxy contract and then sets sent arguments in
   its storage, if the transfer is completed successfully.
@@ -427,7 +428,8 @@ When creating cross-contract call proposal we need to provide following values:
 
 - **Contract ID**: `{DEMO_EXTERNAL_CONTRACT_ID}` - Address of the external
   contract
-- **Method Name**: `deposit(string, string)` - Name of the contract method that will be called with arguments types
+- **Method Name**: `deposit(string, string)` - Name of the contract method that
+  will be called with arguments types
 - **Deposit**: 10000000 - Deposit for transfer in WEI (10¹⁸ WEI = 1 ETH)
 - **Arguments**: The following arguments correspond to the deposit method
   parameters:
@@ -449,10 +451,12 @@ Supported Ethereum argument types:
 
 - `bool` - Boolean value, representing true or false.
 - `string` - Text string, used for storing sequences of characters.
-- `address` - Contract or account address, a 20-byte value used to identify accounts.
+- `address` - Contract or account address, a 20-byte value used to identify
+  accounts.
 - `bytes` - Byte array, used for arbitrary-length binary data.
 - `int256` - 256-bit signed integer, used for storing large integer values.
-- `uint256` - 256-bit unsigned integer, used for storing large non-negative integer values.
+- `uint256` - 256-bit unsigned integer, used for storing large non-negative
+  integer values.
 - `array(bool)` - Array of boolean values.
 - `array(string)` - Array of strings.
 - `array(address)` - Array of addresses.
@@ -461,7 +465,8 @@ Supported Ethereum argument types:
 - `array(uint256)` - Array of 256-bit unsigned integers.
 - `tuple` - A fixed-size collection of values, which can be of different types.
 
-These types are used to define the parameters and return values of smart contract functions in Ethereum-based blockchains.
+These types are used to define the parameters and return values of smart
+contract functions in Ethereum-based blockchains.
 
 After we create proposal it will be executed, and the success of the execution
 can be checked calling demo external contract method **get_value** with Forge
