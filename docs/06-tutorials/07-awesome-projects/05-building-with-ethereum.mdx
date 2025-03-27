@@ -55,8 +55,8 @@ You also need following tools:
 Both contracts are written in Solidity, you can find their implementations in the
 following repositories:
 
-- [Context contract](https://github.com/calimero-network/calimero-evm-contracts/tree/master/context-config)
-- [Proxy contract](https://github.com/calimero-network/calimero-evm-contracts/tree/master/context-proxy)
+- [Context contract](https://github.com/calimero-network/contracts/tree/master/contracts/ethereum/context-config)
+- [Proxy contract](https://github.com/calimero-network/contracts/tree/master/contracts/ethereum/context-proxy)
 
 ## Context and Proxy Contract
 
@@ -131,7 +131,7 @@ If you use `self` for signer then you also need to change `public` and `secret`
 key.
 
 ```
-[context.config.signer.self.ehterium.testnet]
+[context.config.signer.self.ethereum.testnet]
 rpc_url = <RPC_URL>
 account_id = <YOUR_PUBLIC_KEY>
 secret_key = <YOUR_SECRET_KEY>
@@ -141,9 +141,6 @@ The values auto-generated only represent the format needed for self signing
 feature and are not real Ethereum accounts. To create your own Ethereum account
 with CLI follow the Foundry
 [Docs](https://book.getfoundry.sh/reference/cast/cast-wallet-new)
-
-If signer is changed to `signer = "relayer"` you don't need to changed anything
-as relayer will handle all the blockchain operations.
 
 :::
 
@@ -289,7 +286,7 @@ And for our case it is:
 
 Example of request in postman:
 
-<img src="/icp-tutorial/proxy_contract_stellar.png" alt="proxy-contract" />
+<img src="/icp-tutorial/proxy_contract_ethereum.png" alt="proxy-contract" />
 
 Now you can fund the proxy contract by using the following command:
 
@@ -408,7 +405,7 @@ sepolia.
 Its address is:
 
 ```
-CAJF5BPK4AT7UNVF4NDXMUXDKXCBFV56H2TNMUJIX6WUSNFP4UMH7W46
+0x2c42DADf80b1a76Db4038027D7DB24863a9d0d5D
 ```
 
 It contains following methods:
