@@ -46,9 +46,14 @@ const config: Config = {
               banner: 'unreleased',
               path: 'next',
             },
+            '0.5.0': {
+              label: 'Stable (0.5.0)',
+              path: '0.5.0',
+              badge: false,
+            },
             '0.4.0': {
-              label: 'Stable (0.4.0)',
-              path: '',
+              label: 'Legacy (0.4.0)',
+              path: '0.4.0',
               badge: false,
             },
             '0.3.0': {
