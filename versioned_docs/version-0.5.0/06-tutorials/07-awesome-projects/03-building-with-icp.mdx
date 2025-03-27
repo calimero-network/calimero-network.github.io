@@ -1,19 +1,20 @@
 ---
-id: building-with-ethereum
-title: Building with Ethereum
+id: building-with-icp
+title: Building with Internet Computer (ICP)
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Building with Ethereum
+# Building with Internet Computer (ICP)
 
-Step-by-Step Guide to Building an Application for Calimero with Ethereum
+Step-by-Step Guide to Building an Application for Calimero with Internet
+Computer (ICP)
 
 This tutorial will cover the following topics:
 
-1. **Smart contract overview** - Overview of the smart contracts and their
-   functionality.
+1. **Starting a Local Devnet** - Setting and configuring a local devnet using
+   dfx through a script.
 
 2. **Configuring Nodes** - Setting and configuring nodes, installing demo
    application, creating context and inviting nodes into the context.
@@ -22,7 +23,7 @@ This tutorial will cover the following topics:
    contains all functionalities for interaction with smart contracts.
 
 4. **Creating a Proposal** - Creating a proposal to execute cross-contract call
-   to an external smart contract deployed in step 3.
+   to "Greet" smart contract deployed in step 3.
 
 :::note
 
@@ -34,6 +35,8 @@ For easier guidance, we have named each terminal block by their purpose.
 
 To follow this tutorial, you'll need the following:
 
+- Calimero ICP Devnet -
+  [Repository](https://github.com/calimero-network/icp-devnet)
 - Calimero Core - Installation instructions -
   [Instructions](/getting-started/setup#installation)
 - Demo Blockchain Integrations -
@@ -43,43 +46,115 @@ You also need following tools:
 
 - **Cargo**: Version `1.86.0-nightly` used for tutorial -
   [url](https://www.rust-lang.org/tools/install)
+- **DFX** (Dfinity SDK): Version `0.24.3` used for tutorial -
+  [url](https://internetcomputer.org/docs/current/developer-docs/getting-started/install)
+- **Candid Extractor**: Version `0.1.5` used for tutorial -
+  [url](https://crates.io/crates/candid-extractor)
 - **Pnpm**: Version `9.6.0` used for tutorial -
   [url](https://pnpm.io/installation)
-- **Foundry**: For local Ethereum development -
-  [Instructions](https://book.getfoundry.sh/getting-started/installation)
 
-## Smart contract overview
+## Configuring a Local Devnet
 
-### Contracts overview
+We have prepared a script that will deploy the contracts and create needed
+accounts on local environment. The script does the following:
 
-Both contracts are written in Solidity, you can find their implementations in
-the following repositories:
+- Creates accounts needed for ledger deployment.
+- Deploys the context, ledger and example external contract.
+- Funds the deployed context contract for initial usage.
+- Calls required initial methods on deployed contracts.
 
-- [Context contract](https://github.com/calimero-network/contracts/tree/master/contracts/ethereum/context-config)
-- [Proxy contract](https://github.com/calimero-network/contracts/tree/master/contracts/ethereum/context-proxy)
+Scripts are located in Calimero ICP Devnet repository. First clone the
+[repository](https://github.com/calimero-network/icp-devnet).
+
+```bash title="ICP Setup Terminal"
+git clone https://github.com/calimero-network/icp-devnet
+
+cd icp-devnet
+
+chmod +x ./deploy_devnet_addon.sh
+
+```
+
+The repository contains two scripts:
+
+<Tabs
+    defaultValue="fresh"
+    groupId="deployment_script"
+    values={[
+        {label: 'Create new dfx environment', value: 'fresh'},
+        {label: 'Install on existing dfx environment', value: 'addon'},
+    ]}>
+
+<TabItem value="fresh">
+  `deploy_devnet_fresh.sh` - Starts fresh dfx environment and deploys the contracts and needed accounts.
+  :::caution
+  This script will delete the current dfx environment and create a new one.
+  :::
+</TabItem>
+<TabItem value="addon">
+  `deploy_devnet_addon.sh` - Deploys the contracts and creates needed account on already existing dfx environment.
+
+:::note
+
+dfx environment needs to be started before running this script.
+
+:::
+
+</TabItem>
+</Tabs>
+
+For this tutorial we will be using `deploy_devnet_fresh.sh` script.
+
+```bash title="ICP Setup Terminal"
+./deploy_devnet_fresh.sh
+```
+
+```bash title="ICP Setup Terminal | Output of successful deployment"
+=== Deployment Summary ===
+Context Contract ID: bkyz2-fmaaa-aaaaa-qaaaq-cai
+Ledger Contract ID: bd3sg-teaaa-aaaaa-qaaba-cai
+Demo External Contract ID: be2us-64aaa-aaaaa-qaabq-cai
+
+Account Information:
+Minting Account: 8b768d662eeebfcbe55b180a7ac0ccb46e2ccd59cacd0b4ec3404f0c8d8b8086
+Initial Account: 670183527b941adeae9e1552525853af7812d9441758c668b2e3b8553dead7a0
+Archive Principal: kbwrg-ggsyr-4zl47-3z7by-owf4g-draak-xj2ni-mcvwv-6wqxc-nkjam-gae
+Recipient Principal: mfefj-dsyoh-rb3b2-3yagk-rvb2p-wcb2v-fhu2n-fel2f-wqzjn-yhtxx-hqe
+
+Deployment completed successfully!
+```
+
+:::note
+
+Leave this terminal open as you will need values in later steps.
+
+:::
 
 ## Context and Proxy Contract
 
 ### Context contract
 
-Context contract is deployed on Ethereum sepolia network and implemented into
-Calimero. It is used to create and manage contexts and their members.
+Calimero context contract is used to create and manage contexts and their
+members.
 
 <lb />
 More information about context contract can be found
-[here](/core-concepts/blockchains-integration#context-contract).
+[here](/core-concepts/blockchains-integration#context-contract). To see the
+context contract implementation, refer to the
+[calimero-network/core](https://github.com/calimero-network/core/tree/master/contracts/icp/context-config)
+repository.
 
 ### Proxy contract
 
-With each context creation a proxy contract for that context is deployed. Proxy
-contract is used to handle blockchain operations such as cross-contract calls
-and transfers as well as storing variables.
+Proxy contract is used to handle blockchain operations such as cross-contract
+calls and trasnfers as well as storing variables.
 
 <lb />
 More information about proxy contract can be found
-[here](/core-concepts/blockchains-integration#functionality-details).
-
-## Setting up and configuring nodes
+[here](/core-concepts/blockchains-integration#functionality-details). To see the
+proxy contract implementation, refer to the
+[calimero-network/core](https://github.com/calimero-network/core/tree/master/contracts/icp/context-proxy)
+repository. ## Setting up and configuring nodes
 
 :::info
 
@@ -114,35 +189,6 @@ The output should look like this:
 
 <img src="/icp-tutorial/12_init_cali_nodes.png" alt="init-nodes" />
 You can verify nodes initialization files by looking into `~/.calimero` folder.
-
-:::note Self signer vs. Relayer signer
-
-In `config.toml` file you can see default configuration:
-
-```
-[context.config.ethereum]
-signer = "relayer"
-protocol = "ethereum"
-network = "sepolia"
-contract_id = <CONFIG_CONTRACT_ID>
-```
-
-If you use `self` for signer then you also need to change `public` and `secret`
-key.
-
-```
-[context.config.signer.self.ethereum.testnet]
-rpc_url = <RPC_URL>
-account_id = <YOUR_PUBLIC_KEY>
-secret_key = <YOUR_SECRET_KEY>
-```
-
-The values auto-generated only represent the format needed for self signing
-feature and are not real Ethereum accounts. To create your own Ethereum account
-with CLI follow the Foundry
-[Docs](https://book.getfoundry.sh/reference/cast/cast-wallet-new)
-
-:::
 
 More on node initialization can be found [here](/getting-started/setup/).
 
@@ -186,7 +232,7 @@ application install file <PATH_TO_blockchain.wasm_FILE>
 After installing the application we can create context:
 
 ```bash title="Node1 Terminal"
-context create <APPLICATION_ID> --protocol ethereum
+context create <APPLICATION_ID> --protocol icp
 >Created context <CONTEXT_ID> with identity <CONTEXT_IDENTITY>
 ```
 
@@ -286,28 +332,74 @@ And for our case it is:
 
 Example of request in postman:
 
-<img src="/ethereum-tutorial/proxy_contract_ethereum.png" alt="proxy-contract" />
+<img src="/icp-tutorial/19_get_proxy_contract.png" alt="context-members" />
 
-Now you can fund the proxy contract by using the following command:
+With proxy contract id we can now fund it using dfx native commands. Reopen the
+terminal you used to execute devnet deployment script and do the following
+commands:
 
-```bash
-cast send \
-  --value 1eth \
-  --private-key <YOUR_SECRET_KEY> \
-  <PROXY_CONTRACT_ID>
+Switch to initial identity.
+
+```bash title="ICP Setup Terminal Terminal"
+dfx identity use initial
+>Using identity: "initial".
 ```
 
-Where:
+To fund the contract we are going to use command:
 
-- `<YOUR_SECRET_KEY>` is the account from which to transfer the funds.
-- `<PROXY_CONTRACT_ID>` is the address of the proxy contract you want to fund.
-- `1eth` is the amount of eth you want to fund the contract with.
+```bash
+dfx canister call <LEDGER_CONTRACT_ID> icrc1_transfer '(
+  record {
+    to = record {
+      owner = principal "<PROXY_CONTRACT_ID>";
+      subaccount = null;
+    };
+    amount = 1_000_000_000;
+    fee = null;
+    memo = null;
+    from_subaccount = null;
+    created_at_time = null;
+  }
+)'
+```
 
-For more information about transferring funds checkout this
-[link](https://book.getfoundry.sh/reference/cast/cast-send) To verify contract
-balance you can check it on Etherscan Explorer by visiting:
+> LEDGER_CONTRACT_ID - this value can be viewed when ./deploy_devnet.sh script
+> finishes.
+>
+> <br /> In our case value its: `bd3sg-teaaa-aaaaa-qaaba-cai`
+>
+> PROXY_CONTRACT_ID - value we got in previous step.
+>
+> <br /> In our case value its: `b77ix-eeaaa-aaaaa-qaada-cai`
 
-`https://sepolia.etherscan.io/address/<PROXY_CONTRACT_ID>`
+```bash title="ICP Setup Terminal Terminal"
+dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_transfer '(
+  record {
+    to = record {
+      owner = principal "b77ix-eeaaa-aaaaa-qaada-cai";
+      subaccount = null;
+    };
+    amount = 1_000_000_000;
+    fee = null;
+    memo = null;
+    from_subaccount = null;
+    created_at_time = null;
+  }
+)'
+> (variant { Ok = 1 : nat })
+```
+
+And verify the contract balance:
+
+```bash title="ICP Setup Terminal Terminal"
+dfx canister call bd3sg-teaaa-aaaaa-qaaba-cai icrc1_balance_of '(
+  record {
+    owner = principal "b77ix-eeaaa-aaaaa-qaada-cai";
+    subaccount = null;
+  }
+)'
+> (1_000_000_000 : nat)
+```
 
 ## Blockchain Demo Application
 
@@ -398,99 +490,58 @@ button.
 
 At this point proposal approval threshold is 1, meaning proposal will be
 executed on creation. This means when we create cross-contract call proposal it
-will instantly be executed.
+will insantly be executed.
 
-We have created a `<DEMO_EXTERNAL_CONTRACT_ID>` and deployed it on Ethereum
-sepolia.
+We have created a demo external contract that contains following methods:
 
-Its address is:
-
-```
-0x2c42DADf80b1a76Db4038027D7DB24863a9d0d5D
-```
-
-It contains following methods:
-
-- **setValueNoDeposit** - This method does not require a deposit for execution,
-  it sets sent arguments in its storage.
-- **deposit** - This method requires a deposit for execution, it first transfers
-  the funds to the contract from proxy contract and then sets sent arguments in
-  its storage, if the transfer is completed successfully.
-- **getValue** - This method returns all calls stored in the contract.
+- **test_method_no_transfer** - This method does not require a deposit for
+  execution, it sets sent arguments in its storage.
+- **test_method** - This method requires a deposit for execution, it first
+  transfers the funds to the contract from proxy contract and then sets sent
+  arguments in its storage, if the transfer is completed successfully.
+- **get_calls** - This method returns all calls stored in the contract.
+- **clear_state** - This method clears the storage of the contract.
 
 You can see the contract itself and its implementation
-[here](https://github.com/calimero-network/calimero-evm-contracts/tree/master/context-proxy/mock).
+[here](https://github.com/calimero-network/core/tree/master/contracts/icp/context-proxy/mock/external).
 
 When creating cross-contract call proposal we need to provide following values:
 
-- **Contract ID**: `{DEMO_EXTERNAL_CONTRACT_ID}` - Address of the external
+- **Contract ID**: br5f7-7uaaa-aaaaa-qaaca-cai - Address of the external
+  contract - shown in terminal output of dfx deployment script for demo external
   contract
-- **Method Name**: `deposit(string, string)` - Name of the contract method that
-  will be called with arguments types
-- **Deposit**: 10000000 - Deposit for transfer in WEI (10¹⁸ WEI = 1 ETH)
-- **Arguments**: The following arguments correspond to the deposit method
-  parameters:
-
-  | Type    | Value                 |
-  | ------- | --------------------- |
-  | string  | testKEY               |
-  | string  | testVALUE             |
-
-<img
-  src="/stellar-tutorial/stellar_proposal_deposit_call.png"
-  alt="create-ccc"
-  style={{ width: '50%' }}
-/>
-
-Supported Ethereum argument types:
-
-- `bool` - Boolean value, representing true or false.
-- `string` - Text string, used for storing sequences of characters.
-- `address` - Contract or account address, a 20-byte value used to identify
-  accounts.
-- `bytes` - Byte array, used for arbitrary-length binary data.
-- `int256` - 256-bit signed integer, used for storing large integer values.
-- `uint256` - 256-bit unsigned integer, used for storing large non-negative
-  integer values.
-- `array(bool)` - Array of boolean values.
-- `array(string)` - Array of strings.
-- `array(address)` - Array of addresses.
-- `array(bytes)` - Array of byte arrays.
-- `array(int256)` - Array of 256-bit signed integers.
-- `array(uint256)` - Array of 256-bit unsigned integers.
-- `tuple` - A fixed-size collection of values, which can be of different types.
-
-These types are used to define the parameters and return values of smart
-contract functions in Ethereum-based blockchains.
+- **Method Name**: test_method_no_transfer - Name of the method that will be
+  called
+- **Deposit**: 0 - Deposit for transfer, in this case we are not transferring
+  any funds so we can set it to 0
+- **Arguments**: someKey: someValue - Key and value pairs for arguments that are
+  sent to the external contract
 
 After we create proposal it will be executed, and the success of the execution
-can be checked calling demo external contract method **get_value** with Forge
-CLI:
+can be checked by running following command in terminal:
 
-```bash
-cast call \
-  <DEMO_EXTERNAL_CONTRACT_ID> \
-  "getValue(string)" \
-  "testKEY"
+```bash title="DFX terminal"
+dfx canister call <DEMO_EXTERNAL_CONTRACT_ID> get_calls
 ```
-
-To check if transfer was successful we can use Etherscan Explorer by visiting:
-
-`https://sepolia.etherscan.io/address/<DEMO_EXTERNAL_CONTRACT_ID>`
-
-There you will see the current funds attached to the contract.
 
 :::caution
 
-The implementation of cross-contract call with deposit is based on the following
-steps:
+It's important to note that in this tutorial, we use a function call that does
+not require a deposit for execution.
+
+On the other hand, there are examples where cross-contract calls require a
+deposit. For instance, in the case of an ERC20 token implementation, the
+following steps typically occur:
 
 1. The contract detects that an attached deposit is present.
-2. It calls the ledger contract to enable the external contract (the contract
-   being called) to withdraw funds.
-3. The external contract is called, and it must contain logic to withdraw the
+2. It calls the deployed ledger contract to enable the external contract (the
+   contract being called) to withdraw funds. Before doing so, it sets the
+   allowance to 0 to prevent vulnerabilities related to the Attack Vector.
+3. It then calls the ledger contract again to set the allowance equal to the
+   deposit attached to the call.
+4. The external contract is called, and it must contain logic to withdraw the
    funds that have been allocated for it in the ledger contract.
-4. After the cross-contract call is completed, the proxy contract sets the
+5. After the cross-contract call is completed, the proxy contract sets the
    allowance back to 0 to ensure security.
 
 :::
@@ -498,10 +549,10 @@ steps:
 ## Conclusion
 
 This tutorial has covered all the essential steps developers need to build an
-application for Calimero and Ethereum, from environment overview to deploying a
+application for Calimero and ICP, from setting up the environment to deploying a
 fully functional smart contract. By following this guide, you should now have a
-solid understanding of the development workflow and how to build your own
-Ethereum application for Calimero.
+solid understanding of the development workflow and how to build your own ICP
+application for Calimero.
 
 Feel free to use our demo applications as a starting point to build and
 customize your own application. If you have any questions or need assistance,

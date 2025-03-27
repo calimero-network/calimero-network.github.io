@@ -1,14 +1,14 @@
 ---
-id: building-with-ethereum
-title: Building with Ethereum
+id: building-with-stellar
+title: Building with Stellar
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Building with Ethereum
+# Building with Stellar
 
-Step-by-Step Guide to Building an Application for Calimero with Ethereum
+Step-by-Step Guide to Building an Application for Calimero with Stellar
 
 This tutorial will cover the following topics:
 
@@ -22,7 +22,7 @@ This tutorial will cover the following topics:
    contains all functionalities for interaction with smart contracts.
 
 4. **Creating a Proposal** - Creating a proposal to execute cross-contract call
-   to an external smart contract deployed in step 3.
+   to "Greet" smart contract deployed in step 3.
 
 :::note
 
@@ -45,25 +45,25 @@ You also need following tools:
   [url](https://www.rust-lang.org/tools/install)
 - **Pnpm**: Version `9.6.0` used for tutorial -
   [url](https://pnpm.io/installation)
-- **Foundry**: For local Ethereum development -
-  [Instructions](https://book.getfoundry.sh/getting-started/installation)
+- **Stellar CLI** - Installation instructions -
+  [Instructions](https://developers.stellar.org/docs/build/smart-contracts/getting-started/setup#install-the-stellar-cli)
 
 ## Smart contract overview
 
 ### Contracts overview
 
-Both contracts are written in Solidity, you can find their implementations in
-the following repositories:
+Both contracts are written in Rust, you can find their implementations in the
+following repositories:
 
-- [Context contract](https://github.com/calimero-network/contracts/tree/master/contracts/ethereum/context-config)
-- [Proxy contract](https://github.com/calimero-network/contracts/tree/master/contracts/ethereum/context-proxy)
+- [Context contract](https://github.com/calimero-network/core/tree/master/contracts/stellar/context-config)
+- [Proxy contract](https://github.com/calimero-network/core/tree/master/contracts/stellar/context-proxy)
 
 ## Context and Proxy Contract
 
 ### Context contract
 
-Context contract is deployed on Ethereum sepolia network and implemented into
-Calimero. It is used to create and manage contexts and their members.
+Context contract is deployed on Stellar testnet and implemented into Calimero.
+It is used to create and manage contexts and their members.
 
 <lb />
 More information about context contract can be found
@@ -120,27 +120,30 @@ You can verify nodes initialization files by looking into `~/.calimero` folder.
 In `config.toml` file you can see default configuration:
 
 ```
-[context.config.ethereum]
-signer = "relayer"
-protocol = "ethereum"
-network = "sepolia"
+[context.config.stellar]
+signer = "self"
+protocol = "stellar"
+network = "testnet"
 contract_id = <CONFIG_CONTRACT_ID>
 ```
 
-If you use `self` for signer then you also need to change `public` and `secret`
+If you use `self` for signer then you also need to change `public` and `secret`
 key.
 
 ```
-[context.config.signer.self.ethereum.testnet]
-rpc_url = <RPC_URL>
-account_id = <YOUR_PUBLIC_KEY>
+[context.config.signer.self.stellar.testnet]
+rpc_url = "https://soroban-testnet.stellar.org/"
+public_key = <YOUR_PUBLIC_KEY>
 secret_key = <YOUR_SECRET_KEY>
 ```
 
 The values auto-generated only represent the format needed for self signing
-feature and are not real Ethereum accounts. To create your own Ethereum account
-with CLI follow the Foundry
-[Docs](https://book.getfoundry.sh/reference/cast/cast-wallet-new)
+feature and are not real Stellar accounts. To create your own Stellar account
+with CLI follow the Stellar
+[Docs](https://developers.stellar.org/docs/build/guides/cli)
+
+If signer is changed to `signer = "relayer"` you don't need to changed anything
+as relayer will handle all the blockchain operations.
 
 :::
 
@@ -186,7 +189,7 @@ application install file <PATH_TO_blockchain.wasm_FILE>
 After installing the application we can create context:
 
 ```bash title="Node1 Terminal"
-context create <APPLICATION_ID> --protocol ethereum
+context create <APPLICATION_ID> --protocol stellar
 >Created context <CONTEXT_ID> with identity <CONTEXT_IDENTITY>
 ```
 
@@ -286,28 +289,56 @@ And for our case it is:
 
 Example of request in postman:
 
-<img src="/ethereum-tutorial/proxy_contract_ethereum.png" alt="proxy-contract" />
+<img src="/icp-tutorial/proxy_contract_stellar.png" alt="proxy-contract" />
 
-Now you can fund the proxy contract by using the following command:
+With proxy contract id we can now fund it using Stellar CLI.
+
+To be able to fund the contract we need to create a testnet account and seed it
+with tokens.
+
+You can create a testnet account and automatically fund it by using Stellar CLI:
 
 ```bash
-cast send \
-  --value 1eth \
-  --private-key <YOUR_SECRET_KEY> \
-  <PROXY_CONTRACT_ID>
+stellar keys generate --global <NAME_OF_ACCOUNT> --network testnet --fund
 ```
 
 Where:
 
-- `<YOUR_SECRET_KEY>` is the account from which to transfer the funds.
+- `<NAME_OF_ACCOUNT>` is the name of the account you want to create.
+
+To get the account address you can use the following command:
+
+```bash
+stellar keys address <NAME_OF_ACCOUNT>
+> <ACCOUNT_ADDRESS>
+```
+
+Now you can fund the contract by using the following command:
+
+```bash
+stellar contract invoke \
+  --id CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC \
+  --source <NAME_OF_ACCOUNT> \
+  --network testnet \
+  -- transfer \
+  --from <ACCOUNT_ADDRESS> \
+  --to <PROXY_CONTRACT_ID> \
+  --amount 100000000
+```
+
+Where:
+
+- `<NAME_OF_ACCOUNT>` is the name of the account for signing the transaction.
+- `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` is the address of
+  the Stellar testnet ledger contract.
+- `<ACCOUNT_ADDRESS>` is the address of the account you created.
 - `<PROXY_CONTRACT_ID>` is the address of the proxy contract you want to fund.
-- `1eth` is the amount of eth you want to fund the contract with.
+- `100000000` is the amount of lumens you want to fund the contract with. (1 XLM
+  = 10000000)
 
-For more information about transferring funds checkout this
-[link](https://book.getfoundry.sh/reference/cast/cast-send) To verify contract
-balance you can check it on Etherscan Explorer by visiting:
+To verify contract balance you can check it on Stellar Explorer by visiting:
 
-`https://sepolia.etherscan.io/address/<PROXY_CONTRACT_ID>`
+`https://stellar.expert/explorer/testnet/contract/<PROXY_CONTRACT_ID>`
 
 ## Blockchain Demo Application
 
@@ -400,39 +431,41 @@ At this point proposal approval threshold is 1, meaning proposal will be
 executed on creation. This means when we create cross-contract call proposal it
 will instantly be executed.
 
-We have created a `<DEMO_EXTERNAL_CONTRACT_ID>` and deployed it on Ethereum
-sepolia.
+We have created a `<DEMO_EXTERNAL_CONTRACT_ID>` and deployed it on Stellar
+testnet.
 
 Its address is:
 
 ```
-0x2c42DADf80b1a76Db4038027D7DB24863a9d0d5D
+CAJF5BPK4AT7UNVF4NDXMUXDKXCBFV56H2TNMUJIX6WUSNFP4UMH7W46
 ```
 
 It contains following methods:
 
-- **setValueNoDeposit** - This method does not require a deposit for execution,
-  it sets sent arguments in its storage.
+- **no_deposit** - This method does not require a deposit for execution, it sets
+  sent arguments in its storage.
 - **deposit** - This method requires a deposit for execution, it first transfers
   the funds to the contract from proxy contract and then sets sent arguments in
   its storage, if the transfer is completed successfully.
-- **getValue** - This method returns all calls stored in the contract.
+- **get_calls** - This method returns all calls stored in the contract.
+- **clear_state** - This method clears the storage of the contract.
 
 You can see the contract itself and its implementation
-[here](https://github.com/calimero-network/calimero-evm-contracts/tree/master/context-proxy/mock).
+[here](https://github.com/calimero-network/core/tree/master/contracts/stellar/context-proxy/mock_external).
 
 When creating cross-contract call proposal we need to provide following values:
 
 - **Contract ID**: `{DEMO_EXTERNAL_CONTRACT_ID}` - Address of the external
   contract
-- **Method Name**: `deposit(string, string)` - Name of the contract method that
-  will be called with arguments types
-- **Deposit**: 10000000 - Deposit for transfer in WEI (10¹⁸ WEI = 1 ETH)
+- **Method Name**: `deposit` - Name of the contract method that will be called
+- **Deposit**: 10000000 - Deposit for transfer (1 XLM)
 - **Arguments**: The following arguments correspond to the deposit method
   parameters:
 
   | Type    | Value                 |
   | ------- | --------------------- |
+  | address | `{PROXY_CONTRACT_ID}` |
+  | i128    | 10000000              |
   | string  | testKEY               |
   | string  | testVALUE             |
 
@@ -442,41 +475,37 @@ When creating cross-contract call proposal we need to provide following values:
   style={{ width: '50%' }}
 />
 
-Supported Ethereum argument types:
+Supported Soroban argument types:
 
-- `bool` - Boolean value, representing true or false.
-- `string` - Text string, used for storing sequences of characters.
-- `address` - Contract or account address, a 20-byte value used to identify
-  accounts.
-- `bytes` - Byte array, used for arbitrary-length binary data.
-- `int256` - 256-bit signed integer, used for storing large integer values.
-- `uint256` - 256-bit unsigned integer, used for storing large non-negative
-  integer values.
-- `array(bool)` - Array of boolean values.
-- `array(string)` - Array of strings.
-- `array(address)` - Array of addresses.
-- `array(bytes)` - Array of byte arrays.
-- `array(int256)` - Array of 256-bit signed integers.
-- `array(uint256)` - Array of 256-bit unsigned integers.
-- `tuple` - A fixed-size collection of values, which can be of different types.
-
-These types are used to define the parameters and return values of smart
-contract functions in Ethereum-based blockchains.
+- `i32` - 32-bit signed integer
+- `u32` - 32-bit unsigned integer
+- `i64` - 64-bit signed integer
+- `u64` - 64-bit unsigned integer
+- `i128` - 128-bit signed integer
+- `u128` - 128-bit unsigned integer
+- `bool` - Boolean value
+- `string` - Text string
+- `address` - Contract or account address
+- `symbol` - Symbol value
+- `bytes` - Byte array
 
 After we create proposal it will be executed, and the success of the execution
-can be checked calling demo external contract method **get_value** with Forge
+can be checked calling demo external contract method **get_value** with Stellar
 CLI:
 
 ```bash
-cast call \
-  <DEMO_EXTERNAL_CONTRACT_ID> \
-  "getValue(string)" \
-  "testKEY"
+stellar contract invoke \
+  --id <DEMO_EXTERNAL_CONTRACT_ID> \
+  --network testnet \
+  --source <NAME_OF_ACCOUNT> \
+  -- \
+  get_value \
+  --key "testKEY"
 ```
 
-To check if transfer was successful we can use Etherscan Explorer by visiting:
+To check if transfer was successful we can use Stellar Explorer by visiting:
 
-`https://sepolia.etherscan.io/address/<DEMO_EXTERNAL_CONTRACT_ID>`
+`https://stellar.expert/explorer/testnet/contract/<DEMO_EXTERNAL_CONTRACT_ID>`
 
 There you will see the current funds attached to the contract.
 
@@ -498,10 +527,10 @@ steps:
 ## Conclusion
 
 This tutorial has covered all the essential steps developers need to build an
-application for Calimero and Ethereum, from environment overview to deploying a
+application for Calimero and Stellar, from environment overview to deploying a
 fully functional smart contract. By following this guide, you should now have a
 solid understanding of the development workflow and how to build your own
-Ethereum application for Calimero.
+Stellar application for Calimero.
 
 Feel free to use our demo applications as a starting point to build and
 customize your own application. If you have any questions or need assistance,
