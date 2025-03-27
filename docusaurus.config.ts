@@ -73,15 +73,6 @@ const config: Config = {
       defaultMode: 'dark',
       respectPrefersColorScheme: true,
     },
-    announcementBar: {
-      id: 'id-0002',
-      content: `
-    **🎉 OPEN REGISTRATIONS FOR HACKATHON 🎉**
-     <a href="https://dorahacks.io/hackathon/calimero-x-icp/hackers">ICP Hackathon</a> with prize pool of 40 000 USD`,
-      backgroundColor: '#fabc0c',
-      textColor: '#000000',
-      isCloseable: true,
-    },
     docs: {
       sidebar: {
         hideable: true,
