@@ -47,14 +47,14 @@ contextID and the invitorContextIdentity
    using the following command:
 
 ```bash title="Node 2"
-identity new
+context identity new
 ```
 
 This generates a private and public key pair, where the public key is the
 inviteeContextIdentity. Share this public key with the invitor.
 
 ```bash title="Example"
-identity new
+context identity new
 │ Private Key: 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7
 │ Public Key: 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
 ```
@@ -65,11 +65,11 @@ identity new
    invitor generates an invitation to the context using the following command:
 
 ```bash title="Node 1"
-context invite {contextId} {inviteeContextIdentity} --as {inviterContextIdentity}
+context invite -c {contextId} {inviteeContextIdentity} --as {inviterContextIdentity}
 ```
 
 ```bash title="Example"
-context invite 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
+context invite -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
 │ Invited 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 to context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Invitation Payload: axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 ```
@@ -79,11 +79,11 @@ context invite 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2ZwmLF
 To check the invitor's identity, use this command:
 
 ```bash title="Node 1"
-identity ls {contextId}
+context identity ls -c {contextId}
 ```
 
 ```bash title="Example"
-identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+context identity ls -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Identity                                     |  Owned │
 | DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 | *
 ```
@@ -125,11 +125,11 @@ context ls
 5. The invitee can also list identities in the context
 
 ```bash title="Node 2"
-identity ls {contextId}
+context identity ls -c {contextId}
 ```
 
 ```bash title="Example"
-identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+context identity ls -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Identity                                     | Owned
 │ 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 | *
 │ DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 |
