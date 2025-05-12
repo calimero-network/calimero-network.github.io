@@ -255,6 +255,10 @@ try {
 - `GET /admin-api/contexts/:context_id/identities` - Get context identities
 - `POST /admin-api/contexts/invite` - Invite to context
 - `POST /admin-api/contexts/join` - Join context
+- `POST /admin-api/contexts/:context_id/capabilities/grant` - Grant capabilities
+  to context identities
+- `POST /admin-api/contexts/:context_id/capabilities/revoke` - Revoke
+  capabilities from context identities
 
 #### Identity Management
 
@@ -300,6 +304,26 @@ try {
 ```
 
 - Creates an alias for an application ID.
+
+##### Capabilities Management
+
+```http title="POST /admin-api/contexts/:context_id/capabilities/grant"
+{
+  "capabilities": [["ContextIdentity", "Capability"]],
+  "signer_id": "PublicKey"
+}
+```
+
+- Grants specific capabilities to context identities.
+
+```http title="POST /admin-api/contexts/:context_id/capabilities/revoke"
+{
+  "capabilities": [["ContextIdentity", "Capability"]],
+  "signer_id": "PublicKey"
+}
+```
+
+- Revokes specific capabilities from context identities.
 
 ##### Lookup routes
 

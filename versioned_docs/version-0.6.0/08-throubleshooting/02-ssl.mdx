@@ -1,0 +1,71 @@
+---
+id: ssl-tls
+title: SSL/TLS
+---
+
+### SSL/TLS Support
+
+To be able to access the the node from external source on the same network you
+will need to install the generated self-signed certificate.
+
+> **_NOTE:_** Installing the SSL certificate is only necessary if you plan to
+> access the node from an external source on the same network. If you are
+> running the application locally, you do not need to install the certificate.
+
+### Steps to Add the Certificate to Your Device
+
+1. **Locate the Certificate**:
+
+   - Download the certificate from
+     `http://localhost:<server-port>/admin-api/certificate`.
+   - The `<server-port>` is the port number used as an argument in the
+     `--server-port` flag in the section
+     [Initialize and start your node (separate terminal)](../getting-started/setup).
+   - For example: `bash http://localhost:2428/admin-api/certificate`
+
+2. **Add the Certificate to Trusted Certificates**:
+
+   - **For Windows**:
+
+     1. Open the `Run` dialog (Win + R) and type `mmc` to open the Microsoft
+        Management Console.
+     2. Go to `File` -> `Add/Remove Snap-in...`.
+     3. Select `Certificates` and click `Add`.
+     4. Choose `Computer account`, then `Next` and `Finish`.
+     5. Expand `Certificates (Local Computer)` ->
+        `Trusted Root Certification Authorities`.
+     6. Right-click `Certificates`, then `All Tasks` -> `Import...`.
+     7. Follow the prompts to import the certificate file.
+
+   - **For macOS**:
+
+     1. Double-click the certificate file.
+     2. This will open the `Keychain Access` application.
+     3. Choose `System` from the list of keychains.
+     4. Drag and drop the certificate into the `System` keychain.
+     5. Authenticate with your administrator password if prompted.
+     6. Right-click the certificate and select `Get Info`.
+     7. Expand the `Trust` section and select `Always Trust` from the
+        `When using this certificate` dropdown.
+
+   - **For Linux**:
+     1. Copy the certificate to `/usr/local/share/ca-certificates/` (or
+        `/etc/pki/ca-trust/source/anchors/` depending on your distribution).
+     2. Run `sudo update-ca-certificates` (or `sudo update-ca-trust extract` for
+        Red Hat-based distributions).
+
+3. **Restart Your Browser**:
+   - Close and reopen your web browser to ensure it recognizes the newly added
+     certificate.
+
+### Rules for Generating SSL Certificates
+
+- If a certificate doesn't exist, a new one will be generated based on your
+  current local IP address.
+- If a certificate exists for the current IP address, it will be used.
+- If a certificate exists but is not configured for the current IP address, a
+  new certificate will be created.
+
+> **_NOTE:_** Every time a new certificate is generated (e.g., on the first
+> start of the server or when the IP address changes), you will need to add it
+> to your device's trusted certificates.
