@@ -1,0 +1,138 @@
+---
+id: invitations-and-joinings
+title: Invitations and Joinings
+---
+
+## Invite to context with Admin Dashboard
+
+> Currently not available
+
+## Invite node to context using interactive CLI
+
+Inviting to the context consists of 3 steps:
+
+1. Identity Exchange: The peer wishing to join (invitee) shares their identity
+   with the existing member (invitor).
+2. Create Invitation: The invitor generates an invitation payload for the
+   context.
+3. Accept Invitation: The invitee signs the invitation payload to confirm their
+   identity and join the context.
+
+In the example below, Node 2 is the invitee, and Node 1 is the invitor.
+
+:::tip
+
+If you create an Context Alias for your context using
+
+```bash title="Context Alias (Node1)"
+context alias add my_context {contextID}
+```
+
+And then create an Identity Alias for your identity in the context using
+
+```bash title="Identity Alias (Node1)"
+identity alias add bob {PublicKey} --context my_context
+```
+
+Everywhere in the tutorial, on the node which you have created the aliases
+(aliases are node specific), you can use `my_context` and `bob` instead of the
+contextID and the invitorContextIdentity
+
+:::
+
+### Step-by-Step Process
+
+1. Invitee Generates and Shares Identity To join the context, the invitee must
+   first create and share their identity with the invitor. This can be done
+   using the following command:
+
+```bash title="Node 2"
+identity new
+```
+
+This generates a private and public key pair, where the public key is the
+inviteeContextIdentity. Share this public key with the invitor.
+
+```bash title="Example"
+identity new
+│ Private Key: 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7
+│ Public Key: 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
+```
+
+![Create Identity](/cli/3-create-identity.png)
+
+2. Invitor Creates an Invitation Once the invitee’s public key is shared, the
+   invitor generates an invitation to the context using the following command:
+
+```bash title="Node 1"
+context invite {contextId} {inviteeContextIdentity} --as {inviterContextIdentity}
+```
+
+```bash title="Example"
+context invite 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
+│ Invited 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 to context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Invitation Payload: axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
+```
+
+![Context Invite](/cli/4-context-invite.png)
+
+To check the invitor's identity, use this command:
+
+```bash title="Node 1"
+identity ls {contextId}
+```
+
+```bash title="Example"
+identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Identity                                     |  Owned │
+| DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 | *
+```
+
+Listed identity is invitorContextIdentity used above.
+
+3. Invitee Accepts the Invitation After receiving the invitation payload from
+   the invitor, the invitee can accept the invitation by signing it with their
+   private key:
+
+```bash title="Node 2"
+context join {inviteePrivateKey} {invitationPayload}
+```
+
+```bash title="Example"
+context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
+2024-10-07T12:18:51.809231Z  INFO calimero_context: Subscribed to context context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+2024-10-07T12:18:51.811102Z  INFO calimero_context: Joined context with pending catchup context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Joined context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn as 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9, waiting for catchup to complete...
+```
+
+![Context Join](/cli/5-context-join.png)
+
+4. Verifying Context Membership To confirm successful joining of the context,
+   the invitee can list their contexts with the following command:
+
+```bash title="Node 2"
+context ls
+```
+
+```bash title="Example"
+context ls
+│ Context ID                                   | Application ID                               | Last Transaction
+│ 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn | Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF | b3ipivssRRm1ehRTSpUD3GKdUpvi3vq311pCT4iLvui
+```
+
+![Context List](/cli/8-context-list.png)
+
+5. The invitee can also list identities in the context
+
+```bash title="Node 2"
+identity ls {contextId}
+```
+
+```bash title="Example"
+identity ls 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+│ Identity                                     | Owned
+│ 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 | *
+│ DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 |
+```
+
+![Context Identity List](/cli/6-identity-list.png)

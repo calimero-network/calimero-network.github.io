@@ -1,0 +1,511 @@
+---
+id: building-with-ethereum
+title: Building with Ethereum
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Building with Ethereum
+
+Step-by-Step Guide to Building an Application for Calimero with Ethereum
+
+This tutorial will cover the following topics:
+
+1. **Smart contract overview** - Overview of the smart contracts and their
+   functionality.
+
+2. **Configuring Nodes** - Setting and configuring nodes, installing demo
+   application, creating context and inviting nodes into the context.
+
+3. **Installing a Blockchain Demo Application** - Setup demo application that
+   contains all functionalities for interaction with smart contracts.
+
+4. **Creating a Proposal** - Creating a proposal to execute cross-contract call
+   to an external smart contract deployed in step 3.
+
+:::note
+
+For easier guidance, we have named each terminal block by their purpose.
+
+:::
+
+## Requirements
+
+To follow this tutorial, you'll need the following:
+
+- Calimero Core - Installation instructions -
+  [Instructions](/getting-started/setup#installation)
+- Demo Blockchain Integrations -
+  [Repository](https://github.com/calimero-network/demo-blockchain-integrations)
+
+You also need following tools:
+
+- **Cargo**: Version `1.86.0-nightly` used for tutorial -
+  [url](https://www.rust-lang.org/tools/install)
+- **Pnpm**: Version `9.6.0` used for tutorial -
+  [url](https://pnpm.io/installation)
+- **Foundry**: For local Ethereum development -
+  [Instructions](https://book.getfoundry.sh/getting-started/installation)
+
+## Smart contract overview
+
+### Contracts overview
+
+Both contracts are written in Solidity, you can find their implementations in
+the following repositories:
+
+- [Context contract](https://github.com/calimero-network/contracts/tree/master/contracts/ethereum/context-config)
+- [Proxy contract](https://github.com/calimero-network/contracts/tree/master/contracts/ethereum/context-proxy)
+
+## Context and Proxy Contract
+
+### Context contract
+
+Context contract is deployed on Ethereum sepolia network and implemented into
+Calimero. It is used to create and manage contexts and their members.
+
+<lb />
+More information about context contract can be found
+[here](/core-concepts/blockchains-integration#context-contract).
+
+### Proxy contract
+
+With each context creation a proxy contract for that context is deployed. Proxy
+contract is used to handle blockchain operations such as cross-contract calls
+and transfers as well as storing variables.
+
+<lb />
+More information about proxy contract can be found
+[here](/core-concepts/blockchains-integration#functionality-details).
+
+## Setting up and configuring nodes
+
+:::info
+
+By deafult proposal needs 3 approvals before it is executed so we will setup 3
+nodes.
+
+:::
+
+- Initialize and start 3 nodes
+- Install
+  [blockchain demo application](https://github.com/calimero-network/demo-blockchain-integrations/tree/master/logic)
+- Create context for blockchain demo application
+- Invite all nodes in the same context
+
+#### Initialize and Start Nodes
+
+Open 3 terminals side by side.
+
+```bash title="Node1 Terminal"
+merod --node-name node1 init --server-port 2427 --swarm-port 2527
+```
+
+```bash title="Node2 Terminal"
+merod --node-name node2 init --server-port 2428 --swarm-port 2528
+```
+
+```bash title="Node3 Terminal"
+merod --node-name node3 init --server-port 2429 --swarm-port 2529
+```
+
+The output should look like this:
+
+<img src="/icp-tutorial/12_init_cali_nodes.png" alt="init-nodes" />
+You can verify nodes initialization files by looking into `~/.calimero` folder.
+
+:::note Self signer vs. Relayer signer
+
+In `config.toml` file you can see default configuration:
+
+```
+[context.config.ethereum]
+signer = "relayer"
+protocol = "ethereum"
+network = "sepolia"
+contract_id = <CONFIG_CONTRACT_ID>
+```
+
+If you use `self` for signer then you also need to change `public` and `secret`
+key.
+
+```
+[context.config.signer.self.ethereum.testnet]
+rpc_url = <RPC_URL>
+account_id = <YOUR_PUBLIC_KEY>
+secret_key = <YOUR_SECRET_KEY>
+```
+
+The values auto-generated only represent the format needed for self signing
+feature and are not real Ethereum accounts. To create your own Ethereum account
+with CLI follow the Foundry
+[Docs](https://book.getfoundry.sh/reference/cast/cast-wallet-new)
+
+:::
+
+More on node initialization can be found [here](/getting-started/setup/).
+
+Now we are going to start the nodes with the commands:
+
+```bash title="Node1 Terminal"
+merod --node-name node1 run
+```
+
+```bash title="Node2 Terminal"
+merod --node-name node2 run
+```
+
+```bash title="Node3 Terminal"
+merod --node-name node3 run
+```
+
+After running the nodes you should see the similar to this one:
+
+<img src="/icp-tutorial/14_start_cali_nodes.png" alt="running-nodes" />
+
+#### Install application
+
+Inside the node1 terminal we are going to install blockchain demo application.
+
+1. Clone the
+   [Demo Blockchain Integrations](https://github.com/calimero-network/demo-blockchain-integrations)
+   repository.
+2. Navigate to the `logic` directory.
+3. Build the application using the `build.sh` script, script will compile wasm
+   file in /res directory.
+4. Copy the `blockchain.wasm` file path
+
+Applications are installed with the following command:
+
+```bash title="Node1 Terminal"
+application install file <PATH_TO_blockchain.wasm_FILE>
+>Installed application: <APPLICATION_ID>
+```
+
+After installing the application we can create context:
+
+```bash title="Node1 Terminal"
+context create <APPLICATION_ID> --protocol ethereum
+>Created context <CONTEXT_ID> with identity <CONTEXT_IDENTITY>
+```
+
+After creating context we need to add node2 and node3 to it.
+
+<br /> To be able to do that we need to create identities for node2 and node3
+with whom they will join to the created context.
+
+```bash title="Node2 Terminal"
+identity new
+>> Private key: <PRIVATE_KEY>
+>> Public key: <PUBLIC_KEY>
+```
+
+```bash title="Node3 Terminal"
+identity new
+>> Private key: <PRIVATE_KEY>
+>> Public key: <PUBLIC_KEY>
+```
+
+The output should look like this:
+
+<img src="/icp-tutorial/16_create_new_identity.png" alt="create-identity" />
+
+After creating identities we can invite node2 and node3 to join the created
+context.
+
+```bash title="Node1 Terminal"
+context invite <CONTEXT_ID> <PUBLIC_KEY_OF_NODE2> --as <CONTEXT_IDENTITY>
+>> Invitation payload: <INVITATION_PAYLOAD>
+```
+
+This will generate a invitation payload which can node2 use to join the context.
+Copy the invitation payload and do the following command in node2 terminal:
+
+```bash title="Node2 Terminal"
+context join <PRIVATE_KEY_OF_NODE2> <INVITATION_PAYLOAD>
+>> Joined context <CONTEXT_ID>
+```
+
+Repeat the same steps for Node3.
+
+```bash title="Node1 Terminal"
+context invite <CONTEXT_ID> <PUBLIC_KEY_OF_NODE3> --as <CONTEXT_IDENTITY>
+```
+
+```bash title="Node3 Terminal"
+context join <PRIVATE_KEY_OF_NODE3> <INVITATION_PAYLOAD>
+>> Joined context <CONTEXT_ID>
+```
+
+The output in terminal after inviting and joining nodes should look like this:
+
+<img src="/icp-tutorial/16_invite_nodes.png" alt="join-context" />
+
+<br />
+
+More on invitations and joining the context can be found
+[here](https://calimero-network.github.io/tutorials/invitations-and-joinings)
+
+Lastly we can check if all nodes are connected in context with:
+
+```bash title="Node1 Terminal"
+context ls
+> <CONTEXT_ID>
+```
+
+```bash title="Node1 Terminal"
+identity ls <CONTEXT_ID>
+```
+
+<img src="/icp-tutorial/18_verify_context.png" alt="context-members" />
+
+We can see there are 3 nodes connected in context.
+
+#### Fund Proxy Contract
+
+We have now installed the application and created context. To be able to fully
+use proxy contract we need to fund it. To get proxy contract address we need to
+use API GET call to retrieve it from the node.
+
+The 3 running nodes are located on:
+
+- https://localhost:2427
+- https://localhost:2428
+- https://localhost:2429.
+
+Any of them can be queried to get the value of proxy contract id.
+
+API endpoint to fetch proxy contract id is:
+`http://localhost:2428/admin-api/contexts/CONTEXT_ID/proxy-contract`
+
+> CONTEXT_ID can be copied from previous steps
+
+And for our case it is:
+`http://localhost:2428/admin-api/contexts/7krojDziAKRWP8KrUD8aYGL3z5peScNxPXaBWTKCFr2h/proxy-contract`
+
+Example of request in postman:
+
+<img
+  src="/ethereum-tutorial/proxy_contract_ethereum.png"
+  alt="proxy-contract"
+/>
+
+Now you can fund the proxy contract by using the following command:
+
+```bash
+cast send \
+  --value 1eth \
+  --private-key <YOUR_SECRET_KEY> \
+  <PROXY_CONTRACT_ID>
+```
+
+Where:
+
+- `<YOUR_SECRET_KEY>` is the account from which to transfer the funds.
+- `<PROXY_CONTRACT_ID>` is the address of the proxy contract you want to fund.
+- `1eth` is the amount of eth you want to fund the contract with.
+
+For more information about transferring funds checkout this
+[link](https://book.getfoundry.sh/reference/cast/cast-send) To verify contract
+balance you can check it on Etherscan Explorer by visiting:
+
+`https://sepolia.etherscan.io/address/<PROXY_CONTRACT_ID>`
+
+## Blockchain Demo Application
+
+This application is used to demonstrate how to interact with Calimero Proxy
+contract through creating, approving and executing proposals.
+
+The proxy contract supports the following types of proposals:
+
+- **External function call** - Enables cross-contract call execution.
+- **Transfer** - Allows transferring funds.
+- **Set approval threshold** - Specifies the number of approvals required for
+  proposal execution.
+- **Set active proposal limit** - Defines the maximum number of active
+  proposals.
+- **Set context variables** - Allows setting key-value pairs for context
+  variables.
+
+While the demo focuses on specific functionality, you can customize the
+application to suit your needs. Instead of building a complete frontend, this
+demo serves as a foundation that you can extend to create a fully-featured
+frontend application tailored to your requirements.
+
+Navigate to frontend directory and install dependencies.
+
+```bash title="Terminal"
+cd demo-blockchain-integrations/app && pnpm install
+```
+
+Since we have 3 nodes we will need to setup frontend for each of them. Open 3
+terminals side by side and run the following commands in each of them from /app
+directory:
+
+```bash title="Terminal 1 | Terminal 2 | Terminal 3"
+pnpm run dev
+```
+
+After running the frontend you should see the following output in each of the
+terminals:
+
+<img src="/icp-tutorial/Demo_blockchain_app_start.png" alt="frontend-running" />
+
+Open the applications in by clicking on the link in each of the terminals and
+you will see form with input fields for node URL and application ID.
+
+To get application ID you can use following command from any of node terminals:
+
+```bash title="Node1 Terminal"
+application ls
+> <APPLICATION_ID>
+```
+
+The node URL of the nodes are respectively:
+
+- http://localhost:2427
+- http://localhost:2428
+- http://localhost:2429
+
+After submitting the form you will be redirected to admin dashboard where you
+will see the login page with wallet selector.
+
+<lb />
+Select a wallet you wish to login with and afterwards you will be prompted to
+select the context and context identity you wish to use.
+<lb />
+After selecting both you will be logged in and automatically redirected to the
+application.
+
+### Change Approval Threshold Proposal
+
+First we are going to create an approval threshold change proposal so future
+proposals can be executed by only 1 node. As mentioned earlier each proposal by
+default needs 3 approvals to be executed.
+
+1. Click on "Create Proposal" button and select "Change number of approvals
+   needed" from dropdown.
+2. In the input field set the number of approvals to 1 (this means that proposal
+   will be executed on creation).
+3. Click on "Create Proposal" button to create the proposal.
+
+After proposal is created you will get the alert that proposal is created and it
+will be shown in other frontend applications by selecting it in select field.
+
+After selecting proposal on other frontend applications (node2 and node3) you
+can see that it is created and can be approved by clicking on "Approve Proposal"
+button.
+
+### Cross-Contract Call Proposal
+
+At this point proposal approval threshold is 1, meaning proposal will be
+executed on creation. This means when we create cross-contract call proposal it
+will instantly be executed.
+
+We have created a `<DEMO_EXTERNAL_CONTRACT_ID>` and deployed it on Ethereum
+sepolia.
+
+Its address is:
+
+```
+0x2c42DADf80b1a76Db4038027D7DB24863a9d0d5D
+```
+
+It contains following methods:
+
+- **setValueNoDeposit** - This method does not require a deposit for execution,
+  it sets sent arguments in its storage.
+- **deposit** - This method requires a deposit for execution, it first transfers
+  the funds to the contract from proxy contract and then sets sent arguments in
+  its storage, if the transfer is completed successfully.
+- **getValue** - This method returns all calls stored in the contract.
+
+You can see the contract itself and its implementation
+[here](https://github.com/calimero-network/calimero-evm-contracts/tree/master/context-proxy/mock).
+
+When creating cross-contract call proposal we need to provide following values:
+
+- **Contract ID**: `{DEMO_EXTERNAL_CONTRACT_ID}` - Address of the external
+  contract
+- **Method Name**: `deposit(string, string)` - Name of the contract method that
+  will be called with arguments types
+- **Deposit**: 10000000 - Deposit for transfer in WEI (10¹⁸ WEI = 1 ETH)
+- **Arguments**: The following arguments correspond to the deposit method
+  parameters:
+
+  | Type   | Value     |
+  | ------ | --------- |
+  | string | testKEY   |
+  | string | testVALUE |
+
+<img
+  src="/stellar-tutorial/stellar_proposal_deposit_call.png"
+  alt="create-ccc"
+  style={{ width: '50%' }}
+/>
+
+Supported Ethereum argument types:
+
+- `bool` - Boolean value, representing true or false.
+- `string` - Text string, used for storing sequences of characters.
+- `address` - Contract or account address, a 20-byte value used to identify
+  accounts.
+- `bytes` - Byte array, used for arbitrary-length binary data.
+- `int256` - 256-bit signed integer, used for storing large integer values.
+- `uint256` - 256-bit unsigned integer, used for storing large non-negative
+  integer values.
+- `array(bool)` - Array of boolean values.
+- `array(string)` - Array of strings.
+- `array(address)` - Array of addresses.
+- `array(bytes)` - Array of byte arrays.
+- `array(int256)` - Array of 256-bit signed integers.
+- `array(uint256)` - Array of 256-bit unsigned integers.
+- `tuple` - A fixed-size collection of values, which can be of different types.
+
+These types are used to define the parameters and return values of smart
+contract functions in Ethereum-based blockchains.
+
+After we create proposal it will be executed, and the success of the execution
+can be checked calling demo external contract method **get_value** with Forge
+CLI:
+
+```bash
+cast call \
+  <DEMO_EXTERNAL_CONTRACT_ID> \
+  "getValue(string)" \
+  "testKEY"
+```
+
+To check if transfer was successful we can use Etherscan Explorer by visiting:
+
+`https://sepolia.etherscan.io/address/<DEMO_EXTERNAL_CONTRACT_ID>`
+
+There you will see the current funds attached to the contract.
+
+:::caution
+
+The implementation of cross-contract call with deposit is based on the following
+steps:
+
+1. The contract detects that an attached deposit is present.
+2. It calls the ledger contract to enable the external contract (the contract
+   being called) to withdraw funds.
+3. The external contract is called, and it must contain logic to withdraw the
+   funds that have been allocated for it in the ledger contract.
+4. After the cross-contract call is completed, the proxy contract sets the
+   allowance back to 0 to ensure security.
+
+:::
+
+## Conclusion
+
+This tutorial has covered all the essential steps developers need to build an
+application for Calimero and Ethereum, from environment overview to deploying a
+fully functional smart contract. By following this guide, you should now have a
+solid understanding of the development workflow and how to build your own
+Ethereum application for Calimero.
+
+Feel free to use our demo applications as a starting point to build and
+customize your own application. If you have any questions or need assistance,
+don't hesitate to reach out to us on Socials. We're here to help!

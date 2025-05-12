@@ -1,0 +1,69 @@
+---
+id: merod
+title: Merod
+---
+
+import MerodInstallation from '../../shared/install-merod.mdx';
+
+Merod is a command-line tool that allows you to initialize, configure and run
+Calimero nodes.
+
+<details>
+  <summary>Installation</summary>
+  <p>
+    <MerodInstallation />
+  </p>
+</details>
+
+## Usage
+
+```bash title="Terminal"
+merod [OPTIONS] --node-name <NAME> <COMMAND>
+```
+
+### Commands:
+
+- `config` Configure the node
+- `init` Initialize node configuration
+- `run` Run a node
+- `relay` Relay incoming requests to specific location
+- `help` Print this message or the help of the given subcommand(s)
+
+:::tip
+
+Run help to get more information about the available options and commands.
+
+```bash title="Terminal"
+merod --help
+```
+
+:::
+
+### Options:
+
+- `--home <PATH>` Directory for config and data
+- `-n`, `--node-name <NAME>` Name of node
+- `-h`, `--help` Print help
+- `-V`, `--version` Print version
+
+:::tip
+
+Default location of the config and data directory is `~/.calimero`. You can
+change the location by using the `--home` option.
+
+:::
+
+### Examples:
+
+| **Command**                                                                      | **Description**                                                                      |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `merod --node-name node1 init`                                                   | Initialize a node with default settings. (server-port = 2428 and swarm-port = 2528`) |
+| `merod --node-name node1 init --server-port 2429 --swarm-port 2529`              | Initialize a node with custom ports.                                                 |
+| `mkdir data && merod --home data/ --node-name node1 init`                        | Initialize a node with a custom home directory.                                      |
+| `merod --node-name node1 config --server-host 143.34.182.202 --server-port 3000` | Configure an existing node with a specific server host and port. ## ERROR HERE       |
+| `merod --node-name node1 run`                                                    | Run a node.                                                                          |
+| `merod --node-name node2 relay --listen 127.0.0.1:3333`                          | Relay incoming requests to a specific location.                                      |
+
+```
+
+```

@@ -1,0 +1,99 @@
+---
+id: identity
+title: Identity
+---
+
+## Calimero Decentralized Identity
+
+Calimero’s decentralized identity framework is designed to provide secure,
+anonymous, and decentralized control across the network. It leverages multiple
+types of cryptographic keys to manage identities and ensure the integrity of
+operations within the network.
+
+### Network identity
+
+Network identity is defined within the configuration file on each node. This
+identity is derived from [network keys](#network-keys), which generate a unique
+`Peer ID` for each node, allowing peers to identify themselves to other peers in
+the network.
+
+#### Network Keys
+
+Network keys are used to authenticate nodes within the network, with each node
+having a unique private-public key pair that it uses to verify its identity to
+other nodes. During connection setup, nodes exchange public keys to ensure they
+are communicating with the intended parties. More in
+[Network](../architecture/node/network#identify)
+
+### Context identity
+
+Context identity allows users to identify themselves within a specific context.
+Users can have arbitrary number of identities within a specific context which
+remains encapsulated within the context. These identities are linked to
+[runtime keys](#runtime-keys), with each context identity connected to one
+runtime key.
+
+### Decentralized Identity (DID) document
+
+All context-specific identities and node keys are managed through a
+Decentralized Identity (DID) document stored on the node. This document
+includes:
+
+- [Root Keys](#root-keys)
+- [Client Keys](#client-keys)
+- [Runtime Keys](#runtime-keys)
+- [Encryption Keys](#encryption-keys)
+
+Calimero's key management utilizes multiple keys for various purposes, ensuring
+secure, anonymous, and decentralized control across the network. This structure
+underpins secure and efficient operations within the Calimero Network,
+facilitating both node and application functionalities.
+
+#### Root keys
+
+Root keys provide full access for node operations, including managing root keys,
+listing identifiers, and generating new client keys. Web3 wallets can be used as
+fundamental for root keys, simplifying the setup process.
+
+<!--
+**Key Initialization Process**:
+
+1. **Starting Without Keys**: Initially, nodes have no keys. The addition of the
+   first key is crucial for setting up application identities.
+2. **Adding the First Key**:
+
+   - In the node admin UI, connect a wallet, such as MetaMask or Near wallets compliant with [NEP-413](https://github.com/near/NEPs/blob/master/neps/nep-0413.md).
+   - Sign a challenge from the node and submit the signature.
+   - If the signature matches the challenge and the public key, the first node
+     key is added, activating key management capabilities.
+
+   -->
+
+#### Client keys
+
+Client keys are generated on login and used by the frontend. Stored in browser
+local storage, these keys initiate applications and serves as permissioned
+access to the node.
+
+**Client Key Usage**:
+
+1. **Key Creation**: Users generate a new keypair in their browser.
+2. **Verification**:
+   - A Verifiable Presentation Request is sent to the node, which responds with
+     a challenge.
+   - The challenge and public key are signed using the root key.
+   - Upon node verification of the request and signature, the new key is cleared
+     for JSONRPC API communication from the browser to the node.
+
+Calimero's TypeScript SDK supports developers in building browser and CLI
+applications by simplifying interaction with the network.
+
+#### Runtime keys
+
+Runtime keys are used for signing transactions within a context, with the
+appropriate key selected based on the context identity.
+
+#### Encryption keys
+
+Keys used for encrypting and decrypting messages between peers in the context.
+Each context has its own encryption key. More in [Encryption](./encryption)

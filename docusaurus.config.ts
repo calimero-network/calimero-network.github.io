@@ -40,11 +40,16 @@ const config: Config = {
           editUrl: ({ versionDocsDirPath, docPath }) =>
             `https://github.com/calimero-network/calimero-network.github.io/edit/master/${versionDocsDirPath}/${docPath}`,
           disableVersioning: false,
-          lastVersion: '0.5.0',
+          lastVersion: '0.6.0',
           versions: {
             current: {
               banner: 'unreleased',
               path: '',
+            },
+            '0.6.0': {
+              label: 'Stable (0.6.0)',
+              path: '0.6.0',
+              badge: false,
             },
             '0.5.0': {
               label: 'Stable (0.5.0)',
@@ -52,7 +57,7 @@ const config: Config = {
               badge: false,
             },
             '0.4.0': {
-              label: 'Legacy (0.4.0)',
+              label: 'Stable (0.4.0)',
               path: '0.4.0',
               badge: false,
             },
