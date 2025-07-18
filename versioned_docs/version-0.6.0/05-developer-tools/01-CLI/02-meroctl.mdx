@@ -18,7 +18,7 @@ node directly from the shell.
 ## Usage
 
 ```bash title="Terminal"
-meroctl [OPTIONS] --node-name <NAME> <COMMAND>
+meroctl [OPTIONS] --node <NAME> <COMMAND>
 ```
 
 ### Commands:
@@ -67,18 +67,18 @@ your nodes private key.
 
 ### Examples:
 
-| **Command**                                                                       | **Description**                     |
-| --------------------------------------------------------------------------------- | ----------------------------------- |
-| `meroctl --node-name <NAME> app <COMMAND>`                                        | Command for managing applications   |
-| `meroctl --node-name <NAME> context <COMMAND>`                                    | Command for managing contexts       |
-| `meroctl --node-name <NAME> identity <COMMAND>`                                   | Command for creating identities     |
-| `meroctl --node-name <NAME> proxy <COMMAND>`                                      | Command for managing proxy contract |
-| `meroctl --node-name <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Executing read and write RPC calls  |
+| **Command**                                                                  | **Description**                     |
+| ---------------------------------------------------------------------------- | ----------------------------------- |
+| `meroctl --node <NAME> app <COMMAND>`                                        | Command for managing applications   |
+| `meroctl --node <NAME> context <COMMAND>`                                    | Command for managing contexts       |
+| `meroctl --node <NAME> identity <COMMAND>`                                   | Command for creating identities     |
+| `meroctl --node <NAME> proxy <COMMAND>`                                      | Command for managing proxy contract |
+| `meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Executing read and write RPC calls  |
 
 ### Manage Applications
 
 ```bash title="Terminal"
-meroctl --node-name <NAME> app <COMMAND>
+meroctl --node <NAME> app <COMMAND>
 ```
 
 Commands:
@@ -90,7 +90,7 @@ Commands:
 ### Manage Contexts
 
 ```bash title="Terminal"
-meroctl --node-name <NAME> context <COMMAND>
+meroctl --node <NAME> context <COMMAND>
 ```
 
 Commands:
@@ -119,7 +119,7 @@ The `context identity` command supports alias management to simplify working
 with public keys across contexts:
 
 ```bash
-meroctl --node-name <NAME> context identity <COMMAND>
+meroctl --node <NAME> context identity <COMMAND>
 ```
 
 Commands:
@@ -129,7 +129,7 @@ Commands:
   - Use `--owned` to get only owned identities
 
     ```bash
-    meroctl --node-name <NAME> context identity list <contextId or alias> --owned
+    meroctl --node <NAME> context identity list <contextId or alias> --owned
     ```
 
 - `alias` Manage identity aliases
@@ -145,13 +145,13 @@ The `context` command includes alias management as a subcommand to simplify
 working with context IDs:
 
 ```bash
-meroctl --node-name <NAME> context <COMMAND>
+meroctl --node <NAME> context <COMMAND>
 ```
 
 The alias subcommand structure:
 
 ```bash
-meroctl --node-name <NAME> context alias <COMMAND>
+meroctl --node <NAME> context alias <COMMAND>
 ```
 
 - `add <name> <context-id>` Create new alias for a context
@@ -176,7 +176,7 @@ streamline context management.
 ### Manage Identities
 
 ```bash title="Terminal"
-meroctl --node-name <NAME> identity <COMMAND>
+meroctl --node <NAME> identity <COMMAND>
 ```
 
 Commands:
@@ -186,7 +186,7 @@ Commands:
 ### Command for managing proxy contract
 
 ```bash title="Terminal"
- meroctl --node-name <NAME> proxy <COMMAND>
+ meroctl --node <NAME> proxy <COMMAND>
 ```
 
 Commands:
@@ -196,13 +196,13 @@ Commands:
 ### Show a number of connected peers
 
 ```bash title="Terminal"
-meroctl --node-name <NAME> peers
+meroctl --node <NAME> peers
 ```
 
 ### Executing read and write RPC calls
 
 ```bash title="Terminal"
-meroctl --node-name <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
+meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
 ```
 
 Arguments:
@@ -219,7 +219,7 @@ Options:
 ### Setup two nodes inside the same context
 
 ```bash title="Terminal"
-meroctl --node-name <NAME> bootstrap <COMMAND> --merod-path <MEROD_PATH> --protocol <PROTOCOL> --app-path [APP_PATH]
+meroctl --node <NAME> bootstrap <COMMAND> --merod-path <MEROD_PATH> --protocol <PROTOCOL> --app-path [APP_PATH]
 ```
 
 Command initializes and run `node1` and `node2` in the same context.
