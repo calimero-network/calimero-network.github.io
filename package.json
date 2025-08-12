@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "docusaurus build && node scripts/replace-llms.js",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -15,6 +15,7 @@
     "typecheck": "tsc",
     "format:md": "prettier --write \"**/*.{md,mdx}\"",
     "check:md": "prettier --check \"**/*.{md,mdx}\"",
+    "update:llms": "node scripts/replace-llms.js",
     "prepare": "husky"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
     "@feelback/react": "^0.3.4",
     "@mdx-js/react": "^3.1.0",
     "clsx": "^2.1.1",
+    "docusaurus-plugin-llms": "^0.1.5",
     "docusaurus-plugin-sass": "^0.2.6",
     "prism-react-renderer": "^2.4.0",
     "react": "^18.3.1",

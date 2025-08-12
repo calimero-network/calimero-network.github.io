@@ -32,6 +32,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      docusaurus-plugin-llms:
+        specifier: ^0.1.5
+        version: 0.1.5(@docusaurus/core@3.8.1(@mdx-js/react@3.1.0(@types/react@18.3.12)(react@18.3.1))(acorn@8.14.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.2.2))
       docusaurus-plugin-sass:
         specifier: ^0.2.6
         version: 0.2.6(@docusaurus/core@3.8.1(@mdx-js/react@3.1.0(@types/react@18.3.12)(react@18.3.1))(acorn@8.14.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.2.2))(sass@1.81.1)(webpack@5.96.1)
@@ -2084,6 +2087,9 @@ packages:
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
 
+  brace-expansion@2.0.2:
+    resolution: {integrity: sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==}
+
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
@@ -2739,6 +2745,12 @@ packages:
   dns-packet@5.6.1:
     resolution: {integrity: sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==}
     engines: {node: '>=6'}
+
+  docusaurus-plugin-llms@0.1.5:
+    resolution: {integrity: sha512-TKcHQG6MyTTleDdOFJL+5OpmW9Le6XGiagClgSX05GXhxD//4PQlY2Iq9HVETLBIsHVETVp8AxjZQ6e3E/fr/Q==}
+    engines: {node: '>=18.0'}
+    peerDependencies:
+      '@docusaurus/core': ^3.0.0
 
   docusaurus-plugin-sass@0.2.6:
     resolution: {integrity: sha512-2hKQQDkrufMong9upKoG/kSHJhuwd+FA3iAe/qzS/BmWpbIpe7XKmq5wlz4J5CJaOPu4x+iDJbgAxZqcoQf0kg==}
@@ -3912,6 +3924,10 @@ packages:
 
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
+
+  minimatch@9.0.5:
+    resolution: {integrity: sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==}
+    engines: {node: '>=16 || 14 >=14.17'}
 
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
@@ -8573,6 +8589,10 @@ snapshots:
       balanced-match: 1.0.2
       concat-map: 0.0.1
 
+  brace-expansion@2.0.2:
+    dependencies:
+      balanced-match: 1.0.2
+
   braces@3.0.3:
     dependencies:
       fill-range: 7.1.1
@@ -9260,6 +9280,12 @@ snapshots:
   dns-packet@5.6.1:
     dependencies:
       '@leichtgewicht/ip-codec': 2.0.5
+
+  docusaurus-plugin-llms@0.1.5(@docusaurus/core@3.8.1(@mdx-js/react@3.1.0(@types/react@18.3.12)(react@18.3.1))(acorn@8.14.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.2.2)):
+    dependencies:
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.0(@types/react@18.3.12)(react@18.3.1))(acorn@8.14.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.2.2)
+      gray-matter: 4.0.3
+      minimatch: 9.0.5
 
   docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.8.1(@mdx-js/react@3.1.0(@types/react@18.3.12)(react@18.3.1))(acorn@8.14.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.2.2))(sass@1.81.1)(webpack@5.96.1):
     dependencies:
@@ -10803,6 +10829,10 @@ snapshots:
   minimatch@3.1.2:
     dependencies:
       brace-expansion: 1.1.11
+
+  minimatch@9.0.5:
+    dependencies:
+      brace-expansion: 2.0.2
 
   minimist@1.2.8: {}
 
