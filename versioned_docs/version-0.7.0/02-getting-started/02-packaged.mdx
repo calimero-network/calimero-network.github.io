@@ -1,0 +1,35 @@
+---
+id: packaged
+title: Packaged installation
+---
+
+import MerodInstallation from '../shared/install-merod.mdx';
+
+### Installation {#installation}
+
+<MerodInstallation />
+
+### Next Steps
+
+Initialize and run node
+
+If this is your first time initializing the node, the process may take a little
+bit more time until all dependencies are downloaded. It will take around 7
+minutes but can vary depending on your internet connection.
+
+#### 1. Initialize node
+
+```bash title="Terminal"
+merod --node-name node1 init --server-port 2428 --swarm-port 2528
+```
+
+Node configuration file contains protocol defined metada and is located at
+`~/.calimero/your_node_name/config.toml`.
+
+#### 2. Run node
+
+```bash title="Terminal"
+merod --node-name node1 run
+```
+
+Wait for a few moments and node logs should appear.

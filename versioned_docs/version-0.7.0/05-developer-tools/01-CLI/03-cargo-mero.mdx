@@ -1,0 +1,64 @@
+---
+id: cargo-mero
+title: Cargo Mero
+---
+
+import CargoMeroInstallation from '../../shared/install-cargo-mero.mdx';
+
+# cargo-mero
+
+A Cargo subcommand for building applications on the Calimero network.
+
+<details>
+  <summary>Installation</summary>
+  <p>
+    <CargoMeroInstallation />
+  </p>
+</details>
+
+Make sure `~/.cargo/bin` is in your `PATH` so that `cargo mero` is available as
+a subcommand.
+
+## Commands
+
+### new
+
+Scaffold a new Calimero application.
+
+```bash title="Terminal"
+cargo mero new <app-name>
+```
+
+### build
+
+Build your Calimero application to WASM.
+
+```bash title="Terminal"
+cargo mero build [OPTIONS]
+```
+
+#### Build Options
+
+| Option                  | Description                                           |
+| ----------------------- | ----------------------------------------------------- |
+| `--locked`              | Assert that `Cargo.lock` will remain unchanged        |
+| `--no-release`          | Build app in `dev` profile, without optimizations     |
+| `-v`, `--verbose`       | Use verbose output                                    |
+| `-q`, `--quiet`         | Do not print cargo log messages                       |
+| `-F`, `--features`      | Space or comma separated list of features to activate |
+| `--no-default-features` | No default features                                   |
+| `-h`, `--help`          | Print help                                            |
+
+#### Example: Build with options
+
+```bash title="Terminal"
+cargo mero build --verbose --features feature1,feature2 --no-release
+```
+
+### help
+
+Prints the help message or the help of the given subcommand(s).
+
+```bash title="Terminal"
+cargo mero --help
+```

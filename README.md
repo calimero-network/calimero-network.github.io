@@ -34,9 +34,9 @@ Follow these steps to get started with the documentation:
 3.  Running the Documentation Locally To start a local development server and
     open the documentation in your browser:
 
-        ```bash
-        pnpm start
-        ```
+    ```bash
+    pnpm start
+    ```
 
 This command starts a local development server and opens up a browser window.
 Most changes are reflected live without having to restart the server.
