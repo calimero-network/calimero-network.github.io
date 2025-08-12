@@ -1,0 +1,106 @@
+---
+id: what-is-calimero
+title: What is Calimero
+---
+
+## What is Calimero Network
+
+Calimero is a development framework that enables building and running
+peer-to-peer Self-Sovereign applications focusing on data ownership and
+harnessing the power of verified off-chain computing.
+
+### Framework Architecture
+
+The Calimero framework is built around several key components that work together
+to create a seamless development experience:
+
+**Client Nodes**: These are the core participants in the network - any device or
+computer that runs Calimero applications. Each node acts as a gateway that runs
+applications and connects with other peers, encapsulating the complexities of
+decentralized networking.
+
+**WebAssembly (WASM) Applications**: Applications in Calimero are compiled to
+WebAssembly format, ensuring secure, isolated execution. Each application runs
+in its own sandboxed environment within the WASM virtual machine, preventing
+interference between different applications while maintaining high performance.
+
+**Contexts**: The heart of the Calimero ecosystem, contexts are
+application-specific networks that enable direct communication between users.
+Each context consolidates all necessary components into a secure, isolated
+environment where participants only synchronize with each other, not the entire
+network.
+
+**Runtime Environment**: The framework provides a robust runtime that manages
+multiple applications concurrently, handles state synchronization, ensures
+atomic transactions, and provides scoped storage for each context. This runtime
+abstracts away the complexity of distributed systems from developers.
+
+**Development SDKs**: Calimero provides comprehensive development tools:
+
+- **Protocol SDK**: For building the core application logic in Rust, defining
+  how applications behave and communicate
+- **Client SDK**: For creating user interfaces in TypeScript, handling
+  authentication and data interactions
+
+**Specialized Nodes**: For applications requiring additional capabilities,
+specialized nodes provide services like encrypted storage, delegated execution,
+and administrative functions while maintaining the decentralized nature of the
+network.
+
+## Core Principles
+
+Calimero is built on the principle of **local-first execution with eventual
+consistency**. This means that each actor can independently drive their own
+local state, and the network will eventually reconcile to the same state. This
+approach pegs scalability to the number of actors in the network, making
+executions practically instantaneous.
+
+### Context-Aware State Reconciliation
+
+All activity in Calimero revolves around an instance of an app, called a
+context. Participants of a context only synchronize with each other, not the
+entire network. This eliminates the need for global consensus and gas fees, with
+execution costs borne directly by the actor.
+
+### Inherent Privacy
+
+Calimero leverages direct-actor relationships to encrypt all network traffic
+between participants, making the network inherently private. Unlike blockchains
+that achieve integrity through transparency, Calimero enables private
+environments while maintaining data integrity.
+
+### Embeddable Architecture
+
+Calimero is designed to be embeddable, meaning that client apps themselves
+become the network actors, and the network is the app itself. This creates a
+seamless integration where the framework becomes part of your application rather
+than a separate entity.
+
+## Open Web tech stack
+
+Calimero is designed to complement and enhance existing technologies rather than
+replace them:
+
+### Blockchain Integration
+
+While Calimero offers an alternative to traditional blockchain approaches, it
+can also integrate with blockchains for specific use cases. The framework can
+leverage blockchain for settlement, identity verification, or as a source of
+truth when needed, while handling the majority of application logic locally.
+
+### Storage Solutions
+
+Calimero includes built-in encrypted data storage capabilities, but can also
+integrate with existing storage solutions like IPFS when additional storage
+requirements arise. The framework focuses on compute while providing flexible
+storage options.
+
+### Zero-Knowledge (ZK) Enhancements
+
+ZK solutions can complement Calimero by providing enhanced privacy features
+within its framework. This combination offers the best of both worlds -
+Calimero's local-first execution with ZK's privacy guarantees - without
+inheriting the synchronization complexities of traditional ZK implementations.
+
+The rest of this documentation explores how to use Calimero with these and other
+technologies to build powerful self-sovereign applications.

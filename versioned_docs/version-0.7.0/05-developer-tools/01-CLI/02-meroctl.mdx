@@ -1,0 +1,239 @@
+---
+id: meroctl
+title: Meroctl
+---
+
+import MeroctlInstallation from '../../shared/install-meroctl.mdx';
+
+Meroctl is a command-line tool that enables you to interact with your Calimero
+node directly from the shell.
+
+<details>
+  <summary>Installation</summary>
+  <p>
+    <MeroctlInstallation />
+  </p>
+</details>
+
+## Usage
+
+```bash title="Terminal"
+meroctl [OPTIONS] --node <NAME> <COMMAND>
+```
+
+### Commands:
+
+- `app` Command for managing applications
+- `context` Command for managing contexts
+- `identity` Command for creating an empty identity
+- `proxy` Command for managing proxy contract
+- `call` Executing read and write RPC calls
+- `peers` Show a number of connected peers
+- `bootstrap` Setup two nodes inside the same context
+- `help` Print this message or the help of the given subcommand(s)
+
+:::tip
+
+Run help to get more information about the available options and commands.
+
+```bash title="Terminal"
+meroctl --help
+```
+
+:::
+
+### Options:
+
+- `--home <PATH>` Directory for config and data
+- `-n`, `--node-name <NAME>` Name of node
+- `-h`, `--help` Print help
+- `-output-format <FORMAT>` [default: plain-text] [possible values:
+  json, plain-text]
+- `-V`, `--version` Print version
+
+:::tip
+
+Default location of the config and data directory is `~/.calimero`. You can
+change the location by using the `--home` option.
+
+:::
+
+:::note
+
+All of the communication with your node through the meroctl CLI is protected by
+your nodes private key.
+
+:::
+
+### Examples:
+
+| **Command**                                                                  | **Description**                     |
+| ---------------------------------------------------------------------------- | ----------------------------------- |
+| `meroctl --node <NAME> app <COMMAND>`                                        | Command for managing applications   |
+| `meroctl --node <NAME> context <COMMAND>`                                    | Command for managing contexts       |
+| `meroctl --node <NAME> identity <COMMAND>`                                   | Command for creating identities     |
+| `meroctl --node <NAME> proxy <COMMAND>`                                      | Command for managing proxy contract |
+| `meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Executing read and write RPC calls  |
+
+### Manage Applications
+
+```bash title="Terminal"
+meroctl --node <NAME> app <COMMAND>
+```
+
+Commands:
+
+- `get` Fetch application details
+- `install` Install an application
+- `list` List installed applications
+
+### Manage Contexts
+
+```bash title="Terminal"
+meroctl --node <NAME> context <COMMAND>
+```
+
+Commands:
+
+- `alias` Create an alias for a context
+- `list` List all contexts
+- `create` Create a new context
+- `join` Join an application context
+- `invite` Create invitation to a context for a invitee
+- `get` Fetch details about the context
+
+  <details>
+    <summary>`get` subcommands</summary>- `info` Get context information -
+    `client-keys` Get client keys - `storage` Get storage information
+  </details>
+
+- `identity` Create or list a context identity or it's alias
+- `delete` Delete a context
+- `watch` Watch events from a context
+- `update` Update app in context
+- `peers` Show a number of connected peers
+
+### Managing Context Identities and Aliases
+
+The `context identity` command supports alias management to simplify working
+with public keys across contexts:
+
+```bash
+meroctl --node <NAME> context identity <COMMAND>
+```
+
+Commands:
+
+- `list` List identities in a context
+
+  - Use `--owned` to get only owned identities
+
+    ```bash
+    meroctl --node <NAME> context identity list <contextId or alias> --owned
+    ```
+
+- `alias` Manage identity aliases
+  - `add <name> <identity> --context <context-id or alias>` Create new alias for
+    an identity
+  - `remove <name> --context <context-id or alias>` Remove an identity alias
+  - `get <name> --context <context-id or alias>` Look up an identity's hash by
+    alias
+
+### Context Management with Aliases
+
+The `context` command includes alias management as a subcommand to simplify
+working with context IDs:
+
+```bash
+meroctl --node <NAME> context <COMMAND>
+```
+
+The alias subcommand structure:
+
+```bash
+meroctl --node <NAME> context alias <COMMAND>
+```
+
+- `add <name> <context-id>` Create new alias for a context
+- `remove <name>` Remove a context alias
+- `get <name>` Look up a context by alias
+
+Additional context commands support using aliases:
+
+- `create --as <alias> ...` Create context with an identity alias
+- `get <context-alias>` Get context info using alias
+- `invite <context-alias> <invitee-alias> --as <inviter-alias>` Create
+  invitation using aliases
+- And more...
+
+:::tip
+
+See the Invitations and Joinings guide for detailed examples of using aliases to
+streamline context management.
+
+:::
+
+### Manage Identities
+
+```bash title="Terminal"
+meroctl --node <NAME> identity <COMMAND>
+```
+
+Commands:
+
+- `generate` Generate public/private key pair used for context identity
+
+### Command for managing proxy contract
+
+```bash title="Terminal"
+ meroctl --node <NAME> proxy <COMMAND>
+```
+
+Commands:
+
+- `get` Fetch details about the proxy contract
+
+### Show a number of connected peers
+
+```bash title="Terminal"
+meroctl --node <NAME> peers
+```
+
+### Executing read and write RPC calls
+
+```bash title="Terminal"
+meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
+```
+
+Arguments:
+
+- `<CONTEXT_ID>` ContextId of the context
+- `<METHOD>` Method to fetch details
+
+Options:
+
+- `--args <ARGS>` JSON arguments to pass to the method
+- `--as <EXECUTOR>` Public key of the executor
+- `--id <ID>` Id of the RPC execute call [default: dontcare]
+
+### Setup two nodes inside the same context
+
+```bash title="Terminal"
+meroctl --node <NAME> bootstrap <COMMAND> --merod-path <MEROD_PATH> --protocol <PROTOCOL> --app-path [APP_PATH]
+```
+
+Command initializes and run `node1` and `node2` in the same context.
+
+Arguments:
+
+- `<MEROD_PATH>` Full path to
+  [merod](https://calimero-network.github.io/developer-tools/CLI/merod) binary.
+- `<PROTOCOL>` One of supported protocols for context creation. (e.g. near,
+  starknet, icp, stellar, ethereum)
+- `<APP_PATH>` Path to the app wasm file. If not specified, the default
+  [core-template-app](https://github.com/calimero-network/core-app-template)
+  will be used
+
+Commands:
+
+- `start`: Start bootstrap process
