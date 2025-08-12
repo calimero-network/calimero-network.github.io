@@ -81,7 +81,47 @@ const config: Config = {
       } as Preset.Options,
     ],
   ],
-  plugins: ['docusaurus-plugin-sass'],
+  plugins: [
+    'docusaurus-plugin-sass',
+    [
+      'docusaurus-plugin-llms',
+      {
+        // Use custom static/llms.txt for summary, let plugin generate full version
+        outputPath: '/llms-auto.txt', // Plugin generates to different path
+        generateFullVersion: true,
+        // Optional: customize the title (defaults to your site title)
+        title: 'Calimero Network',
+        // Optional: customize the description (defaults to your site tagline)
+        description: "Calimero Network is a framework which enables building fully decentralized applications, ensuring everyone's data privacy.",
+        // Optional: customize the sections
+        sections: {
+          // Optional: customize section names and descriptions
+          'Core Concepts': 'Essential concepts and terminology for understanding Calimero Network',
+          'Getting Started': 'Setup guides and quick start tutorials',
+          'Architecture': 'System architecture and technical details',
+          'Developer Tools': 'CLI tools, SDKs, and development utilities',
+          'Tutorials': 'Step-by-step guides and examples',
+          'Resources': 'Additional documentation and references',
+        },
+        // Optional: exclude certain paths from being included
+        exclude: ['**/shared/**', '**/_*.{js,jsx,ts,tsx,md,mdx}'],
+        // Optional: include external links
+        externalLinks: [
+          {
+            title: 'Calimero Network Website',
+            url: 'https://www.calimero.network/',
+            description: 'Official Calimero Network website'
+          },
+          {
+            title: 'GitHub Repository',
+            url: 'https://github.com/calimero-network/core',
+            description: 'Main Calimero Network repository'
+          }
+        ],
+
+      }
+    ]
+  ],
   themeConfig: {
     colorMode: {
       disableSwitch: false,
