@@ -24,7 +24,7 @@ struct MyAppState {
 }
 ```
 
-When emitting events, spcify the event type:
+When emitting events, specify the event type:
 
 ```rust
 #[app::state(emits = for<'a> MyEvent<'a>)]
