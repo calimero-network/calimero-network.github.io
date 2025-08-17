@@ -390,6 +390,177 @@ Wait for a few moments and node logs should appear.
 
 ---
 
+## Run as a systemd service
+
+# Run as a systemd service
+
+When you want your Calimero node to run continuously on a server or system, you
+can set it up as a systemd service. This ensures automatic startup, restart on
+failure, and proper logging.
+
+:::note
+
+This guide assumes you're using the packaged Calimero installation. For systemd
+services, packaged binaries are recommended over building from source.
+
+:::
+
+## Create systemd service file
+
+Create a new systemd service file:
+
+```bash title="Terminal"
+sudo nano /etc/systemd/system/calimero-node.service
+```
+
+Add the following content (adjust paths and node name as needed):
+
+```ini title="/etc/systemd/system/calimero-node.service"
+[Unit]
+Description=Calimero Node Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=calimero
+Group=calimero
+WorkingDirectory=/home/calimero
+ExecStart=/usr/local/bin/merod --node-name node1 run
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=calimero-node
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/calimero/.calimero
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
+```
+
+:::tip
+
+The default path `/usr/local/bin/merod` assumes a standard packaged
+installation. If you installed Calimero to a different location, adjust the
+`ExecStart` path accordingly.
+
+:::
+
+## Create dedicated user (recommended)
+
+For security, create a dedicated user to run the Calimero service:
+
+```bash title="Terminal"
+sudo useradd -r -s /bin/false -d /home/calimero calimero
+sudo mkdir -p /home/calimero/.calimero
+sudo chown -R calimero:calimero /home/calimero/.calimero
+```
+
+## Set up the service
+
+1. **Reload systemd configuration:**
+
+```bash title="Terminal"
+sudo systemctl daemon-reload
+```
+
+2. **Enable the service to start on boot:**
+
+```bash title="Terminal"
+sudo systemctl enable calimero-node.service
+```
+
+3. **Start the service:**
+
+```bash title="Terminal"
+sudo systemctl start calimero-node.service
+```
+
+4. **Check service status:**
+
+```bash title="Terminal"
+sudo systemctl status calimero-node.service
+```
+
+## Service management commands
+
+```bash title="Terminal"
+# Stop the service
+sudo systemctl stop calimero-node.service
+
+# Restart the service
+sudo systemctl restart calimero-node.service
+
+# View logs
+sudo journalctl -u calimero-node.service -f
+
+# View recent logs
+sudo journalctl -u calimero-node.service --since "1 hour ago"
+```
+
+## Configuration considerations
+
+- **Ports**: Ensure the ports specified in your node configuration (default:
+  2428 for server, 2528 for swarm) are open in your firewall
+- **Storage**: The service will store data in `/home/calimero/.calimero/` by
+  default
+- **Logs**: All logs are captured by systemd journald and can be viewed with
+  `journalctl`
+- **Updates**: When updating Calimero, restart the service with
+  `sudo systemctl restart calimero-node.service`
+
+## Troubleshooting
+
+If the service fails to start, check:
+
+1. **Service status:**
+
+```bash title="Terminal"
+sudo systemctl status calimero-node.service
+```
+
+2. **Detailed logs:**
+
+```bash title="Terminal"
+sudo journalctl -u calimero-node.service -n 50
+```
+
+3. **Common issues:**
+   - Permission errors: Ensure the `calimero` user owns the `.calimero`
+     directory
+   - Port conflicts: Check if ports are already in use with
+     `netstat -tulpn | grep :2428`
+   - Configuration errors: Verify your `config.toml` file is valid
+   - Binary path: Ensure the path in `ExecStart` points to your `merod` binary
+     (usually `/usr/local/bin/merod` for packaged installations)
+
+:::tip
+
+For server environments, consider using a reverse proxy (like nginx) in front of
+your Calimero node and implementing proper SSL/TLS termination.
+
+:::
+
+:::note
+
+The systemd service configuration above is optimized for security and
+reliability. Adjust the paths, user, and resource limits according to your
+specific environment and requirements.
+
+:::
+
+---
+
 ## Terminology
 
 As projects grow, it's important to have a shared vocabulary to help communicate
@@ -1734,28 +1905,6 @@ Options:
 - `--as ` Public key of the executor
 - `--id ` Id of the RPC execute call [default: dontcare]
 
-### Setup two nodes inside the same context
-
-```bash title="Terminal"
-meroctl --node  bootstrap  --merod-path  --protocol  --app-path [APP_PATH]
-```
-
-Command initializes and run `node1` and `node2` in the same context.
-
-Arguments:
-
-- `` Full path to
-  [merod](https://calimero-network.github.io/developer-tools/CLI/merod) binary.
-- `` One of supported protocols for context creation. (e.g. near,
-  starknet, icp, stellar, ethereum)
-- `` Path to the app wasm file. If not specified, the default
-  [core-template-app](https://github.com/calimero-network/core-app-template)
-  will be used
-
-Commands:
-
-- `start`: Start bootstrap process
-
 ---
 
 ## Cargo Mero
@@ -1919,7 +2068,7 @@ struct MyAppState {
 }
 ```
 
-When emitting events, spcify the event type:
+When emitting events, specify the event type:
 
 ```rust
 #[app::state(emits = for MyEvent)]
@@ -2032,6 +2181,1417 @@ impl Store {
 For a detailed guide on building a complete application using these macros, see
 our [Tutorial](../../../../tutorials/build-app) Guide on building a Key Value
 Store.
+
+---
+
+## Rust SDK Deep Dive
+
+# Rust SDK Deep Dive
+
+This comprehensive guide covers advanced usage of the Calimero Rust SDK,
+including collections, events, macros, and best practices for building
+production applications.
+
+## Table of Contents
+
+- [Collections](#collections)
+- [Events and Event Handling](#events-and-event-handling)
+- [Advanced Macros](#advanced-macros)
+- [State Management Patterns](#state-management-patterns)
+- [Performance Optimization](#performance-optimization)
+- [Testing and Debugging](#testing-and-debugging)
+- [Common Patterns and Anti-patterns](#common-patterns-and-anti-patterns)
+
+## Collections
+
+Calimero provides a rich set of collections optimized for WebAssembly and
+decentralized applications. These collections are designed to work efficiently
+with the Calimero storage system.
+
+### Core Collections
+
+#### UnorderedMap
+
+A hash map implementation optimized for Wasm:
+
+```rust
+use calimero_storage::collections::UnorderedMap;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct MyApp {
+    users: UnorderedMap,
+    settings: UnorderedMap,
+}
+
+#[app::logic]
+impl MyApp {
+    pub fn add_user(&mut self, username: String, profile: UserProfile) -> Result {
+        if self.users.contains_key(&username) {
+            return Err("User already exists".to_string());
+        }
+
+        self.users.insert(username, profile);
+        Ok(())
+    }
+
+    pub fn get_user(&self, username: &str) -> Option {
+        self.users.get(username)
+    }
+
+    pub fn remove_user(&mut self, username: &str) -> Option {
+        self.users.remove(username)
+    }
+}
+```
+
+#### UnorderedSet
+
+A hash set for unique elements:
+
+```rust
+use calimero_storage::collections::UnorderedSet;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct AccessControl {
+    admins: UnorderedSet,
+    moderators: UnorderedSet,
+}
+
+#[app::logic]
+impl AccessControl {
+    pub fn add_admin(&mut self, username: String) {
+        self.admins.insert(username);
+    }
+
+    pub fn is_admin(&self, username: &str) -> bool {
+        self.admins.contains(username)
+    }
+
+    pub fn remove_admin(&mut self, username: &str) -> bool {
+        self.admins.remove(username)
+    }
+}
+```
+
+#### Vector
+
+A dynamic array implementation:
+
+```rust
+use calimero_storage::collections::Vector;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct TaskManager {
+    tasks: Vector,
+    completed_tasks: Vector,
+}
+
+#[app::logic]
+impl TaskManager {
+    pub fn add_task(&mut self, task: Task) {
+        self.tasks.push(task);
+    }
+
+    pub fn complete_task(&mut self, index: u32) -> Result {
+        if index >= self.tasks.len() {
+            return Err("Invalid task index".to_string());
+        }
+
+        let task = self.tasks.remove(index as usize);
+        self.completed_tasks.push(task);
+        Ok(())
+    }
+
+    pub fn get_task(&self, index: u32) -> Option {
+        self.tasks.get(index as usize)
+    }
+}
+```
+
+### Advanced Collection Patterns
+
+#### Nested Collections
+
+```rust
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct SocialNetwork {
+    // User -> List of friends
+    friendships: UnorderedMap>,
+    // User -> List of posts
+    user_posts: UnorderedMap>,
+    // Post -> List of likes
+    post_likes: UnorderedMap>,
+}
+
+#[app::logic]
+impl SocialNetwork {
+    pub fn add_friend(&mut self, user: String, friend: String) {
+        // Add bidirectional friendship
+        self.friendships
+            .entry(user.clone())
+            .or_insert_with(UnorderedSet::new)
+            .insert(friend.clone());
+
+        self.friendships
+            .entry(friend)
+            .or_insert_with(UnorderedSet::new)
+            .insert(user);
+    }
+
+    pub fn get_friends(&self, user: &str) -> Vec {
+        self.friendships
+            .get(user)
+            .map(|friends| friends.iter().collect())
+            .unwrap_or_default()
+    }
+}
+```
+
+#### Collection Iterators
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn get_all_users(&self) -> Vec {
+        self.users.values().collect()
+    }
+
+    pub fn search_users(&self, query: &str) -> Vec {
+        self.users
+            .iter()
+            .filter(|(username, _)| username.contains(query))
+            .map(|(_, profile)| profile)
+            .collect()
+    }
+
+    pub fn get_active_users(&self) -> Vec {
+        self.users
+            .iter()
+            .filter(|(_, profile)| profile.is_active)
+            .map(|(_, profile)| profile)
+            .collect()
+    }
+}
+```
+
+## Events and Event Handling
+
+Events are a powerful way to communicate state changes and enable reactive
+applications.
+
+### Event Definition
+
+```rust
+#[app::event]
+pub enum UserEvent {
+    UserCreated {
+        username: &'a str,
+        timestamp: u64,
+    },
+    UserUpdated {
+        username: &'a str,
+        field: &'a str,
+        old_value: &'a str,
+        new_value: &'a str,
+    },
+    UserDeleted {
+        username: &'a str,
+        reason: &'a str,
+    },
+    FriendshipRequested {
+        from: &'a str,
+        to: &'a str,
+    },
+    FriendshipAccepted {
+        user1: &'a str,
+        user2: &'a str,
+    },
+}
+
+#[app::event]
+pub enum SystemEvent {
+    MaintenanceMode { enabled: bool, reason: &'a str },
+    PerformanceAlert { metric: &'a str, value: f64 },
+    ErrorOccurred { error: &'a str, context: &'a str },
+}
+```
+
+### Event Emission
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn create_user(&mut self, username: String, profile: UserProfile) -> Result {
+        if self.users.contains_key(&username) {
+            return Err("User already exists".to_string());
+        }
+
+        self.users.insert(username.clone(), profile);
+
+        // Emit event
+        app::emit!(UserEvent::UserCreated {
+            username: &username,
+            timestamp: env::block_timestamp(),
+        });
+
+        Ok(())
+    }
+
+    pub fn update_user_profile(&mut self, username: String, new_profile: UserProfile) -> Result {
+        let old_profile = self.users.get(&username)
+            .ok_or("User not found")?;
+
+        // Emit event before update
+        app::emit!(UserEvent::UserUpdated {
+            username: &username,
+            field: "profile",
+            old_value: &old_profile.to_string(),
+            new_value: &new_profile.to_string(),
+        });
+
+        self.users.insert(username, new_profile);
+        Ok(())
+    }
+}
+```
+
+### Event Handling Patterns
+
+#### Conditional Event Emission
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn process_friendship_request(&mut self, from: String, to: String) -> Result {
+        // Check if users exist
+        if !self.users.contains_key(&from) || !self.users.contains_key(&to) {
+            return Err("One or both users do not exist".to_string());
+        }
+
+        // Check if already friends
+        if self.are_friends(&from, &to) {
+            return Err("Users are already friends".to_string());
+        }
+
+        // Emit event
+        app::emit!(UserEvent::FriendshipRequested {
+            from: &from,
+            to: &to,
+        });
+
+        // Add to pending requests
+        self.pending_requests.insert((from, to));
+        Ok(())
+    }
+}
+```
+
+#### Batch Event Emission
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn bulk_update_users(&mut self, updates: Vec) -> Result {
+        for (username, new_profile) in updates {
+            let old_profile = self.users.get(&username)
+                .ok_or(format!("User {} not found", username))?;
+
+            // Emit individual update events
+            app::emit!(UserEvent::UserUpdated {
+                username: &username,
+                field: "profile",
+                old_value: &old_profile.to_string(),
+                new_value: &new_profile.to_string(),
+            });
+
+            self.users.insert(username, new_profile);
+        }
+
+        Ok(())
+    }
+}
+```
+
+## Advanced Macros
+
+### Custom State Configuration
+
+```rust
+#[app::state(
+    emits = for UserEvent,
+    version = "1.0.0",
+    name = "UserManagementApp"
+)]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct UserManagementApp {
+    users: UnorderedMap,
+    settings: AppSettings,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Default)]
+struct AppSettings {
+    max_users: u32,
+    allow_public_profiles: bool,
+    maintenance_mode: bool,
+}
+```
+
+### Conditional Logic
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    pub fn create_user(&mut self, username: String, profile: UserProfile) -> Result {
+        // Check maintenance mode
+        if self.settings.maintenance_mode {
+            return Err("Application is in maintenance mode".to_string());
+        }
+
+        // Check user limit
+        if self.users.len() >= self.settings.max_users {
+            return Err("Maximum user limit reached".to_string());
+        }
+
+        if self.users.contains_key(&username) {
+            return Err("User already exists".to_string());
+        }
+
+        self.users.insert(username.clone(), profile);
+
+        app::emit!(UserEvent::UserCreated {
+            username: &username,
+            timestamp: env::block_timestamp(),
+        });
+
+        Ok(())
+    }
+}
+```
+
+### Access Control Macros
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    #[app::admin_only]
+    pub fn update_settings(&mut self, new_settings: AppSettings) {
+        self.settings = new_settings;
+    }
+
+    #[app::moderator_or_admin]
+    pub fn suspend_user(&mut self, username: String, reason: String) -> Result {
+        // Implementation
+        Ok(())
+    }
+
+    pub fn get_public_profile(&self, username: &str) -> Option {
+        if !self.settings.allow_public_profiles {
+            return None;
+        }
+
+        self.users.get(username).filter(|profile| profile.is_public)
+    }
+}
+```
+
+## State Management Patterns
+
+### Immutable State Access
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    pub fn get_user_stats(&self) -> UserStats {
+        let total_users = self.users.len();
+        let active_users = self.users.values()
+            .filter(|profile| profile.is_active)
+            .count();
+        let premium_users = self.users.values()
+            .filter(|profile| profile.is_premium)
+            .count();
+
+        UserStats {
+            total: total_users as u32,
+            active: active_users as u32,
+            premium: premium_users as u32,
+        }
+    }
+}
+```
+
+### Mutable State with Validation
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    pub fn update_user_role(&mut self, username: String, new_role: UserRole) -> Result {
+        let user = self.users.get_mut(&username)
+            .ok_or("User not found")?;
+
+        // Validate role transition
+        if !self.is_valid_role_transition(&user.role, &new_role) {
+            return Err("Invalid role transition".to_string());
+        }
+
+        let old_role = user.role.clone();
+        user.role = new_role;
+
+        app::emit!(UserEvent::UserUpdated {
+            username: &username,
+            field: "role",
+            old_value: &old_role.to_string(),
+            new_value: &user.role.to_string(),
+        });
+
+        Ok(())
+    }
+
+    fn is_valid_role_transition(&self, from: &UserRole, to: &UserRole) -> bool {
+        match (from, to) {
+            (UserRole::User, UserRole::Moderator) => true,
+            (UserRole::Moderator, UserRole::Admin) => true,
+            (UserRole::User, UserRole::Admin) => false, // Must go through moderator
+            _ => false,
+        }
+    }
+}
+```
+
+## Performance Optimization
+
+### Efficient Collection Usage
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    // Use references to avoid cloning
+    pub fn get_users_by_role(&self, role: &UserRole) -> Vec {
+        self.users
+            .iter()
+            .filter(|(_, profile)| &profile.role == role)
+            .map(|(_, profile)| profile)
+            .collect()
+    }
+
+    // Batch operations for better performance
+    pub fn bulk_delete_users(&mut self, usernames: Vec) -> Result {
+        for username in usernames {
+            if let Some(profile) = self.users.remove(&username) {
+                app::emit!(UserEvent::UserDeleted {
+                    username: &username,
+                    reason: "Bulk deletion",
+                });
+            }
+        }
+        Ok(())
+    }
+}
+```
+
+### Memory Management
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    // Clean up old data periodically
+    pub fn cleanup_old_data(&mut self, cutoff_timestamp: u64) {
+        let mut to_remove = Vec::new();
+
+        for (username, profile) in self.users.iter() {
+            if profile.last_seen  String {
+        format!(
+            "Users: {}, Settings: {:?}, Maintenance: {}",
+            self.users.len(),
+            self.settings,
+            self.settings.maintenance_mode
+        )
+    }
+}
+```
+
+## Common Patterns and Anti-patterns
+
+### Good Patterns
+
+```rust
+// ✅ Use events for important state changes
+pub fn promote_user(&mut self, username: String) -> Result {
+    let user = self.users.get_mut(&username)
+        .ok_or("User not found")?;
+
+    let old_role = user.role.clone();
+    user.role = UserRole::Moderator;
+
+    app::emit!(UserEvent::UserUpdated {
+        username: &username,
+        field: "role",
+        old_value: &old_role.to_string(),
+        new_value: &user.role.to_string(),
+    });
+
+    Ok(())
+}
+
+// ✅ Validate input before processing
+pub fn update_user_email(&mut self, username: String, email: String) -> Result {
+    if !self.is_valid_email(&email) {
+        return Err("Invalid email format".to_string());
+    }
+
+    // Process update...
+    Ok(())
+}
+```
+
+### Anti-patterns to Avoid
+
+```rust
+// ❌ Don't emit events for every small change
+pub fn update_user_last_seen(&mut self, username: String, timestamp: u64) {
+    if let Some(user) = self.users.get_mut(&username) {
+        user.last_seen = timestamp;
+        // Don't emit event for frequent updates like this
+    }
+}
+
+// ❌ Don't ignore errors
+pub fn unsafe_user_creation(&mut self, username: String, profile: UserProfile) {
+    self.users.insert(username, profile); // What if username is empty?
+}
+```
+
+---
+
+## Calimero Collections Reference
+
+# Calimero Collections Reference
+
+This comprehensive reference covers all available collections in the Calimero
+SDK, their performance characteristics, and best practices for using them
+effectively.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Core Collections](#core-collections)
+- [Specialized Collections](#specialized-collections)
+- [Performance Characteristics](#performance-characteristics)
+- [Collection Patterns](#collection-patterns)
+- [Best Practices](#best-practices)
+- [Migration from Standard Collections](#migration-from-standard-collections)
+
+## Overview
+
+Calimero collections are specifically designed for WebAssembly and decentralized
+applications. They provide:
+
+- **Wasm Optimization**: Designed for efficient serialization and memory usage
+- **Persistent Storage**: Automatic integration with Calimero's storage system
+- **Type Safety**: Full Rust type safety with compile-time guarantees
+- **Performance**: Optimized for common operations in decentralized apps
+
+## Core Collections
+
+### UnorderedMap
+
+A hash map implementation optimized for Wasm with O(1) average case operations.
+
+#### Basic Usage
+
+```rust
+use calimero_storage::collections::UnorderedMap;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct UserRegistry {
+    users: UnorderedMap,
+    user_count: u32,
+}
+
+#[app::logic]
+impl UserRegistry {
+    pub fn add_user(&mut self, username: String, profile: UserProfile) -> Result {
+        if self.users.contains_key(&username) {
+            return Err("User already exists".to_string());
+        }
+
+        self.users.insert(username, profile);
+        self.user_count += 1;
+        Ok(())
+    }
+
+    pub fn get_user(&self, username: &str) -> Option {
+        self.users.get(username)
+    }
+
+    pub fn update_user(&mut self, username: String, profile: UserProfile) -> Result {
+        if !self.users.contains_key(&username) {
+            return Err("User not found".to_string());
+        }
+
+        self.users.insert(username, profile);
+        Ok(())
+    }
+
+    pub fn remove_user(&mut self, username: &str) -> Option {
+        let user = self.users.remove(username);
+        if user.is_some() {
+            self.user_count -= 1;
+        }
+        user
+    }
+}
+```
+
+#### Advanced Operations
+
+```rust
+#[app::logic]
+impl UserRegistry {
+    // Batch operations
+    pub fn add_multiple_users(&mut self, users: Vec) -> Result {
+        for (username, profile) in users {
+            if self.users.contains_key(&username) {
+                return Err(format!("User {} already exists", username));
+            }
+            self.users.insert(username, profile);
+            self.user_count += 1;
+        }
+        Ok(())
+    }
+
+    // Filtering and searching
+    pub fn get_users_by_role(&self, role: UserRole) -> Vec {
+        self.users
+            .iter()
+            .filter(|(_, profile)| profile.role == role)
+            .map(|(_, profile)| profile)
+            .collect()
+    }
+
+    // Aggregation
+    pub fn get_user_stats(&self) -> UserStats {
+        let mut stats = UserStats::default();
+
+        for (_, profile) in self.users.iter() {
+            stats.total_users += 1;
+            if profile.is_active {
+                stats.active_users += 1;
+            }
+            if profile.is_premium {
+                stats.premium_users += 1;
+            }
+        }
+
+        stats
+    }
+
+    // Conditional updates
+    pub fn update_user_if_exists(&mut self, username: String, profile: UserProfile) -> bool {
+        if self.users.contains_key(&username) {
+            self.users.insert(username, profile);
+            true
+        } else {
+            false
+        }
+    }
+}
+```
+
+### UnorderedSet
+
+A hash set for unique elements with O(1) average case operations.
+
+#### Basic Usage
+
+```rust
+use calimero_storage::collections::UnorderedSet;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct AccessControl {
+    admins: UnorderedSet,
+    moderators: UnorderedSet,
+    banned_users: UnorderedSet,
+}
+
+#[app::logic]
+impl AccessControl {
+    pub fn add_admin(&mut self, username: String) -> bool {
+        self.admins.insert(username)
+    }
+
+    pub fn remove_admin(&mut self, username: &str) -> bool {
+        self.admins.remove(username)
+    }
+
+    pub fn is_admin(&self, username: &str) -> bool {
+        self.admins.contains(username)
+    }
+
+    pub fn promote_to_moderator(&mut self, username: String) -> Result {
+        if !self.admins.contains(&username) {
+            return Err("Only admins can be promoted to moderator".to_string());
+        }
+
+        self.moderators.insert(username);
+        Ok(())
+    }
+
+    pub fn ban_user(&mut self, username: String) {
+        // Remove from all access levels
+        self.admins.remove(&username);
+        self.moderators.remove(&username);
+        self.banned_users.insert(username);
+    }
+}
+```
+
+#### Set Operations
+
+```rust
+#[app::logic]
+impl AccessControl {
+    // Union of two sets
+    pub fn get_all_staff(&self) -> Vec {
+        let mut all_staff: Vec = self.admins.iter().collect();
+        all_staff.extend(self.moderators.iter());
+        all_staff
+    }
+
+    // Check if user has any elevated privileges
+    pub fn has_privileges(&self, username: &str) -> bool {
+        self.admins.contains(username) || self.moderators.contains(username)
+    }
+
+    // Get users with specific role
+    pub fn get_users_by_role(&self, role: UserRole) -> Vec {
+        match role {
+            UserRole::Admin => self.admins.iter().collect(),
+            UserRole::Moderator => self.moderators.iter().collect(),
+            UserRole::User => vec![], // Regular users not stored in sets
+        }
+    }
+}
+```
+
+### Vector
+
+A dynamic array implementation with O(1) amortized push and O(n) insert/remove
+operations.
+
+#### Basic Usage
+
+```rust
+use calimero_storage::collections::Vector;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct TaskManager {
+    pending_tasks: Vector,
+    completed_tasks: Vector,
+    task_counter: u64,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Clone)]
+struct Task {
+    id: u64,
+    title: String,
+    description: String,
+    priority: TaskPriority,
+    created_at: u64,
+}
+
+#[app::logic]
+impl TaskManager {
+    pub fn create_task(&mut self, title: String, description: String, priority: TaskPriority) -> u64 {
+        let task = Task {
+            id: self.task_counter,
+            title,
+            description,
+            priority,
+            created_at: env::block_timestamp(),
+        };
+
+        self.pending_tasks.push(task);
+        self.task_counter += 1;
+        self.task_counter - 1
+    }
+
+    pub fn get_task(&self, id: u64) -> Option {
+        self.pending_tasks
+            .iter()
+            .chain(self.completed_tasks.iter())
+            .find(|task| task.id == id)
+    }
+
+    pub fn complete_task(&mut self, id: u64) -> Result {
+        let index = self.pending_tasks
+            .iter()
+            .position(|task| task.id == id)
+            .ok_or("Task not found")?;
+
+        let task = self.pending_tasks.remove(index);
+        self.completed_tasks.push(task);
+        Ok(())
+    }
+
+    pub fn get_tasks_by_priority(&self, priority: TaskPriority) -> Vec {
+        self.pending_tasks
+            .iter()
+            .filter(|task| task.priority == priority)
+            .collect()
+    }
+}
+```
+
+#### Advanced Vector Operations
+
+```rust
+#[app::logic]
+impl TaskManager {
+    // Batch operations
+    pub fn create_multiple_tasks(&mut self, tasks: Vec) -> Vec {
+        let mut ids = Vec::new();
+
+        for (title, description, priority) in tasks {
+            let id = self.create_task(title, description, priority);
+            ids.push(id);
+        }
+
+        ids
+    }
+
+    // Sorting and filtering
+    pub fn get_high_priority_tasks(&self) -> Vec {
+        let mut high_priority: Vec = self.pending_tasks
+            .iter()
+            .filter(|task| task.priority == TaskPriority::High)
+            .collect();
+
+        // Sort by creation time (oldest first)
+        high_priority.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+        high_priority
+    }
+
+    // Pagination
+    pub fn get_tasks_page(&self, page: u32, page_size: u32) -> Vec {
+        let start = (page * page_size) as usize;
+        let end = start + page_size as usize;
+
+        self.pending_tasks
+            .iter()
+            .skip(start)
+            .take(page_size as usize)
+            .collect()
+    }
+
+    // Search functionality
+    pub fn search_tasks(&self, query: &str) -> Vec {
+        self.pending_tasks
+            .iter()
+            .filter(|task| {
+                task.title.to_lowercase().contains(&query.to_lowercase()) ||
+                task.description.to_lowercase().contains(&query.to_lowercase())
+            })
+            .collect()
+    }
+}
+```
+
+## Specialized Collections
+
+### LookupMap
+
+A map optimized for cases where you need to iterate over keys or values
+frequently.
+
+```rust
+use calimero_storage::collections::LookupMap;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct Analytics {
+    // User -> Page views
+    page_views: LookupMap,
+    // Page -> Total views
+    total_views: LookupMap,
+}
+
+#[app::logic]
+impl Analytics {
+    pub fn record_page_view(&mut self, user: String, page: String) {
+        // Increment user's page views
+        let user_views = self.page_views.get(&user).unwrap_or(0);
+        self.page_views.insert(user, user_views + 1);
+
+        // Increment total page views
+        let total = self.total_views.get(&page).unwrap_or(0);
+        self.total_views.insert(page, total + 1);
+    }
+
+    pub fn get_user_stats(&self, user: &str) -> u32 {
+        self.page_views.get(user).unwrap_or(0)
+    }
+
+    pub fn get_page_stats(&self, page: &str) -> u64 {
+        self.total_views.get(page).unwrap_or(0)
+    }
+
+    pub fn get_top_pages(&self, limit: usize) -> Vec {
+        let mut pages: Vec = self.total_views
+            .iter()
+            .map(|(page, views)| (page.clone(), *views))
+            .collect();
+
+        pages.sort_by(|a, b| b.1.cmp(&a.1));
+        pages.truncate(limit);
+        pages
+    }
+}
+```
+
+### TreeMap
+
+A sorted map implementation for cases where you need ordered keys.
+
+```rust
+use calimero_storage::collections::TreeMap;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct Leaderboard {
+    // Score -> List of users with that score
+    score_rankings: TreeMap>,
+    // User -> Current score
+    user_scores: UnorderedMap,
+}
+
+#[app::logic]
+impl Leaderboard {
+    pub fn update_score(&mut self, user: String, new_score: u32) {
+        // Remove user from old score ranking
+        if let Some(old_score) = self.user_scores.get(&user) {
+            if let Some(users_at_score) = self.score_rankings.get_mut(old_score) {
+                users_at_score.remove(&user);
+
+                // Remove empty score entry
+                if users_at_score.is_empty() {
+                    self.score_rankings.remove(old_score);
+                }
+            }
+        }
+
+        // Add user to new score ranking
+        self.score_rankings
+            .entry(new_score)
+            .or_insert_with(UnorderedSet::new)
+            .insert(user.clone());
+
+        // Update user's score
+        self.user_scores.insert(user, new_score);
+    }
+
+    pub fn get_top_players(&self, limit: usize) -> Vec {
+        let mut top_players = Vec::new();
+
+        // Iterate in reverse order (highest scores first)
+        for (score, users) in self.score_rankings.iter().rev() {
+            for user in users.iter() {
+                top_players.push((user.clone(), *score));
+                if top_players.len() >= limit {
+                    break;
+                }
+            }
+            if top_players.len() >= limit {
+                break;
+            }
+        }
+
+        top_players
+    }
+
+    pub fn get_user_rank(&self, user: &str) -> Option {
+        let user_score = self.user_scores.get(user)?;
+        let mut rank = 1;
+
+        // Count users with higher scores
+        for (score, users) in self.score_rankings.iter().rev() {
+            if score > user_score {
+                rank += users.len() as u32;
+            } else {
+                break;
+            }
+        }
+
+        Some(rank)
+    }
+}
+```
+
+## Performance Characteristics
+
+### Operation Complexity
+
+| Collection   | Insert         | Remove   | Lookup   | Iteration |
+| ------------ | -------------- | -------- | -------- | --------- |
+| UnorderedMap | O(1) avg       | O(1) avg | O(1) avg | O(n)      |
+| UnorderedSet | O(1) avg       | O(1) avg | O(1) avg | O(n)      |
+| Vector       | O(1) amortized | O(n)     | O(1)     | O(n)      |
+| LookupMap    | O(1) avg       | O(1) avg | O(1) avg | O(n)      |
+| TreeMap      | O(log n)       | O(log n) | O(log n) | O(n)      |
+
+### Memory Usage
+
+- **UnorderedMap/Set**: Most memory efficient for large datasets
+- **Vector**: Good for sequential access, moderate memory overhead
+- **LookupMap**: Optimized for iteration, slightly more memory than UnorderedMap
+- **TreeMap**: Highest memory overhead due to tree structure
+
+### When to Use Each Collection
+
+#### Use UnorderedMap when:
+
+- You need fast key-value lookups
+- Order doesn't matter
+- Memory efficiency is important
+
+#### Use UnorderedSet when:
+
+- You need to track unique elements
+- Fast membership testing is required
+- Order doesn't matter
+
+#### Use Vector when:
+
+- You need ordered elements
+- Sequential access is common
+- You frequently add/remove from the end
+
+#### Use LookupMap when:
+
+- You frequently iterate over keys or values
+- Memory overhead is acceptable
+- You need both map and iteration performance
+
+#### Use TreeMap when:
+
+- You need sorted keys
+- Range queries are common
+- Order matters for your use case
+
+## Collection Patterns
+
+### Composite Collections
+
+```rust
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct SocialNetwork {
+    // User -> Friends
+    friendships: UnorderedMap>,
+    // User -> Posts
+    user_posts: UnorderedMap>,
+    // Post -> Reactions
+    post_reactions: UnorderedMap>,
+    // User -> Followers
+    followers: UnorderedMap>,
+    // User -> Following
+    following: UnorderedMap>,
+}
+
+#[app::logic]
+impl SocialNetwork {
+    pub fn add_friend(&mut self, user: String, friend: String) {
+        // Add bidirectional friendship
+        self.friendships
+            .entry(user.clone())
+            .or_insert_with(UnorderedSet::new)
+            .insert(friend.clone());
+
+        self.friendships
+            .entry(friend)
+            .or_insert_with(UnorderedSet::new)
+            .insert(user);
+    }
+
+    pub fn create_post(&mut self, user: String, content: String) -> u64 {
+        let post = Post {
+            id: self.generate_post_id(),
+            content,
+            author: user.clone(),
+            created_at: env::block_timestamp(),
+        };
+
+        self.user_posts
+            .entry(user)
+            .or_insert_with(Vector::new)
+            .push(post.clone());
+
+        post.id
+    }
+
+    pub fn follow_user(&mut self, follower: String, following: String) {
+        if follower == following {
+            return; // Can't follow yourself
+        }
+
+        self.followers
+            .entry(following.clone())
+            .or_insert_with(UnorderedSet::new)
+            .insert(follower.clone());
+
+        self.following
+            .entry(follower)
+            .or_insert_with(UnorderedSet::new)
+            .insert(following);
+    }
+
+    pub fn get_feed(&self, user: &str) -> Vec {
+        let mut feed = Vec::new();
+
+        // Get posts from followed users
+        if let Some(following) = self.following.get(user) {
+            for followed_user in following.iter() {
+                if let Some(posts) = self.user_posts.get(followed_user) {
+                    feed.extend(posts.iter());
+                }
+            }
+        }
+
+        // Sort by creation time (newest first)
+        feed.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        feed
+    }
+}
+```
+
+### Indexed Collections
+
+```rust
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct ProductCatalog {
+    // Product ID -> Product details
+    products: UnorderedMap,
+    // Category -> Product IDs
+    products_by_category: UnorderedMap>,
+    // Price range -> Product IDs
+    products_by_price: TreeMap>,
+    // Search index: word -> Product IDs
+    search_index: UnorderedMap>,
+}
+
+#[app::logic]
+impl ProductCatalog {
+    pub fn add_product(&mut self, product: Product) {
+        let product_id = product.id;
+
+        // Add to main products map
+        self.products.insert(product_id, product.clone());
+
+        // Add to category index
+        self.products_by_category
+            .entry(product.category.clone())
+            .or_insert_with(UnorderedSet::new)
+            .insert(product_id);
+
+        // Add to price index
+        self.products_by_price
+            .entry(product.price)
+            .or_insert_with(UnorderedSet::new)
+            .insert(product_id);
+
+        // Add to search index
+        for word in product.name.split_whitespace() {
+            let word = word.to_lowercase();
+            self.search_index
+                .entry(word)
+                .or_insert_with(UnorderedSet::new)
+                .insert(product_id);
+        }
+    }
+
+    pub fn search_products(&self, query: &str) -> Vec {
+        let query_words: Vec = query.split_whitespace().collect();
+        let mut product_ids = UnorderedSet::new();
+
+        // Find products matching all query words
+        for word in query_words {
+            let word = word.to_lowercase();
+            if let Some(ids) = self.search_index.get(&word) {
+                if product_ids.is_empty() {
+                    product_ids = ids.clone();
+                } else {
+                    // Intersection of all word matches
+                    product_ids = product_ids.intersection(ids).cloned().collect();
+                }
+            }
+        }
+
+        // Convert IDs to products
+        product_ids
+            .iter()
+            .filter_map(|id| self.products.get(id))
+            .collect()
+    }
+
+    pub fn get_products_by_category(&self, category: &str) -> Vec {
+        self.products_by_category
+            .get(category)
+            .map(|ids| {
+                ids.iter()
+                    .filter_map(|id| self.products.get(id))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    pub fn get_products_in_price_range(&self, min_price: u32, max_price: u32) -> Vec {
+        let mut products = Vec::new();
+
+        for (price, ids) in self.products_by_price.range(min_price..=max_price) {
+            for id in ids.iter() {
+                if let Some(product) = self.products.get(id) {
+                    products.push(product);
+                }
+            }
+        }
+
+        products
+    }
+}
+```
+
+## Best Practices
+
+### Memory Management
+
+```rust
+// ✅ Good: Clean up old data
+pub fn cleanup_old_sessions(&mut self, cutoff_time: u64) {
+    let mut to_remove = Vec::new();
+
+    for (session_id, session) in self.active_sessions.iter() {
+        if session.last_activity  Vec {
+    self.users
+        .iter()
+        .filter(|(_, profile)| profile.is_active)
+        .map(|(_, profile)| profile)
+        .collect()
+}
+
+// ❌ Bad: Unnecessary cloning
+pub fn get_active_users_bad(&self) -> Vec {
+    self.users
+        .iter()
+        .filter(|(_, profile)| profile.is_active)
+        .map(|(_, profile)| profile.clone()) // Unnecessary clone
+        .collect()
+}
+```
+
+### Batch Operations
+
+```rust
+// ✅ Good: Batch operations for better performance
+pub fn bulk_update_users(&mut self, updates: Vec) -> Result {
+    for (username, profile) in updates {
+        if !self.users.contains_key(&username) {
+            return Err(format!("User {} not found", username));
+        }
+        self.users.insert(username, profile);
+    }
+    Ok(())
+}
+
+// ❌ Bad: Multiple individual operations
+pub fn bulk_update_users_bad(&mut self, updates: Vec) -> Result {
+    for (username, profile) in updates {
+        self.update_user(username, profile)?; // Multiple function calls
+    }
+    Ok(())
+}
+```
+
+## Migration from Standard Collections
+
+### From std::collections::HashMap
+
+```rust
+// Before (standard collections)
+use std::collections::HashMap;
+
+struct OldApp {
+    users: HashMap,
+}
+
+// After (Calimero collections)
+use calimero_storage::collections::UnorderedMap;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct NewApp {
+    users: UnorderedMap,
+}
+```
+
+### From std::collections::HashSet
+
+```rust
+// Before
+use std::collections::HashSet;
+
+struct OldApp {
+    admins: HashSet,
+}
+
+// After
+use calimero_storage::collections::UnorderedSet;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct NewApp {
+    admins: UnorderedSet,
+}
+```
+
+### From Vec
+
+```rust
+// Before
+struct OldApp {
+    tasks: Vec,
+}
+
+// After
+use calimero_storage::collections::Vector;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct NewApp {
+    tasks: Vector,
+}
+```
 
 ---
 
