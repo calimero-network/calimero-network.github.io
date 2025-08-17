@@ -1,0 +1,171 @@
+---
+id: run-as-systemd-service
+title: Run as a systemd service
+---
+
+# Run as a systemd service
+
+When you want your Calimero node to run continuously on a server or system, you
+can set it up as a systemd service. This ensures automatic startup, restart on
+failure, and proper logging.
+
+:::note
+
+This guide assumes you're using the packaged Calimero installation. For systemd
+services, packaged binaries are recommended over building from source.
+
+:::
+
+## Create systemd service file
+
+Create a new systemd service file:
+
+```bash title="Terminal"
+sudo nano /etc/systemd/system/calimero-node.service
+```
+
+Add the following content (adjust paths and node name as needed):
+
+```ini title="/etc/systemd/system/calimero-node.service"
+[Unit]
+Description=Calimero Node Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=calimero
+Group=calimero
+WorkingDirectory=/home/calimero
+ExecStart=/usr/local/bin/merod --node-name node1 run
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=calimero-node
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/calimero/.calimero
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
+```
+
+:::tip
+
+The default path `/usr/local/bin/merod` assumes a standard packaged
+installation. If you installed Calimero to a different location, adjust the
+`ExecStart` path accordingly.
+
+:::
+
+## Create dedicated user (recommended)
+
+For security, create a dedicated user to run the Calimero service:
+
+```bash title="Terminal"
+sudo useradd -r -s /bin/false -d /home/calimero calimero
+sudo mkdir -p /home/calimero/.calimero
+sudo chown -R calimero:calimero /home/calimero/.calimero
+```
+
+## Set up the service
+
+1. **Reload systemd configuration:**
+
+```bash title="Terminal"
+sudo systemctl daemon-reload
+```
+
+2. **Enable the service to start on boot:**
+
+```bash title="Terminal"
+sudo systemctl enable calimero-node.service
+```
+
+3. **Start the service:**
+
+```bash title="Terminal"
+sudo systemctl start calimero-node.service
+```
+
+4. **Check service status:**
+
+```bash title="Terminal"
+sudo systemctl status calimero-node.service
+```
+
+## Service management commands
+
+```bash title="Terminal"
+# Stop the service
+sudo systemctl stop calimero-node.service
+
+# Restart the service
+sudo systemctl restart calimero-node.service
+
+# View logs
+sudo journalctl -u calimero-node.service -f
+
+# View recent logs
+sudo journalctl -u calimero-node.service --since "1 hour ago"
+```
+
+## Configuration considerations
+
+- **Ports**: Ensure the ports specified in your node configuration (default:
+  2428 for server, 2528 for swarm) are open in your firewall
+- **Storage**: The service will store data in `/home/calimero/.calimero/` by
+  default
+- **Logs**: All logs are captured by systemd journald and can be viewed with
+  `journalctl`
+- **Updates**: When updating Calimero, restart the service with
+  `sudo systemctl restart calimero-node.service`
+
+## Troubleshooting
+
+If the service fails to start, check:
+
+1. **Service status:**
+
+```bash title="Terminal"
+sudo systemctl status calimero-node.service
+```
+
+2. **Detailed logs:**
+
+```bash title="Terminal"
+sudo journalctl -u calimero-node.service -n 50
+```
+
+3. **Common issues:**
+   - Permission errors: Ensure the `calimero` user owns the `.calimero`
+     directory
+   - Port conflicts: Check if ports are already in use with
+     `netstat -tulpn | grep :2428`
+   - Configuration errors: Verify your `config.toml` file is valid
+   - Binary path: Ensure the path in `ExecStart` points to your `merod` binary
+     (usually `/usr/local/bin/merod` for packaged installations)
+
+:::tip
+
+For server environments, consider using a reverse proxy (like nginx) in front of
+your Calimero node and implementing proper SSL/TLS termination.
+
+:::
+
+:::note
+
+The systemd service configuration above is optimized for security and
+reliability. Adjust the paths, user, and resource limits according to your
+specific environment and requirements.
+
+:::
