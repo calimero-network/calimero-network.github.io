@@ -3,44 +3,50 @@ id: protocol-rs-sdk
 title: Rust Protocol SDK
 ---
 
-## Calimero SDK Macros for Rust
+# Calimero Rust SDK
 
-This guide provides a comprehensive reference of the essential macros provided
-by the Calimero SDK for building Rust applications.
+This guide provides a comprehensive reference of the essential macros and
+functionality provided by the Calimero SDK for building P2P Rust applications.
 
 ## Core Macros
 
 ### #[app::state]
 
 Marks a struct as the application state. The state struct must implement
-`BorshSerialize` and `BorshDeserialize`.
+`BorshSerialize` and `BorshDeserialize`. This macro automatically generates the
+`Self::external()` method for external proposal functionality.
 
 ```rust
-#[app::state]
+use calimero_sdk::borsh::{BorshDeserialize, BorshSerialize};
+
+#[app::state(emits = for<'a> MyEvent<'a>)]
 #[derive(Default, BorshSerialize, BorshDeserialize)]
 #[borsh(crate = "calimero_sdk::borsh")]
 struct MyAppState {
     // Your state fields here
+    users: calimero_storage::collections::UnorderedMap<String, UserProfile>,
 }
 ```
 
-When emitting events, specify the event type:
+**Key Features:**
 
-```rust
-#[app::state(emits = for<'a> MyEvent<'a>)]
-struct MyAppState {
-    // Your state fields here
-}
-```
+- Automatically generates `Self::external()` method for proposal management
+- Integrates with Calimero's storage system
+- Supports event emission specification
 
 ### #[app::logic]
 
-Marks an implementation block as containing the application logic.
+Marks an implementation block as containing the application logic. All public
+methods in this block become available as application endpoints.
 
 ```rust
 #[app::logic]
 impl MyAppState {
     // Your methods here
+    pub fn add_user(&mut self, username: String, profile: UserProfile) -> app::Result<()> {
+        // Implementation
+        Ok(())
+    }
 }
 ```
 
@@ -54,37 +60,101 @@ deployed.
 impl MyAppState {
     #[app::init]
     pub fn init() -> Self {
-        Self::default()
+        Self {
+            users: calimero_storage::collections::UnorderedMap::new(),
+        }
+    }
+
+    // Example with init parameters
+    #[app::init]
+    pub fn init_with_params(
+        initial_admin: String,
+        max_users: u32,
+        is_public: bool,
+    ) -> Self {
+        Self {
+            users: calimero_storage::collections::UnorderedMap::new(),
+            admin: initial_admin,
+            max_users,
+            is_public,
+        }
     }
 }
 ```
 
 ### #[app::event]
 
-Defines an event type that can be emitted by your application.
+Defines an event type that can be emitted by your application. Events support
+lifetime parameters for efficient string handling.
 
 ```rust
 #[app::event]
 pub enum MyEvent<'a> {
     ValueUpdated { key: &'a str, value: &'a str },
     ValueRemoved { key: &'a str },
+    UserAdded { username: &'a str },
 }
 ```
 
-## Event emission
+## Utility Macros
 
-Use the `app::emit!` macro to emit events from your application:
+### app::emit!
+
+Emit events from your application. Events are only emitted if the transaction
+succeeds.
 
 ```rust
 app::emit!(MyEvent::ValueUpdated {
     key: &key,
     value: &new_value
 });
+
+app::emit!(MyEvent::UserAdded { username: &username });
+```
+
+### app::log!
+
+Log messages for debugging and monitoring. These appear in the application logs.
+
+```rust
+app::log!("Setting key: {:?} to value: {:?}", key, value);
+app::log!("User {} added successfully", username);
+```
+
+### app::bail!
+
+Return an error and exit the current function early.
+
+```rust
+if !self.users.contains_key(&username) {
+    app::bail!("User not found: {}", username);
+}
+```
+
+### app::err!
+
+Create an error value for returning from functions.
+
+```rust
+return app::err!("Invalid input: {}", input);
+```
+
+## Return Types
+
+The SDK provides a convenient `app::Result<T>` type alias:
+
+```rust
+use calimero_sdk::app;
+
+pub fn my_function(&self) -> app::Result<String> {
+    // Your implementation
+    Ok("success".to_string())
+}
 ```
 
 ## Complete Example
 
-Here's a minimal example showing how these macros work together:
+Here's a complete example showing how these macros work together:
 
 ```rust
 use calimero_sdk::borsh::{BorshDeserialize, BorshSerialize};
@@ -94,6 +164,7 @@ use calimero_storage::collections::UnorderedMap;
 #[app::event]
 pub enum StoreEvent<'a> {
     ValueSet { key: &'a str, value: &'a str },
+    ValueRemoved { key: &'a str },
 }
 
 #[app::state(emits = for<'a> StoreEvent<'a>)]
@@ -112,12 +183,39 @@ impl Store {
         }
     }
 
-    pub fn set(&mut self, key: String, value: String) {
-        self.values.insert(key, value).unwrap();
-        app::emit!(StoreEvent::ValueSet {
-            key: &key,
-            value: &value
-        });
+    pub fn set(&mut self, key: String, value: String) -> app::Result<()> {
+        app::log!("Setting key: {:?} to value: {:?}", key, value);
+
+        if self.values.contains(&key)? {
+            app::emit!(StoreEvent::ValueSet {
+                key: &key,
+                value: &value
+            });
+        } else {
+            app::emit!(StoreEvent::ValueSet {
+                key: &key,
+                value: &value
+            });
+        }
+
+        self.values.insert(key, value)?;
+        Ok(())
+    }
+
+    pub fn get(&self, key: &str) -> app::Result<Option<String>> {
+        app::log!("Getting key: {:?}", key);
+        self.values.get(key).map_err(Into::into)
+    }
+
+    pub fn remove(&mut self, key: &str) -> app::Result<Option<String>> {
+        app::log!("Removing key: {:?}", key);
+
+        if let Some(value) = self.values.remove(key)? {
+            app::emit!(StoreEvent::ValueRemoved { key });
+            Ok(Some(value))
+        } else {
+            Ok(None)
+        }
     }
 }
 ```
@@ -134,8 +232,15 @@ impl Store {
     All public methods in the `#[app::logic]` block become available as
     application endpoints
   </li>
+  <li>
+    Collections return `Result<T, StoreError>` for most operations - handle errors appropriately
+  </li>
+  <li>
+    The `Self::external()` method is automatically generated by `#[app::state]` for proposal management
+  </li>
 </ol>
 
-For a detailed guide on building a complete application using these macros, see
-our [Tutorial](../../../../tutorials/build-app) Guide on building a Key Value
-Store.
+## Next Steps
+
+- Learn about [Calimero Collections](./calimero-collections) for data storage
+- See [Rust SDK Deep Dive](./rust-sdk-deep-dive) for advanced patterns
