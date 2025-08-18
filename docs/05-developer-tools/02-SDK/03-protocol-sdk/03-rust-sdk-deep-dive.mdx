@@ -425,6 +425,203 @@ impl MyApp {
 }
 ```
 
+### Advanced Macro Features
+
+> **Note**: Some of these advanced macro features may be planned for future
+> releases or available in different versions of the SDK. Check the latest SDK
+> documentation for current availability.
+
+#### Custom State Configuration
+
+Advanced state configuration with metadata and versioning:
+
+```rust
+#[app::state(
+    emits = for<'a> AppEvent<'a>,
+    version = "1.0.0",
+    name = "UserManagementApp"
+)]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct UserManagementApp {
+    users: UnorderedMap<String, UserProfile>,
+    settings: AppSettings,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Default)]
+struct AppSettings {
+    max_users: u32,
+    allow_public_profiles: bool,
+    maintenance_mode: bool,
+}
+
+#[app::logic]
+impl UserManagementApp {
+    pub fn create_user(&mut self, username: String, profile: UserProfile) -> app::Result<()> {
+        // Check maintenance mode
+        if self.settings.maintenance_mode {
+            return app::bail!("Application is in maintenance mode");
+        }
+
+        // Check user limit
+        if self.users.len()? >= self.settings.max_users {
+            return app::bail!("Maximum user limit reached");
+        }
+
+        if self.users.contains_key(&username)? {
+            return app::bail!("User already exists");
+        }
+
+        self.users.insert(username.clone(), profile)?;
+
+        app::emit!(AppEvent::UserCreated {
+            username: &username,
+            timestamp: env::block_timestamp(),
+        });
+
+        Ok(())
+    }
+
+    pub fn update_settings(&mut self, new_settings: AppSettings) -> app::Result<()> {
+        // Validate settings
+        if new_settings.max_users < self.users.len()? as u32 {
+            return app::bail!("Cannot reduce max users below current user count");
+        }
+
+        self.settings = new_settings;
+        Ok(())
+    }
+}
+```
+
+#### Access Control Patterns
+
+> **Note**: While these specific macros may not be implemented, the patterns
+> shown here demonstrate how to implement access control using the available SDK
+> features.
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    // Admin-only operations
+    pub fn admin_only_operation(&mut self, username: String) -> app::Result<()> {
+        if !self.is_admin(&env::predecessor_account_id().to_string())? {
+            return app::bail!("Admin access required");
+        }
+
+        // Perform admin operation
+        Ok(())
+    }
+
+    // Moderator or admin operations
+    pub fn moderator_or_admin_operation(&mut self, username: String) -> app::Result<()> {
+        let caller = env::predecessor_account_id().to_string();
+
+        if !self.is_admin(&caller)? && !self.is_moderator(&caller)? {
+            return app::bail!("Moderator or admin access required");
+        }
+
+        // Perform operation
+        Ok(())
+    }
+
+    // Role-based access control
+    pub fn role_based_operation(&mut self, username: String, required_role: UserRole) -> app::Result<()> {
+        let caller = env::predecessor_account_id().to_string();
+        let caller_role = self.get_user_role(&caller)?;
+
+        if !self.has_permission(caller_role, required_role)? {
+            return app::bail!("Insufficient permissions for this operation");
+        }
+
+        // Perform operation
+        Ok(())
+    }
+
+    fn has_permission(&self, user_role: UserRole, required_role: UserRole) -> app::Result<bool> {
+        match (user_role, required_role) {
+            (UserRole::Admin, _) => Ok(true), // Admin can do everything
+            (UserRole::Moderator, UserRole::Moderator | UserRole::User) => Ok(true),
+            (UserRole::User, UserRole::User) => Ok(true),
+            _ => Ok(false),
+        }
+    }
+}
+```
+
+#### Conditional Logic and State Management
+
+Advanced patterns for conditional operations and state transitions:
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    pub fn conditional_user_operation(&mut self, username: String, operation: UserOperation) -> app::Result<()> {
+        // Check application state
+        if self.settings.maintenance_mode {
+            return app::bail!("Application is in maintenance mode");
+        }
+
+        // Check user state
+        let user = self.users.get(&username)?
+            .ok_or_else(|| app::err!("User not found"))?;
+
+        if !user.is_active {
+            return app::bail!("User account is not active");
+        }
+
+        // Perform operation based on user role
+        match operation {
+            UserOperation::UpdateProfile(profile) => {
+                if !self.can_update_profile(&username, &profile)? {
+                    return app::bail!("Cannot update profile with current permissions");
+                }
+                self.users.insert(username, profile)?;
+            }
+            UserOperation::ChangeRole(new_role) => {
+                if !self.can_change_role(&username, new_role)? {
+                    return app::bail!("Cannot change role with current permissions");
+                }
+                let mut updated_user = user.clone();
+                updated_user.role = new_role;
+                self.users.insert(username, updated_user)?;
+            }
+            UserOperation::Suspend(reason) => {
+                if !self.can_suspend_user(&username)? {
+                    return app::bail!("Cannot suspend user with current permissions");
+                }
+                let mut updated_user = user.clone();
+                updated_user.status = UserStatus::Suspended(reason);
+                self.users.insert(username, updated_user)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn can_update_profile(&self, username: &str, profile: &UserProfile) -> app::Result<bool> {
+        let caller = env::predecessor_account_id().to_string();
+
+        // Users can update their own profile
+        if caller == *username {
+            return Ok(true);
+        }
+
+        // Admins can update any profile
+        if self.is_admin(&caller)? {
+            return Ok(true);
+        }
+
+        // Check if profile is public and caller has permission
+        if profile.is_public && self.settings.allow_public_profiles {
+            return Ok(true);
+        }
+
+        Ok(false)
+    }
+}
+```
+
 ## State Management Patterns
 
 ### Immutable State Access
@@ -639,6 +836,151 @@ impl MyApp {
                 app::err!("User not found: {}", username)
             })
     }
+}
+```
+
+### Unit Testing
+
+> **Note**: While the Calimero SDK doesn't provide built-in testing macros, you
+> can use standard Rust testing approaches. Here are examples of how to
+> structure tests for your Calimero applications.
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use calimero_storage::collections::UnorderedMap;
+
+    // Mock storage for testing
+    struct MockStorage;
+
+    impl StorageAdaptor for MockStorage {
+        // Implement mock storage methods for testing
+    }
+
+    #[test]
+    fn test_user_creation() {
+        let mut app = UserManagementApp::default();
+        let profile = UserProfile::default();
+
+        let result = app.create_user("test_user".to_string(), profile);
+        assert!(result.is_ok());
+        assert!(app.users.contains_key("test_user").unwrap());
+    }
+
+    #[test]
+    fn test_duplicate_user_creation() {
+        let mut app = UserManagementApp::default();
+        let profile = UserProfile::default();
+
+        app.create_user("test_user".to_string(), profile.clone()).unwrap();
+        let result = app.create_user("test_user".to_string(), profile);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_user_update() {
+        let mut app = UserManagementApp::default();
+        let profile = UserProfile::default();
+        let updated_profile = UserProfile {
+            name: "Updated Name".to_string(),
+            ..profile.clone()
+        };
+
+        app.create_user("test_user".to_string(), profile).unwrap();
+        let result = app.update_user("test_user".to_string(), updated_profile);
+        assert!(result.is_ok());
+    }
+}
+```
+
+### Debug Logging and State Inspection
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn debug_state(&self) -> app::Result<String> {
+        let user_count = self.users.len()?;
+        let active_users = self.users.entries()?
+            .filter(|(_, profile)| profile.is_active)
+            .count();
+
+        let debug_info = format!(
+            "Users: {}, Active: {}, Settings: {:?}",
+            user_count,
+            active_users,
+            self.settings
+        );
+
+        app::log!("Debug state: {}", debug_info);
+        Ok(debug_info)
+    }
+
+    pub fn validate_integrity(&self) -> app::Result<Vec<String>> {
+        let mut issues = Vec::new();
+
+        // Check for orphaned references
+        for (username, profile) in self.users.entries()? {
+            if let Some(referenced_user) = &profile.referenced_by {
+                if !self.users.contains_key(referenced_user)? {
+                    issues.push(format!("User '{}' references non-existent user '{}'", username, referenced_user));
+                }
+            }
+        }
+
+        // Check for circular references
+        // ... implementation details ...
+
+        if !issues.is_empty() {
+            app::log!("Integrity check found {} issues: {:?}", issues.len(), issues);
+        }
+
+        Ok(issues)
+    }
+}
+```
+
+### Performance Monitoring
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn performance_metrics(&self) -> app::Result<PerformanceMetrics> {
+        let start_time = std::time::Instant::now();
+
+        let user_count = self.users.len()?;
+        let storage_size = self.estimate_storage_size()?;
+        let operation_count = self.get_operation_count()?;
+
+        let metrics = PerformanceMetrics {
+            user_count,
+            storage_size,
+            operation_count,
+            response_time: start_time.elapsed().as_millis() as u64,
+        };
+
+        app::log!("Performance metrics: {:?}", metrics);
+        Ok(metrics)
+    }
+
+    fn estimate_storage_size(&self) -> app::Result<usize> {
+        // Estimate storage size based on collection contents
+        let mut total_size = 0;
+
+        for (_, profile) in self.users.entries()? {
+            total_size += std::mem::size_of_val(&profile);
+        }
+
+        Ok(total_size)
+    }
+}
+
+#[derive(Debug)]
+struct PerformanceMetrics {
+    user_count: usize,
+    storage_size: usize,
+    operation_count: u64,
+    response_time: u64,
 }
 ```
 

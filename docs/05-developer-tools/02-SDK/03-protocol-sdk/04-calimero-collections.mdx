@@ -212,6 +212,188 @@ impl TaskManager {
 
 ## Specialized Collections
 
+> **Note**: Some of these specialized collections may be planned for future
+> releases or available in different versions of the SDK. Check the latest SDK
+> documentation for current availability.
+
+### LookupMap
+
+A map optimized for cases where you need to iterate over keys or values
+frequently. This collection provides better iteration performance at the cost of
+slightly higher memory usage.
+
+```rust
+use calimero_storage::collections::LookupMap;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct Analytics {
+    // User -> Page views
+    page_views: LookupMap<String, u32>,
+    // Page -> Total views
+    total_views: LookupMap<String, u64>,
+}
+
+#[app::logic]
+impl Analytics {
+    pub fn record_page_view(&mut self, user: String, page: String) -> app::Result<()> {
+        // Increment user's page views
+        let user_views = self.page_views.get(&user)?.unwrap_or(0);
+        self.page_views.insert(user, user_views + 1)?;
+
+        // Increment total page views
+        let total = self.total_views.get(&page)?.unwrap_or(0);
+        self.total_views.insert(page, total + 1)?;
+
+        Ok(())
+    }
+
+    pub fn get_user_stats(&self, user: &str) -> app::Result<u32> {
+        Ok(self.page_views.get(user)?.unwrap_or(0))
+    }
+
+    pub fn get_page_stats(&self, page: &str) -> app::Result<u64> {
+        Ok(self.total_views.get(page)?.unwrap_or(0))
+    }
+
+    pub fn get_top_pages(&self, limit: usize) -> app::Result<Vec<(String, u64)>> {
+        let mut pages: Vec<(String, u64)> = self.total_views
+            .entries()?
+            .map(|(page, views)| (page, views))
+            .collect();
+
+        pages.sort_by(|a, b| b.1.cmp(&a.1));
+        pages.truncate(limit);
+        Ok(pages)
+    }
+}
+```
+
+### TreeMap
+
+A sorted map implementation for cases where you need ordered keys. This
+collection maintains keys in sorted order, enabling efficient range queries and
+ordered iteration.
+
+```rust
+use calimero_storage::collections::TreeMap;
+
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct Leaderboard {
+    // Score -> List of users with that score
+    score_rankings: TreeMap<u32, UnorderedSet<String>>,
+    // User -> Current score
+    user_scores: UnorderedMap<String, u32>,
+}
+
+#[app::logic]
+impl Leaderboard {
+    pub fn update_score(&mut self, user: String, new_score: u32) -> app::Result<()> {
+        // Remove user from old score ranking
+        if let Some(old_score) = self.user_scores.get(&user)? {
+            if let Some(users_at_score) = self.score_rankings.get(&old_score)? {
+                let mut updated_users = users_at_score.clone();
+                updated_users.remove(&user)?;
+
+                if updated_users.is_empty() {
+                    self.score_rankings.remove(&old_score)?;
+                } else {
+                    self.score_rankings.insert(old_score, updated_users)?;
+                }
+            }
+        }
+
+        // Add user to new score ranking
+        let mut users_at_score = self.score_rankings
+            .get(&new_score)?
+            .unwrap_or_else(|| UnorderedSet::new());
+        users_at_score.insert(user.clone())?;
+        self.score_rankings.insert(new_score, users_at_score)?;
+
+        // Update user's score
+        self.user_scores.insert(user, new_score)?;
+
+        Ok(())
+    }
+
+    pub fn get_top_players(&self, limit: usize) -> app::Result<Vec<(String, u32)>> {
+        let mut top_players = Vec::new();
+
+        // Iterate in reverse order (highest scores first)
+        for (score, users) in self.score_rankings.entries()?.rev() {
+            for user in users.entries()? {
+                top_players.push((user, score));
+                if top_players.len() >= limit {
+                    break;
+                }
+            }
+            if top_players.len() >= limit {
+                break;
+            }
+        }
+
+        Ok(top_players)
+    }
+
+    pub fn get_user_rank(&self, user: &str) -> app::Result<Option<u32>> {
+        let user_score = match self.user_scores.get(user)? {
+            Some(score) => score,
+            None => return Ok(None),
+        };
+
+        let mut rank = 1;
+
+        // Count users with higher scores
+        for (score, users) in self.score_rankings.entries()?.rev() {
+            if score > user_score {
+                rank += users.len()? as u32;
+            } else {
+                break;
+            }
+        }
+
+        Ok(Some(rank))
+    }
+}
+```
+
+### When to Use Each Collection
+
+#### Use UnorderedMap when:
+
+- You need fast key-value lookups
+- Order doesn't matter
+- Memory efficiency is important
+
+#### Use UnorderedSet when:
+
+- You need to track unique elements
+- Fast membership testing is required
+- Order doesn't matter
+
+#### Use Vector when:
+
+- You need ordered elements
+- Sequential access is common
+- You frequently add/remove from the end
+
+#### Use LookupMap when:
+
+- You frequently iterate over keys or values
+- Memory overhead is acceptable
+- You need both map and iteration performance
+
+#### Use TreeMap when:
+
+- You need sorted keys
+- Range queries are common
+- Order matters for your use case
+
+## Advanced Collection Patterns
+
 ### Nested Collections
 
 Complex data structures can be built by nesting collections:
@@ -259,6 +441,108 @@ impl SocialNetwork {
             .or_insert_with(|| Vector::new())
             .insert(None, post)?;
         Ok(())
+    }
+}
+```
+
+### Indexed Collections
+
+Create efficient lookup patterns by maintaining multiple indexes:
+
+```rust
+#[app::state]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct ProductCatalog {
+    // Product ID -> Product details
+    products: UnorderedMap<u64, Product>,
+    // Category -> Product IDs
+    products_by_category: UnorderedMap<String, UnorderedSet<u64>>,
+    // Price range -> Product IDs
+    products_by_price: TreeMap<u32, UnorderedSet<u64>>,
+    // Search index: word -> Product IDs
+    search_index: UnorderedMap<String, UnorderedSet<u64>>,
+}
+
+#[app::logic]
+impl ProductCatalog {
+    pub fn add_product(&mut self, product: Product) -> app::Result<()> {
+        let product_id = product.id;
+
+        // Add to main products map
+        self.products.insert(product_id, product.clone())?;
+
+        // Add to category index
+        self.products_by_category
+            .entry(product.category.clone())
+            .or_insert_with(|| UnorderedSet::new())
+            .insert(product_id)?;
+
+        // Add to price index
+        self.products_by_price
+            .entry(product.price)
+            .or_insert_with(|| UnorderedSet::new())
+            .insert(product_id)?;
+
+        // Add to search index
+        for word in product.name.split_whitespace() {
+            let word = word.to_lowercase();
+            self.search_index
+                .entry(word)
+                .or_insert_with(|| UnorderedSet::new())
+                .insert(product_id)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn search_products(&self, query: &str) -> app::Result<Vec<Product>> {
+        let query_words: Vec<&str> = query.split_whitespace().collect();
+        let mut product_ids = UnorderedSet::new();
+
+        // Find products matching all query words
+        for word in query_words {
+            let word = word.to_lowercase();
+            if let Some(ids) = self.search_index.get(&word)? {
+                if product_ids.is_empty() {
+                    product_ids = ids.clone();
+                } else {
+                    // Intersection of all word matches
+                    product_ids = product_ids.intersection(ids).cloned().collect();
+                }
+            }
+        }
+
+        // Convert IDs to products
+        Ok(product_ids
+            .entries()?
+            .filter_map(|id| self.products.get(id).ok())
+            .collect())
+    }
+
+    pub fn get_products_by_category(&self, category: &str) -> app::Result<Vec<Product>> {
+        Ok(self.products_by_category
+            .get(category)?
+            .map(|ids| {
+                ids.entries()?
+                    .filter_map(|id| self.products.get(id).ok())
+                    .collect()
+            })
+            .unwrap_or_default())
+    }
+
+    pub fn get_products_in_price_range(&self, min_price: u32, max_price: u32) -> app::Result<Vec<Product>> {
+        let mut products = Vec::new();
+
+        for (price, ids) in self.products_by_price.range(min_price..=max_price) {
+            for id in ids.entries()? {
+                if let Some(product) = self.products.get(id)? {
+                    products.push(product);
+                }
+            }
+        }
+
+        Ok(products)
     }
 }
 ```
