@@ -142,7 +142,9 @@ impl MyApp {
 }
 ```
 
-**Real-world example**: The [demo-blockchain-integrations](https://github.com/calimero-network/demo-blockchain-integrations) repository uses `Self::external()` extensively:
+**Real-world example**: The
+[demo-blockchain-integrations](https://github.com/calimero-network/demo-blockchain-integrations)
+repository uses `Self::external()` extensively:
 
 ```rust
 // From demo-blockchain-integrations/logic/src/lib.rs
@@ -750,7 +752,8 @@ pub fn approve_multiple_proposals(&mut self, proposal_ids: Vec<ProposalId>) -> R
 1. **Macro Generation**: `#[app::state]` automatically generates
    `Self::external()` method
 2. **Proposal Creation**: Use either `Self::external().propose()` or
-   `External::propose()` (they are equivalent - `Self::external()` returns an `External` instance)
+   `External::propose()` (they are equivalent - `Self::external()` returns an
+   `External` instance)
 3. **Action Building**: Use the `DraftProposal` builder methods to add actions
 4. **Proposal Submission**: Call `.send()` to submit the proposal and get a
    `ProposalId`
