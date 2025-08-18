@@ -65,6 +65,21 @@ impl MyAppState {
             users: calimero_storage::collections::UnorderedMap::new(),
         }
     }
+
+    // Example with init parameters
+    #[app::init]
+    pub fn init_with_params(
+        initial_admin: String,
+        max_users: u32,
+        is_public: bool,
+    ) -> Self {
+        Self {
+            users: calimero_storage::collections::UnorderedMap::new(),
+            admin: initial_admin,
+            max_users,
+            is_public,
+        }
+    }
 }
 ```
 
