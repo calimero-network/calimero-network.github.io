@@ -380,6 +380,11 @@ impl MyApp {
 
 ### Governance DAO Example
 
+This example implements a simple DAO where members can create treasury transfer
+proposals and approve them; proposal data is stored locally while
+creation/approval is executed via the external proposal system
+(`Self::external()` / `External`).
+
 ```rust
 use calimero_sdk::{app, env, env::ext::{External, DraftProposal, ProposalAction, AccountId, ProposalId}};
 use calimero_storage::collections::{UnorderedMap, UnorderedSet};
