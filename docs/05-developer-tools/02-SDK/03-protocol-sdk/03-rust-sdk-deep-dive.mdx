@@ -23,13 +23,14 @@ production applications.
 
 Calimero provides a rich set of collections optimized for WebAssembly and
 decentralized applications. These collections are designed to work efficiently
-with the Calimero storage system.
+with the Calimero storage system and return `Result<T, StoreError>` for robust
+error handling.
 
 ### Core Collections
 
 #### UnorderedMap
 
-A hash map implementation optimized for Wasm:
+A hash map implementation optimized for Wasm with O(1) average case operations:
 
 ```rust
 use calimero_storage::collections::UnorderedMap;
@@ -44,21 +45,25 @@ struct MyApp {
 
 #[app::logic]
 impl MyApp {
-    pub fn add_user(&mut self, username: String, profile: UserProfile) -> Result<(), String> {
-        if self.users.contains_key(&username) {
-            return Err("User already exists".to_string());
+    pub fn add_user(&mut self, username: String, profile: UserProfile) -> app::Result<()> {
+        if self.users.contains_key(&username)? {
+            return app::bail!("User already exists");
         }
 
-        self.users.insert(username, profile);
+        self.users.insert(username, profile)?;
         Ok(())
     }
 
-    pub fn get_user(&self, username: &str) -> Option<&UserProfile> {
-        self.users.get(username)
+    pub fn get_user(&self, username: &str) -> app::Result<Option<UserProfile>> {
+        self.users.get(username).map_err(Into::into)
     }
 
-    pub fn remove_user(&mut self, username: &str) -> Option<UserProfile> {
+    pub fn remove_user(&mut self, username: &str) -> app::Result<Option<UserProfile>> {
         self.users.remove(username)
+    }
+
+    pub fn get_user_count(&self) -> app::Result<usize> {
+        self.users.len()
     }
 }
 ```
@@ -80,16 +85,21 @@ struct AccessControl {
 
 #[app::logic]
 impl AccessControl {
-    pub fn add_admin(&mut self, username: String) {
-        self.admins.insert(username);
+    pub fn add_admin(&mut self, username: String) -> app::Result<()> {
+        self.admins.insert(username)?;
+        Ok(())
     }
 
-    pub fn is_admin(&self, username: &str) -> bool {
+    pub fn is_admin(&self, username: &str) -> app::Result<bool> {
         self.admins.contains(username)
     }
 
-    pub fn remove_admin(&mut self, username: &str) -> bool {
+    pub fn remove_admin(&mut self, username: &str) -> app::Result<bool> {
         self.admins.remove(username)
+    }
+
+    pub fn get_admin_count(&self) -> app::Result<usize> {
+        self.admins.len()
     }
 }
 ```
@@ -111,22 +121,30 @@ struct TaskManager {
 
 #[app::logic]
 impl TaskManager {
-    pub fn add_task(&mut self, task: Task) {
-        self.tasks.push(task);
-    }
-
-    pub fn complete_task(&mut self, index: u32) -> Result<(), String> {
-        if index >= self.tasks.len() {
-            return Err("Invalid task index".to_string());
-        }
-
-        let task = self.tasks.remove(index as usize);
-        self.completed_tasks.push(task);
+    pub fn add_task(&mut self, task: Task) -> app::Result<()> {
+        self.tasks.insert(None, task)?;
         Ok(())
     }
 
-    pub fn get_task(&self, index: u32) -> Option<&Task> {
+    pub fn complete_task(&mut self, index: u32) -> app::Result<()> {
+        if index >= self.tasks.len()? {
+            return app::bail!("Invalid task index");
+        }
+
+        let task = self.tasks.remove(index as usize)?;
+        self.completed_tasks.insert(None, task)?;
+        Ok(())
+    }
+
+    pub fn get_task(&self, index: u32) -> app::Result<Option<Task>> {
+        if index >= self.tasks.len()? {
+            return Ok(None);
+        }
         self.tasks.get(index as usize)
+    }
+
+    pub fn get_all_tasks(&self) -> app::Result<Vec<Task>> {
+        self.tasks.entries()?.collect()
     }
 }
 ```
@@ -150,24 +168,34 @@ struct SocialNetwork {
 
 #[app::logic]
 impl SocialNetwork {
-    pub fn add_friend(&mut self, user: String, friend: String) {
+    pub fn add_friend(&mut self, user: String, friend: String) -> app::Result<()> {
         // Add bidirectional friendship
         self.friendships
             .entry(user.clone())
-            .or_insert_with(UnorderedSet::new)
-            .insert(friend.clone());
+            .or_insert_with(|| UnorderedSet::new())
+            .insert(friend.clone())?;
 
         self.friendships
             .entry(friend)
-            .or_insert_with(UnorderedSet::new)
-            .insert(user);
+            .or_insert_with(|| UnorderedSet::new())
+            .insert(user)?;
+
+        Ok(())
     }
 
-    pub fn get_friends(&self, user: &str) -> Vec<&String> {
-        self.friendships
-            .get(user)
-            .map(|friends| friends.iter().collect())
-            .unwrap_or_default()
+    pub fn get_friends(&self, user: &str) -> app::Result<Vec<String>> {
+        Ok(self.friendships
+            .get(user)?
+            .map(|friends| friends.entries()?.collect())
+            .unwrap_or_default())
+    }
+
+    pub fn add_post(&mut self, user: String, post: Post) -> app::Result<()> {
+        self.user_posts
+            .entry(user.clone())
+            .or_insert_with(|| Vector::new())
+            .insert(None, post)?;
+        Ok(())
     }
 }
 ```
@@ -177,84 +205,62 @@ impl SocialNetwork {
 ```rust
 #[app::logic]
 impl MyApp {
-    pub fn get_all_users(&self) -> Vec<&UserProfile> {
-        self.users.values().collect()
+    pub fn get_all_users(&self) -> app::Result<Vec<UserProfile>> {
+        self.users.entries()?.collect()
     }
 
-    pub fn search_users(&self, query: &str) -> Vec<&UserProfile> {
-        self.users
-            .iter()
+    pub fn search_users(&self, query: &str) -> app::Result<Vec<UserProfile>> {
+        Ok(self.users
+            .entries()?
             .filter(|(username, _)| username.contains(query))
             .map(|(_, profile)| profile)
-            .collect()
+            .collect())
     }
 
-    pub fn get_active_users(&self) -> Vec<&UserProfile> {
-        self.users
-            .iter()
+    pub fn get_active_users(&self) -> app::Result<Vec<UserProfile>> {
+        Ok(self.users
+            .entries()?
             .filter(|(_, profile)| profile.is_active)
             .map(|(_, profile)| profile)
-            .collect()
+            .collect())
     }
 }
 ```
 
 ## Events and Event Handling
 
-Events are a powerful way to communicate state changes and enable reactive
-applications.
-
 ### Event Definition
+
+Events in Calimero use lifetime parameters for efficient string handling:
 
 ```rust
 #[app::event]
-pub enum UserEvent<'a> {
-    UserCreated {
-        username: &'a str,
-        timestamp: u64,
-    },
-    UserUpdated {
-        username: &'a str,
-        field: &'a str,
-        old_value: &'a str,
-        new_value: &'a str,
-    },
-    UserDeleted {
-        username: &'a str,
-        reason: &'a str,
-    },
-    FriendshipRequested {
-        from: &'a str,
-        to: &'a str,
-    },
-    FriendshipAccepted {
-        user1: &'a str,
-        user2: &'a str,
-    },
-}
-
-#[app::event]
-pub enum SystemEvent<'a> {
-    MaintenanceMode { enabled: bool, reason: &'a str },
-    PerformanceAlert { metric: &'a str, value: f64 },
-    ErrorOccurred { error: &'a str, context: &'a str },
+pub enum AppEvent<'a> {
+    UserCreated { username: &'a str, timestamp: u64 },
+    UserUpdated { username: &'a str, field: &'a str },
+    UserDeleted { username: &'a str },
+    SettingsChanged { key: &'a str, old_value: &'a str, new_value: &'a str },
 }
 ```
 
 ### Event Emission
 
+Events are emitted using the `app::emit!` macro and are only recorded if the
+transaction succeeds:
+
 ```rust
 #[app::logic]
 impl MyApp {
-    pub fn create_user(&mut self, username: String, profile: UserProfile) -> Result<(), String> {
-        if self.users.contains_key(&username) {
-            return Err("User already exists".to_string());
+    pub fn create_user(&mut self, username: String, profile: UserProfile) -> app::Result<()> {
+        app::log!("Creating user: {}", username);
+
+        if self.users.contains_key(&username)? {
+            return app::bail!("User already exists");
         }
 
-        self.users.insert(username.clone(), profile);
+        self.users.insert(username.clone(), profile)?;
 
-        // Emit event
-        app::emit!(UserEvent::UserCreated {
+        app::emit!(AppEvent::UserCreated {
             username: &username,
             timestamp: env::block_timestamp(),
         });
@@ -262,160 +268,159 @@ impl MyApp {
         Ok(())
     }
 
-    pub fn update_user_profile(&mut self, username: String, new_profile: UserProfile) -> Result<(), String> {
-        let old_profile = self.users.get(&username)
-            .ok_or("User not found")?;
+    pub fn update_user(&mut self, username: String, new_profile: UserProfile) -> app::Result<()> {
+        app::log!("Updating user: {}", username);
 
-        // Emit event before update
-        app::emit!(UserEvent::UserUpdated {
+        let old_profile = self.users.get(&username)?
+            .ok_or_else(|| app::err!("User not found"))?;
+
+        self.users.insert(username.clone(), new_profile)?;
+
+        app::emit!(AppEvent::UserUpdated {
             username: &username,
             field: "profile",
-            old_value: &old_profile.to_string(),
-            new_value: &new_profile.to_string(),
         });
 
-        self.users.insert(username, new_profile);
         Ok(())
     }
 }
 ```
 
-### Event Handling Patterns
+### Event Patterns
 
-#### Conditional Event Emission
+#### Batch Events
 
 ```rust
 #[app::logic]
 impl MyApp {
-    pub fn process_friendship_request(&mut self, from: String, to: String) -> Result<(), String> {
-        // Check if users exist
-        if !self.users.contains_key(&from) || !self.users.contains_key(&to) {
-            return Err("One or both users do not exist".to_string());
+    pub fn bulk_create_users(&mut self, users: Vec<(String, UserProfile)>) -> app::Result<()> {
+        let mut created_count = 0;
+
+        for (username, profile) in users {
+            if !self.users.contains_key(&username)? {
+                self.users.insert(username.clone(), profile)?;
+                created_count += 1;
+
+                app::emit!(AppEvent::UserCreated {
+                    username: &username,
+                    timestamp: env::block_timestamp(),
+                });
+            }
         }
 
-        // Check if already friends
-        if self.are_friends(&from, &to) {
-            return Err("Users are already friends".to_string());
-        }
-
-        // Emit event
-        app::emit!(UserEvent::FriendshipRequested {
-            from: &from,
-            to: &to,
-        });
-
-        // Add to pending requests
-        self.pending_requests.insert((from, to));
+        app::log!("Created {} new users", created_count);
         Ok(())
     }
 }
 ```
 
-#### Batch Event Emission
+#### Conditional Events
 
 ```rust
 #[app::logic]
 impl MyApp {
-    pub fn bulk_update_users(&mut self, updates: Vec<(String, UserProfile)>) -> Result<(), String> {
-        for (username, new_profile) in updates {
-            let old_profile = self.users.get(&username)
-                .ok_or(format!("User {} not found", username))?;
+    pub fn update_user_if_changed(&mut self, username: String, new_profile: UserProfile) -> app::Result<bool> {
+        let old_profile = match self.users.get(&username)? {
+            Some(profile) => profile,
+            None => return Ok(false),
+        };
 
-            // Emit individual update events
-            app::emit!(UserEvent::UserUpdated {
-                username: &username,
-                field: "profile",
-                old_value: &old_profile.to_string(),
-                new_value: &new_profile.to_string(),
-            });
-
-            self.users.insert(username, new_profile);
+        if old_profile == new_profile {
+            return Ok(false); // No change, no event
         }
 
-        Ok(())
+        self.users.insert(username.clone(), new_profile)?;
+
+        app::emit!(AppEvent::UserUpdated {
+            username: &username,
+            field: "profile",
+        });
+
+        Ok(true) // Changed
     }
 }
 ```
 
 ## Advanced Macros
 
-### Custom State Configuration
+### Macro Composition
+
+Macros can be combined for complex functionality:
 
 ```rust
-#[app::state(
-    emits = for<'a> UserEvent<'a>,
-    version = "1.0.0",
-    name = "UserManagementApp"
-)]
+#[app::state(emits = for<'a> AppEvent<'a>)]
 #[derive(Default, BorshSerialize, BorshDeserialize)]
 #[borsh(crate = "calimero_sdk::borsh")]
-struct UserManagementApp {
+struct AdvancedApp {
     users: UnorderedMap<String, UserProfile>,
-    settings: AppSettings,
+    audit_log: Vector<AuditEntry>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Default)]
-struct AppSettings {
-    max_users: u32,
-    allow_public_profiles: bool,
-    maintenance_mode: bool,
-}
-```
-
-### Conditional Logic
-
-```rust
 #[app::logic]
-impl UserManagementApp {
-    pub fn create_user(&mut self, username: String, profile: UserProfile) -> Result<(), String> {
-        // Check maintenance mode
-        if self.settings.maintenance_mode {
-            return Err("Application is in maintenance mode".to_string());
+impl AdvancedApp {
+    #[app::init]
+    pub fn init() -> Self {
+        Self {
+            users: UnorderedMap::new(),
+            audit_log: Vector::new(),
         }
+    }
 
-        // Check user limit
-        if self.users.len() >= self.settings.max_users {
-            return Err("Maximum user limit reached".to_string());
-        }
-
-        if self.users.contains_key(&username) {
-            return Err("User already exists".to_string());
-        }
-
-        self.users.insert(username.clone(), profile);
-
-        app::emit!(UserEvent::UserCreated {
-            username: &username,
+    pub fn perform_action(&mut self, action: Action) -> app::Result<()> {
+        // Log the action
+        let entry = AuditEntry {
+            action: action.clone(),
             timestamp: env::block_timestamp(),
-        });
+            user: env::predecessor_account_id().to_string(),
+        };
+        self.audit_log.insert(None, entry)?;
+
+        // Perform the action
+        match action {
+            Action::CreateUser { username, profile } => {
+                self.create_user(username, profile)?;
+            }
+            Action::UpdateUser { username, profile } => {
+                self.update_user(username, profile)?;
+            }
+            Action::DeleteUser { username } => {
+                self.delete_user(username)?;
+            }
+        }
 
         Ok(())
     }
 }
 ```
 
-### Access Control Macros
+### Custom Error Types
 
 ```rust
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    #[error("User not found: {0}")]
+    UserNotFound(String),
+    #[error("Invalid operation: {0}")]
+    InvalidOperation(String),
+    #[error("Insufficient permissions")]
+    InsufficientPermissions,
+}
+
+impl From<AppError> for calimero_sdk::types::Error {
+    fn from(err: AppError) -> Self {
+        calimero_sdk::types::Error::msg(err.to_string())
+    }
+}
+
 #[app::logic]
-impl UserManagementApp {
-    #[app::admin_only]
-    pub fn update_settings(&mut self, new_settings: AppSettings) {
-        self.settings = new_settings;
-    }
-
-    #[app::moderator_or_admin]
-    pub fn suspend_user(&mut self, username: String, reason: String) -> Result<(), String> {
-        // Implementation
-        Ok(())
-    }
-
-    pub fn get_public_profile(&self, username: &str) -> Option<&UserProfile> {
-        if !self.settings.allow_public_profiles {
-            return None;
+impl MyApp {
+    pub fn admin_only_operation(&mut self, username: String) -> app::Result<()> {
+        if !self.is_admin(&env::predecessor_account_id().to_string())? {
+            return Err(AppError::InsufficientPermissions.into());
         }
 
-        self.users.get(username).filter(|profile| profile.is_public)
+        // Perform admin operation
+        Ok(())
     }
 }
 ```
@@ -426,21 +431,21 @@ impl UserManagementApp {
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    pub fn get_user_stats(&self) -> UserStats {
-        let total_users = self.users.len();
-        let active_users = self.users.values()
-            .filter(|profile| profile.is_active)
-            .count();
-        let premium_users = self.users.values()
-            .filter(|profile| profile.is_premium)
-            .count();
+impl MyApp {
+    pub fn get_user_stats(&self) -> app::Result<UserStats> {
+        let mut stats = UserStats::default();
 
-        UserStats {
-            total: total_users as u32,
-            active: active_users as u32,
-            premium: premium_users as u32,
+        for (_, profile) in self.users.entries()? {
+            stats.total_users += 1;
+            if profile.is_active {
+                stats.active_users += 1;
+            }
+            if profile.is_premium {
+                stats.premium_users += 1;
+            }
         }
+
+        Ok(stats)
     }
 }
 ```
@@ -449,67 +454,114 @@ impl UserManagementApp {
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    pub fn update_user_role(&mut self, username: String, new_role: UserRole) -> Result<(), String> {
-        let user = self.users.get_mut(&username)
-            .ok_or("User not found")?;
-
-        // Validate role transition
-        if !self.is_valid_role_transition(&user.role, &new_role) {
-            return Err("Invalid role transition".to_string());
+impl MyApp {
+    pub fn transfer_user(&mut self, from: String, to: String) -> app::Result<()> {
+        // Validate input
+        if from == to {
+            return app::bail!("Cannot transfer user to same account");
         }
 
-        let old_role = user.role.clone();
-        user.role = new_role;
+        // Check source user exists
+        let profile = self.users.get(&from)?
+            .ok_or_else(|| app::err!("Source user not found"))?;
 
-        app::emit!(UserEvent::UserUpdated {
-            username: &username,
-            field: "role",
-            old_value: &old_role.to_string(),
-            new_value: &user.role.to_string(),
+        // Check destination doesn't exist
+        if self.users.contains_key(&to)? {
+            return app::bail!("Destination user already exists");
+        }
+
+        // Perform transfer atomically
+        self.users.remove(&from)?;
+        self.users.insert(to, profile)?;
+
+        app::emit!(AppEvent::UserTransferred {
+            from: &from,
+            to: &to,
         });
 
         Ok(())
     }
+}
+```
 
-    fn is_valid_role_transition(&self, from: &UserRole, to: &UserRole) -> bool {
-        match (from, to) {
-            (UserRole::User, UserRole::Moderator) => true,
-            (UserRole::Moderator, UserRole::Admin) => true,
-            (UserRole::User, UserRole::Admin) => false, // Must go through moderator
-            _ => false,
+### State Initialization Patterns
+
+```rust
+#[app::logic]
+impl MyApp {
+    #[app::init]
+    pub fn init() -> Self {
+        Self {
+            users: UnorderedMap::new(),
+            settings: UnorderedMap::new(),
+            metadata: AppMetadata {
+                version: "1.0.0".to_string(),
+                created_at: env::block_timestamp(),
+            },
         }
+    }
+
+    #[app::init]
+    pub fn init_with_config(config: AppConfig) -> Self {
+        let mut app = Self::init();
+
+        // Apply configuration
+        for (key, value) in config.default_settings {
+            app.settings.insert(key, value).expect("Failed to set default");
+        }
+
+        app
     }
 }
 ```
 
 ## Performance Optimization
 
-### Efficient Collection Usage
+### Efficient Iteration
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    // Use references to avoid cloning
-    pub fn get_users_by_role(&self, role: &UserRole) -> Vec<&UserProfile> {
-        self.users
-            .iter()
-            .filter(|(_, profile)| &profile.role == role)
+impl MyApp {
+    // ✅ Good: Use references to avoid cloning
+    pub fn get_active_users(&self) -> app::Result<Vec<&UserProfile>> {
+        Ok(self.users
+            .entries()?
+            .filter(|(_, profile)| profile.is_active)
             .map(|(_, profile)| profile)
-            .collect()
+            .collect())
     }
 
-    // Batch operations for better performance
-    pub fn bulk_delete_users(&mut self, usernames: Vec<String>) -> Result<(), String> {
-        for username in usernames {
-            if let Some(profile) = self.users.remove(&username) {
-                app::emit!(UserEvent::UserDeleted {
-                    username: &username,
-                    reason: "Bulk deletion",
-                });
-            }
+    // ❌ Bad: Unnecessary cloning
+    pub fn get_active_users_bad(&self) -> app::Result<Vec<UserProfile>> {
+        Ok(self.users
+            .entries()?
+            .filter(|(_, profile)| profile.is_active)
+            .map(|(_, profile)| profile.clone()) // Unnecessary clone
+            .collect())
+    }
+}
+```
+
+### Batch Operations
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn bulk_update_users(&mut self, updates: Vec<(String, UserProfile)>) -> app::Result<()> {
+        for (username, profile) in updates {
+            self.users.insert(username, profile)?;
         }
         Ok(())
+    }
+
+    pub fn bulk_remove_users(&mut self, usernames: Vec<String>) -> app::Result<usize> {
+        let mut removed_count = 0;
+        for username in usernames {
+            if self.users.remove(&username)?.is_some() {
+                removed_count += 1;
+            }
+        }
+        Ok(removed_count)
     }
 }
 ```
@@ -518,118 +570,203 @@ impl UserManagementApp {
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    // Clean up old data periodically
-    pub fn cleanup_old_data(&mut self, cutoff_timestamp: u64) {
+impl MyApp {
+    pub fn cleanup_old_data(&mut self, cutoff_timestamp: u64) -> app::Result<usize> {
         let mut to_remove = Vec::new();
 
-        for (username, profile) in self.users.iter() {
-            if profile.last_seen < cutoff_timestamp {
-                to_remove.push(username.clone());
+        // Collect items to remove
+        for (key, profile) in self.users.entries()? {
+            if profile.last_activity < cutoff_timestamp {
+                to_remove.push(key);
             }
         }
 
-        for username in to_remove {
-            self.users.remove(&username);
+        // Remove old items
+        let mut removed_count = 0;
+        for key in to_remove {
+            if self.users.remove(&key)?.is_some() {
+                removed_count += 1;
+            }
         }
+
+        app::log!("Cleaned up {} old user profiles", removed_count);
+        Ok(removed_count)
     }
 }
 ```
 
 ## Testing and Debugging
 
-### Unit Testing
+### Logging Best Practices
 
 ```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[app::logic]
+impl MyApp {
+    pub fn complex_operation(&mut self, input: ComplexInput) -> app::Result<ComplexOutput> {
+        app::log!("Starting complex operation with input: {:?}", input);
 
-    #[test]
-    fn test_user_creation() {
-        let mut app = UserManagementApp::default();
-        let profile = UserProfile::default();
+        // Step 1: Validation
+        app::log!("Step 1: Validating input");
+        self.validate_input(&input)?;
 
-        let result = app.create_user("test_user".to_string(), profile);
-        assert!(result.is_ok());
-        assert!(app.users.contains_key("test_user"));
-    }
+        // Step 2: Processing
+        app::log!("Step 2: Processing input");
+        let intermediate = self.process_input(input)?;
 
-    #[test]
-    fn test_duplicate_user_creation() {
-        let mut app = UserManagementApp::default();
-        let profile = UserProfile::default();
+        // Step 3: Finalization
+        app::log!("Step 3: Finalizing operation");
+        let result = self.finalize_operation(intermediate)?;
 
-        app.create_user("test_user".to_string(), profile.clone()).unwrap();
-        let result = app.create_user("test_user".to_string(), profile);
-        assert!(result.is_err());
+        app::log!("Complex operation completed successfully");
+        Ok(result)
     }
 }
 ```
 
-### Debug Logging
+### Error Context
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    pub fn debug_state(&self) -> String {
-        format!(
-            "Users: {}, Settings: {:?}, Maintenance: {}",
-            self.users.len(),
-            self.settings,
-            self.settings.maintenance_mode
-        )
+impl MyApp {
+    pub fn get_user_with_context(&self, username: &str) -> app::Result<UserProfile> {
+        self.users.get(username)
+            .map_err(|e| {
+                app::log!("Failed to get user '{}': {:?}", username, e);
+                e
+            })?
+            .ok_or_else(|| {
+                app::log!("User '{}' not found", username);
+                app::err!("User not found: {}", username)
+            })
     }
 }
 ```
 
 ## Common Patterns and Anti-patterns
 
-### Good Patterns
+### ✅ Good Patterns
+
+#### Atomic Operations
 
 ```rust
-// ✅ Use events for important state changes
-pub fn promote_user(&mut self, username: String) -> Result<(), String> {
-    let user = self.users.get_mut(&username)
-        .ok_or("User not found")?;
+#[app::logic]
+impl MyApp {
+    pub fn atomic_user_update(&mut self, username: String, updates: UserUpdates) -> app::Result<()> {
+        // All operations are atomic - if any fail, all changes are rolled back
+        let mut profile = self.users.get(&username)?
+            .ok_or_else(|| app::err!("User not found"))?;
 
-    let old_role = user.role.clone();
-    user.role = UserRole::Moderator;
+        // Apply updates
+        if let Some(name) = updates.name {
+            profile.name = name;
+        }
+        if let Some(email) = updates.email {
+            profile.email = email;
+        }
 
-    app::emit!(UserEvent::UserUpdated {
-        username: &username,
-        field: "role",
-        old_value: &old_role.to_string(),
-        new_value: &user.role.to_string(),
-    });
+        // Save updated profile
+        self.users.insert(username, profile)?;
 
-    Ok(())
+        app::emit!(AppEvent::UserUpdated {
+            username: &username,
+            field: "profile",
+        });
+
+        Ok(())
+    }
+}
+```
+
+#### Proper Error Handling
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn safe_user_operation(&mut self, username: &str) -> app::Result<()> {
+        // Handle all possible error cases
+        match self.users.get(username)? {
+            Some(profile) => {
+                if profile.is_active {
+                    // Perform operation
+                    Ok(())
+                } else {
+                    app::bail!("User is not active")
+                }
+            }
+            None => app::bail!("User not found"),
+        }
+    }
+}
+```
+
+### ❌ Anti-patterns
+
+#### Ignoring Errors
+
+```rust
+// ❌ Bad: Ignoring collection operation results
+pub fn bad_user_operation(&mut self, username: String) {
+    self.users.insert(username, UserProfile::default()); // Ignoring Result
 }
 
-// ✅ Validate input before processing
-pub fn update_user_email(&mut self, username: String, email: String) -> Result<(), String> {
-    if !self.is_valid_email(&email) {
-        return Err("Invalid email format".to_string());
-    }
-
-    // Process update...
+// ✅ Good: Handle errors properly
+pub fn good_user_operation(&mut self, username: String) -> app::Result<()> {
+    self.users.insert(username, UserProfile::default())?;
     Ok(())
 }
 ```
 
-### Anti-patterns to Avoid
+#### Unnecessary Cloning
 
 ```rust
-// ❌ Don't emit events for every small change
-pub fn update_user_last_seen(&mut self, username: String, timestamp: u64) {
-    if let Some(user) = self.users.get_mut(&username) {
-        user.last_seen = timestamp;
-        // Don't emit event for frequent updates like this
-    }
+// ❌ Bad: Cloning when references would suffice
+pub fn bad_get_users(&self) -> app::Result<Vec<String>> {
+    Ok(self.users.entries()?
+        .map(|(k, _)| k.clone()) // Unnecessary clone
+        .collect())
 }
 
-// ❌ Don't ignore errors
-pub fn unsafe_user_creation(&mut self, username: String, profile: UserProfile) {
-    self.users.insert(username, profile); // What if username is empty?
+// ✅ Good: Use references
+pub fn good_get_users(&self) -> app::Result<Vec<&String>> {
+    Ok(self.users.entries()?
+        .map(|(k, _)| k) // No clone needed
+        .collect())
 }
 ```
+
+#### Complex Nested Operations
+
+```rust
+// ❌ Bad: Deep nesting makes error handling complex
+pub fn bad_nested_operation(&mut self, user_id: &str) -> app::Result<()> {
+    if let Some(user) = self.users.get(user_id)? {
+        if let Some(profile) = user.profile {
+            if let Some(settings) = profile.settings {
+                // Deep nesting makes this hard to read and maintain
+                settings.update()?;
+            }
+        }
+    }
+    Ok(())
+}
+
+// ✅ Good: Early returns for cleaner code
+pub fn good_nested_operation(&mut self, user_id: &str) -> app::Result<()> {
+    let user = self.users.get(user_id)?
+        .ok_or_else(|| app::err!("User not found"))?;
+
+    let profile = user.profile
+        .ok_or_else(|| app::err!("User profile not found"))?;
+
+    let settings = profile.settings
+        .ok_or_else(|| app::err!("User settings not found"))?;
+
+    settings.update()?;
+    Ok(())
+}
+```
+
+## Next Steps
+
+- Learn about [Calimero Collections](./calimero-collections) for data storage
+- See [Rust Protocol SDK](./protocol-rs-sdk) for basic macro usage
