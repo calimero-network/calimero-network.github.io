@@ -515,6 +515,12 @@ pub enum ProposalStatus {
 
 ### Cross-Chain Bridge Example
 
+This example outlines a governance-controlled bridge flow: a local bridge
+proposal is created and persisted, while an external proposal triggers an
+on-chain bridge contract (initiate_bridge); approvals are tracked locally, and
+in production you would map and approve the corresponding external ProposalId to
+execute the bridge.
+
 ```rust
 use calimero_sdk::{app, env, env::ext::{External, DraftProposal, ProposalAction, AccountId}};
 
