@@ -2047,44 +2047,50 @@ Calimero ecosystem.
 
 ## Rust Protocol SDK
 
-## Calimero SDK Macros for Rust
+# Calimero Rust SDK
 
-This guide provides a comprehensive reference of the essential macros provided
-by the Calimero SDK for building Rust applications.
+This guide provides a comprehensive reference of the essential macros and
+functionality provided by the Calimero SDK for building P2P Rust applications.
 
 ## Core Macros
 
 ### #[app::state]
 
 Marks a struct as the application state. The state struct must implement
-`BorshSerialize` and `BorshDeserialize`.
+`BorshSerialize` and `BorshDeserialize`. This macro automatically generates the
+`Self::external()` method for external proposal functionality.
 
 ```rust
-#[app::state]
+use calimero_sdk::borsh::{BorshDeserialize, BorshSerialize};
+
+#[app::state(emits = for MyEvent)]
 #[derive(Default, BorshSerialize, BorshDeserialize)]
 #[borsh(crate = "calimero_sdk::borsh")]
 struct MyAppState {
     // Your state fields here
+    users: calimero_storage::collections::UnorderedMap,
 }
 ```
 
-When emitting events, specify the event type:
+**Key Features:**
 
-```rust
-#[app::state(emits = for MyEvent)]
-struct MyAppState {
-    // Your state fields here
-}
-```
+- Automatically generates `Self::external()` method for proposal management
+- Integrates with Calimero's storage system
+- Supports event emission specification
 
 ### #[app::logic]
 
-Marks an implementation block as containing the application logic.
+Marks an implementation block as containing the application logic. All public
+methods in this block become available as application endpoints.
 
 ```rust
 #[app::logic]
 impl MyAppState {
     // Your methods here
+    pub fn add_user(&mut self, username: String, profile: UserProfile) -> app::Result {
+        // Implementation
+        Ok(())
+    }
 }
 ```
 
@@ -2098,37 +2104,101 @@ deployed.
 impl MyAppState {
     #[app::init]
     pub fn init() -> Self {
-        Self::default()
+        Self {
+            users: calimero_storage::collections::UnorderedMap::new(),
+        }
+    }
+
+    // Example with init parameters
+    #[app::init]
+    pub fn init_with_params(
+        initial_admin: String,
+        max_users: u32,
+        is_public: bool,
+    ) -> Self {
+        Self {
+            users: calimero_storage::collections::UnorderedMap::new(),
+            admin: initial_admin,
+            max_users,
+            is_public,
+        }
     }
 }
 ```
 
 ### #[app::event]
 
-Defines an event type that can be emitted by your application.
+Defines an event type that can be emitted by your application. Events support
+lifetime parameters for efficient string handling.
 
 ```rust
 #[app::event]
 pub enum MyEvent {
     ValueUpdated { key: &'a str, value: &'a str },
     ValueRemoved { key: &'a str },
+    UserAdded { username: &'a str },
 }
 ```
 
-## Event emission
+## Utility Macros
 
-Use the `app::emit!` macro to emit events from your application:
+### app::emit!
+
+Emit events from your application. Events are only emitted if the transaction
+succeeds.
 
 ```rust
 app::emit!(MyEvent::ValueUpdated {
     key: &key,
     value: &new_value
 });
+
+app::emit!(MyEvent::UserAdded { username: &username });
+```
+
+### app::log!
+
+Log messages for debugging and monitoring. These appear in the application logs.
+
+```rust
+app::log!("Setting key: {:?} to value: {:?}", key, value);
+app::log!("User {} added successfully", username);
+```
+
+### app::bail!
+
+Return an error and exit the current function early.
+
+```rust
+if !self.users.contains_key(&username) {
+    app::bail!("User not found: {}", username);
+}
+```
+
+### app::err!
+
+Create an error value for returning from functions.
+
+```rust
+return app::err!("Invalid input: {}", input);
+```
+
+## Return Types
+
+The SDK provides a convenient `app::Result` type alias:
+
+```rust
+use calimero_sdk::app;
+
+pub fn my_function(&self) -> app::Result {
+    // Your implementation
+    Ok("success".to_string())
+}
 ```
 
 ## Complete Example
 
-Here's a minimal example showing how these macros work together:
+Here's a complete example showing how these macros work together:
 
 ```rust
 use calimero_sdk::borsh::{BorshDeserialize, BorshSerialize};
@@ -2138,6 +2208,7 @@ use calimero_storage::collections::UnorderedMap;
 #[app::event]
 pub enum StoreEvent {
     ValueSet { key: &'a str, value: &'a str },
+    ValueRemoved { key: &'a str },
 }
 
 #[app::state(emits = for StoreEvent)]
@@ -2156,12 +2227,39 @@ impl Store {
         }
     }
 
-    pub fn set(&mut self, key: String, value: String) {
-        self.values.insert(key, value).unwrap();
-        app::emit!(StoreEvent::ValueSet {
-            key: &key,
-            value: &value
-        });
+    pub fn set(&mut self, key: String, value: String) -> app::Result {
+        app::log!("Setting key: {:?} to value: {:?}", key, value);
+
+        if self.values.contains(&key)? {
+            app::emit!(StoreEvent::ValueSet {
+                key: &key,
+                value: &value
+            });
+        } else {
+            app::emit!(StoreEvent::ValueSet {
+                key: &key,
+                value: &value
+            });
+        }
+
+        self.values.insert(key, value)?;
+        Ok(())
+    }
+
+    pub fn get(&self, key: &str) -> app::Result> {
+        app::log!("Getting key: {:?}", key);
+        self.values.get(key).map_err(Into::into)
+    }
+
+    pub fn remove(&mut self, key: &str) -> app::Result> {
+        app::log!("Removing key: {:?}", key);
+
+        if let Some(value) = self.values.remove(key)? {
+            app::emit!(StoreEvent::ValueRemoved { key });
+            Ok(Some(value))
+        } else {
+            Ok(None)
+        }
     }
 }
 ```
@@ -2177,10 +2275,17 @@ impl Store {
     All public methods in the `#[app::logic]` block become available as
     application endpoints
   
+  
+    Collections return `Result` for most operations - handle errors appropriately
+  
+  
+    The `Self::external()` method is automatically generated by `#[app::state]` for proposal management
+  
 
-For a detailed guide on building a complete application using these macros, see
-our [Tutorial](../../../../tutorials/build-app) Guide on building a Key Value
-Store.
+## Next Steps
+
+- Learn about [Calimero Collections](./calimero-collections) for data storage
+- See [Rust SDK Deep Dive](./rust-sdk-deep-dive) for advanced patterns
 
 ---
 
@@ -2206,13 +2311,14 @@ production applications.
 
 Calimero provides a rich set of collections optimized for WebAssembly and
 decentralized applications. These collections are designed to work efficiently
-with the Calimero storage system.
+with the Calimero storage system and return `Result` for robust
+error handling.
 
 ### Core Collections
 
 #### UnorderedMap
 
-A hash map implementation optimized for Wasm:
+A hash map implementation optimized for Wasm with O(1) average case operations:
 
 ```rust
 use calimero_storage::collections::UnorderedMap;
@@ -2227,21 +2333,25 @@ struct MyApp {
 
 #[app::logic]
 impl MyApp {
-    pub fn add_user(&mut self, username: String, profile: UserProfile) -> Result {
-        if self.users.contains_key(&username) {
-            return Err("User already exists".to_string());
+    pub fn add_user(&mut self, username: String, profile: UserProfile) -> app::Result {
+        if self.users.contains_key(&username)? {
+            return app::bail!("User already exists");
         }
 
-        self.users.insert(username, profile);
+        self.users.insert(username, profile)?;
         Ok(())
     }
 
-    pub fn get_user(&self, username: &str) -> Option {
-        self.users.get(username)
+    pub fn get_user(&self, username: &str) -> app::Result> {
+        self.users.get(username).map_err(Into::into)
     }
 
-    pub fn remove_user(&mut self, username: &str) -> Option {
+    pub fn remove_user(&mut self, username: &str) -> app::Result> {
         self.users.remove(username)
+    }
+
+    pub fn get_user_count(&self) -> app::Result {
+        self.users.len()
     }
 }
 ```
@@ -2263,16 +2373,21 @@ struct AccessControl {
 
 #[app::logic]
 impl AccessControl {
-    pub fn add_admin(&mut self, username: String) {
-        self.admins.insert(username);
+    pub fn add_admin(&mut self, username: String) -> app::Result {
+        self.admins.insert(username)?;
+        Ok(())
     }
 
-    pub fn is_admin(&self, username: &str) -> bool {
+    pub fn is_admin(&self, username: &str) -> app::Result {
         self.admins.contains(username)
     }
 
-    pub fn remove_admin(&mut self, username: &str) -> bool {
+    pub fn remove_admin(&mut self, username: &str) -> app::Result {
         self.admins.remove(username)
+    }
+
+    pub fn get_admin_count(&self) -> app::Result {
+        self.admins.len()
     }
 }
 ```
@@ -2294,22 +2409,30 @@ struct TaskManager {
 
 #[app::logic]
 impl TaskManager {
-    pub fn add_task(&mut self, task: Task) {
-        self.tasks.push(task);
-    }
-
-    pub fn complete_task(&mut self, index: u32) -> Result {
-        if index >= self.tasks.len() {
-            return Err("Invalid task index".to_string());
-        }
-
-        let task = self.tasks.remove(index as usize);
-        self.completed_tasks.push(task);
+    pub fn add_task(&mut self, task: Task) -> app::Result {
+        self.tasks.insert(None, task)?;
         Ok(())
     }
 
-    pub fn get_task(&self, index: u32) -> Option {
+    pub fn complete_task(&mut self, index: u32) -> app::Result {
+        if index >= self.tasks.len()? {
+            return app::bail!("Invalid task index");
+        }
+
+        let task = self.tasks.remove(index as usize)?;
+        self.completed_tasks.insert(None, task)?;
+        Ok(())
+    }
+
+    pub fn get_task(&self, index: u32) -> app::Result> {
+        if index >= self.tasks.len()? {
+            return Ok(None);
+        }
         self.tasks.get(index as usize)
+    }
+
+    pub fn get_all_tasks(&self) -> app::Result> {
+        self.tasks.entries()?.collect()
     }
 }
 ```
@@ -2333,24 +2456,34 @@ struct SocialNetwork {
 
 #[app::logic]
 impl SocialNetwork {
-    pub fn add_friend(&mut self, user: String, friend: String) {
+    pub fn add_friend(&mut self, user: String, friend: String) -> app::Result {
         // Add bidirectional friendship
         self.friendships
             .entry(user.clone())
-            .or_insert_with(UnorderedSet::new)
-            .insert(friend.clone());
+            .or_insert_with(|| UnorderedSet::new())
+            .insert(friend.clone())?;
 
         self.friendships
             .entry(friend)
-            .or_insert_with(UnorderedSet::new)
-            .insert(user);
+            .or_insert_with(|| UnorderedSet::new())
+            .insert(user)?;
+
+        Ok(())
     }
 
-    pub fn get_friends(&self, user: &str) -> Vec {
-        self.friendships
-            .get(user)
-            .map(|friends| friends.iter().collect())
-            .unwrap_or_default()
+    pub fn get_friends(&self, user: &str) -> app::Result> {
+        Ok(self.friendships
+            .get(user)?
+            .map(|friends| friends.entries()?.collect())
+            .unwrap_or_default())
+    }
+
+    pub fn add_post(&mut self, user: String, post: Post) -> app::Result {
+        self.user_posts
+            .entry(user.clone())
+            .or_insert_with(|| Vector::new())
+            .insert(None, post)?;
+        Ok(())
     }
 }
 ```
@@ -2360,84 +2493,62 @@ impl SocialNetwork {
 ```rust
 #[app::logic]
 impl MyApp {
-    pub fn get_all_users(&self) -> Vec {
-        self.users.values().collect()
+    pub fn get_all_users(&self) -> app::Result> {
+        self.users.entries()?.collect()
     }
 
-    pub fn search_users(&self, query: &str) -> Vec {
-        self.users
-            .iter()
+    pub fn search_users(&self, query: &str) -> app::Result> {
+        Ok(self.users
+            .entries()?
             .filter(|(username, _)| username.contains(query))
             .map(|(_, profile)| profile)
-            .collect()
+            .collect())
     }
 
-    pub fn get_active_users(&self) -> Vec {
-        self.users
-            .iter()
+    pub fn get_active_users(&self) -> app::Result> {
+        Ok(self.users
+            .entries()?
             .filter(|(_, profile)| profile.is_active)
             .map(|(_, profile)| profile)
-            .collect()
+            .collect())
     }
 }
 ```
 
 ## Events and Event Handling
 
-Events are a powerful way to communicate state changes and enable reactive
-applications.
-
 ### Event Definition
+
+Events in Calimero use lifetime parameters for efficient string handling:
 
 ```rust
 #[app::event]
-pub enum UserEvent {
-    UserCreated {
-        username: &'a str,
-        timestamp: u64,
-    },
-    UserUpdated {
-        username: &'a str,
-        field: &'a str,
-        old_value: &'a str,
-        new_value: &'a str,
-    },
-    UserDeleted {
-        username: &'a str,
-        reason: &'a str,
-    },
-    FriendshipRequested {
-        from: &'a str,
-        to: &'a str,
-    },
-    FriendshipAccepted {
-        user1: &'a str,
-        user2: &'a str,
-    },
-}
-
-#[app::event]
-pub enum SystemEvent {
-    MaintenanceMode { enabled: bool, reason: &'a str },
-    PerformanceAlert { metric: &'a str, value: f64 },
-    ErrorOccurred { error: &'a str, context: &'a str },
+pub enum AppEvent {
+    UserCreated { username: &'a str, timestamp: u64 },
+    UserUpdated { username: &'a str, field: &'a str },
+    UserDeleted { username: &'a str },
+    SettingsChanged { key: &'a str, old_value: &'a str, new_value: &'a str },
 }
 ```
 
 ### Event Emission
 
+Events are emitted using the `app::emit!` macro and are only recorded if the
+transaction succeeds:
+
 ```rust
 #[app::logic]
 impl MyApp {
-    pub fn create_user(&mut self, username: String, profile: UserProfile) -> Result {
-        if self.users.contains_key(&username) {
-            return Err("User already exists".to_string());
+    pub fn create_user(&mut self, username: String, profile: UserProfile) -> app::Result {
+        app::log!("Creating user: {}", username);
+
+        if self.users.contains_key(&username)? {
+            return app::bail!("User already exists");
         }
 
-        self.users.insert(username.clone(), profile);
+        self.users.insert(username.clone(), profile)?;
 
-        // Emit event
-        app::emit!(UserEvent::UserCreated {
+        app::emit!(AppEvent::UserCreated {
             username: &username,
             timestamp: env::block_timestamp(),
         });
@@ -2445,88 +2556,176 @@ impl MyApp {
         Ok(())
     }
 
-    pub fn update_user_profile(&mut self, username: String, new_profile: UserProfile) -> Result {
-        let old_profile = self.users.get(&username)
-            .ok_or("User not found")?;
+    pub fn update_user(&mut self, username: String, new_profile: UserProfile) -> app::Result {
+        app::log!("Updating user: {}", username);
 
-        // Emit event before update
-        app::emit!(UserEvent::UserUpdated {
+        let old_profile = self.users.get(&username)?
+            .ok_or_else(|| app::err!("User not found"))?;
+
+        self.users.insert(username.clone(), new_profile)?;
+
+        app::emit!(AppEvent::UserUpdated {
             username: &username,
             field: "profile",
-            old_value: &old_profile.to_string(),
-            new_value: &new_profile.to_string(),
         });
 
-        self.users.insert(username, new_profile);
         Ok(())
     }
 }
 ```
 
-### Event Handling Patterns
+### Event Patterns
 
-#### Conditional Event Emission
+#### Batch Events
 
 ```rust
 #[app::logic]
 impl MyApp {
-    pub fn process_friendship_request(&mut self, from: String, to: String) -> Result {
-        // Check if users exist
-        if !self.users.contains_key(&from) || !self.users.contains_key(&to) {
-            return Err("One or both users do not exist".to_string());
+    pub fn bulk_create_users(&mut self, users: Vec) -> app::Result {
+        let mut created_count = 0;
+
+        for (username, profile) in users {
+            if !self.users.contains_key(&username)? {
+                self.users.insert(username.clone(), profile)?;
+                created_count += 1;
+
+                app::emit!(AppEvent::UserCreated {
+                    username: &username,
+                    timestamp: env::block_timestamp(),
+                });
+            }
         }
 
-        // Check if already friends
-        if self.are_friends(&from, &to) {
-            return Err("Users are already friends".to_string());
-        }
-
-        // Emit event
-        app::emit!(UserEvent::FriendshipRequested {
-            from: &from,
-            to: &to,
-        });
-
-        // Add to pending requests
-        self.pending_requests.insert((from, to));
+        app::log!("Created {} new users", created_count);
         Ok(())
     }
 }
 ```
 
-#### Batch Event Emission
+#### Conditional Events
 
 ```rust
 #[app::logic]
 impl MyApp {
-    pub fn bulk_update_users(&mut self, updates: Vec) -> Result {
-        for (username, new_profile) in updates {
-            let old_profile = self.users.get(&username)
-                .ok_or(format!("User {} not found", username))?;
+    pub fn update_user_if_changed(&mut self, username: String, new_profile: UserProfile) -> app::Result {
+        let old_profile = match self.users.get(&username)? {
+            Some(profile) => profile,
+            None => return Ok(false),
+        };
 
-            // Emit individual update events
-            app::emit!(UserEvent::UserUpdated {
-                username: &username,
-                field: "profile",
-                old_value: &old_profile.to_string(),
-                new_value: &new_profile.to_string(),
-            });
-
-            self.users.insert(username, new_profile);
+        if old_profile == new_profile {
+            return Ok(false); // No change, no event
         }
 
-        Ok(())
+        self.users.insert(username.clone(), new_profile)?;
+
+        app::emit!(AppEvent::UserUpdated {
+            username: &username,
+            field: "profile",
+        });
+
+        Ok(true) // Changed
     }
 }
 ```
 
 ## Advanced Macros
 
-### Custom State Configuration
+### Macro Composition
+
+Macros can be combined for complex functionality:
+
+```rust
+#[app::state(emits = for AppEvent)]
+#[derive(Default, BorshSerialize, BorshDeserialize)]
+#[borsh(crate = "calimero_sdk::borsh")]
+struct AdvancedApp {
+    users: UnorderedMap,
+    audit_log: Vector,
+}
+
+#[app::logic]
+impl AdvancedApp {
+    #[app::init]
+    pub fn init() -> Self {
+        Self {
+            users: UnorderedMap::new(),
+            audit_log: Vector::new(),
+        }
+    }
+
+    pub fn perform_action(&mut self, action: Action) -> app::Result {
+        // Log the action
+        let entry = AuditEntry {
+            action: action.clone(),
+            timestamp: env::block_timestamp(),
+            user: env::predecessor_account_id().to_string(),
+        };
+        self.audit_log.insert(None, entry)?;
+
+        // Perform the action
+        match action {
+            Action::CreateUser { username, profile } => {
+                self.create_user(username, profile)?;
+            }
+            Action::UpdateUser { username, profile } => {
+                self.update_user(username, profile)?;
+            }
+            Action::DeleteUser { username } => {
+                self.delete_user(username)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+```
+
+### Custom Error Types
+
+```rust
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    #[error("User not found: {0}")]
+    UserNotFound(String),
+    #[error("Invalid operation: {0}")]
+    InvalidOperation(String),
+    #[error("Insufficient permissions")]
+    InsufficientPermissions,
+}
+
+impl From for calimero_sdk::types::Error {
+    fn from(err: AppError) -> Self {
+        calimero_sdk::types::Error::msg(err.to_string())
+    }
+}
+
+#[app::logic]
+impl MyApp {
+    pub fn admin_only_operation(&mut self, username: String) -> app::Result {
+        if !self.is_admin(&env::predecessor_account_id().to_string())? {
+            return Err(AppError::InsufficientPermissions.into());
+        }
+
+        // Perform admin operation
+        Ok(())
+    }
+}
+```
+
+### Advanced Macro Features
+
+> **Note**: Some of these advanced macro features may be planned for future
+> releases or available in different versions of the SDK. Check the latest SDK
+> documentation for current availability.
+
+#### Custom State Configuration
+
+Advanced state configuration with metadata and versioning:
 
 ```rust
 #[app::state(
-    emits = for UserEvent,
+    emits = for AppEvent,
     version = "1.0.0",
     name = "UserManagementApp"
 )]
@@ -2543,62 +2742,158 @@ struct AppSettings {
     allow_public_profiles: bool,
     maintenance_mode: bool,
 }
-```
 
-### Conditional Logic
-
-```rust
 #[app::logic]
 impl UserManagementApp {
-    pub fn create_user(&mut self, username: String, profile: UserProfile) -> Result {
+    pub fn create_user(&mut self, username: String, profile: UserProfile) -> app::Result {
         // Check maintenance mode
         if self.settings.maintenance_mode {
-            return Err("Application is in maintenance mode".to_string());
+            return app::bail!("Application is in maintenance mode");
         }
 
         // Check user limit
-        if self.users.len() >= self.settings.max_users {
-            return Err("Maximum user limit reached".to_string());
+        if self.users.len()? >= self.settings.max_users {
+            return app::bail!("Maximum user limit reached");
         }
 
-        if self.users.contains_key(&username) {
-            return Err("User already exists".to_string());
+        if self.users.contains_key(&username)? {
+            return app::bail!("User already exists");
         }
 
-        self.users.insert(username.clone(), profile);
+        self.users.insert(username.clone(), profile)?;
 
-        app::emit!(UserEvent::UserCreated {
+        app::emit!(AppEvent::UserCreated {
             username: &username,
             timestamp: env::block_timestamp(),
         });
 
         Ok(())
     }
-}
-```
 
-### Access Control Macros
+    pub fn update_settings(&mut self, new_settings: AppSettings) -> app::Result {
+        // Validate settings
+        if new_settings.max_users  **Note**: While these specific macros may not be implemented, the patterns
+> shown here demonstrate how to implement access control using the available SDK
+> features.
 
 ```rust
 #[app::logic]
 impl UserManagementApp {
-    #[app::admin_only]
-    pub fn update_settings(&mut self, new_settings: AppSettings) {
-        self.settings = new_settings;
-    }
+    // Admin-only operations
+    pub fn admin_only_operation(&mut self, username: String) -> app::Result {
+        if !self.is_admin(&env::predecessor_account_id().to_string())? {
+            return app::bail!("Admin access required");
+        }
 
-    #[app::moderator_or_admin]
-    pub fn suspend_user(&mut self, username: String, reason: String) -> Result {
-        // Implementation
+        // Perform admin operation
         Ok(())
     }
 
-    pub fn get_public_profile(&self, username: &str) -> Option {
-        if !self.settings.allow_public_profiles {
-            return None;
+    // Moderator or admin operations
+    pub fn moderator_or_admin_operation(&mut self, username: String) -> app::Result {
+        let caller = env::predecessor_account_id().to_string();
+
+        if !self.is_admin(&caller)? && !self.is_moderator(&caller)? {
+            return app::bail!("Moderator or admin access required");
         }
 
-        self.users.get(username).filter(|profile| profile.is_public)
+        // Perform operation
+        Ok(())
+    }
+
+    // Role-based access control
+    pub fn role_based_operation(&mut self, username: String, required_role: UserRole) -> app::Result {
+        let caller = env::predecessor_account_id().to_string();
+        let caller_role = self.get_user_role(&caller)?;
+
+        if !self.has_permission(caller_role, required_role)? {
+            return app::bail!("Insufficient permissions for this operation");
+        }
+
+        // Perform operation
+        Ok(())
+    }
+
+    fn has_permission(&self, user_role: UserRole, required_role: UserRole) -> app::Result {
+        match (user_role, required_role) {
+            (UserRole::Admin, _) => Ok(true), // Admin can do everything
+            (UserRole::Moderator, UserRole::Moderator | UserRole::User) => Ok(true),
+            (UserRole::User, UserRole::User) => Ok(true),
+            _ => Ok(false),
+        }
+    }
+}
+```
+
+#### Conditional Logic and State Management
+
+Advanced patterns for conditional operations and state transitions:
+
+```rust
+#[app::logic]
+impl UserManagementApp {
+    pub fn conditional_user_operation(&mut self, username: String, operation: UserOperation) -> app::Result {
+        // Check application state
+        if self.settings.maintenance_mode {
+            return app::bail!("Application is in maintenance mode");
+        }
+
+        // Check user state
+        let user = self.users.get(&username)?
+            .ok_or_else(|| app::err!("User not found"))?;
+
+        if !user.is_active {
+            return app::bail!("User account is not active");
+        }
+
+        // Perform operation based on user role
+        match operation {
+            UserOperation::UpdateProfile(profile) => {
+                if !self.can_update_profile(&username, &profile)? {
+                    return app::bail!("Cannot update profile with current permissions");
+                }
+                self.users.insert(username, profile)?;
+            }
+            UserOperation::ChangeRole(new_role) => {
+                if !self.can_change_role(&username, new_role)? {
+                    return app::bail!("Cannot change role with current permissions");
+                }
+                let mut updated_user = user.clone();
+                updated_user.role = new_role;
+                self.users.insert(username, updated_user)?;
+            }
+            UserOperation::Suspend(reason) => {
+                if !self.can_suspend_user(&username)? {
+                    return app::bail!("Cannot suspend user with current permissions");
+                }
+                let mut updated_user = user.clone();
+                updated_user.status = UserStatus::Suspended(reason);
+                self.users.insert(username, updated_user)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn can_update_profile(&self, username: &str, profile: &UserProfile) -> app::Result {
+        let caller = env::predecessor_account_id().to_string();
+
+        // Users can update their own profile
+        if caller == *username {
+            return Ok(true);
+        }
+
+        // Admins can update any profile
+        if self.is_admin(&caller)? {
+            return Ok(true);
+        }
+
+        // Check if profile is public and caller has permission
+        if profile.is_public && self.settings.allow_public_profiles {
+            return Ok(true);
+        }
+
+        Ok(false)
     }
 }
 ```
@@ -2609,21 +2904,21 @@ impl UserManagementApp {
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    pub fn get_user_stats(&self) -> UserStats {
-        let total_users = self.users.len();
-        let active_users = self.users.values()
-            .filter(|profile| profile.is_active)
-            .count();
-        let premium_users = self.users.values()
-            .filter(|profile| profile.is_premium)
-            .count();
+impl MyApp {
+    pub fn get_user_stats(&self) -> app::Result {
+        let mut stats = UserStats::default();
 
-        UserStats {
-            total: total_users as u32,
-            active: active_users as u32,
-            premium: premium_users as u32,
+        for (_, profile) in self.users.entries()? {
+            stats.total_users += 1;
+            if profile.is_active {
+                stats.active_users += 1;
+            }
+            if profile.is_premium {
+                stats.premium_users += 1;
+            }
         }
+
+        Ok(stats)
     }
 }
 ```
@@ -2632,67 +2927,114 @@ impl UserManagementApp {
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    pub fn update_user_role(&mut self, username: String, new_role: UserRole) -> Result {
-        let user = self.users.get_mut(&username)
-            .ok_or("User not found")?;
-
-        // Validate role transition
-        if !self.is_valid_role_transition(&user.role, &new_role) {
-            return Err("Invalid role transition".to_string());
+impl MyApp {
+    pub fn transfer_user(&mut self, from: String, to: String) -> app::Result {
+        // Validate input
+        if from == to {
+            return app::bail!("Cannot transfer user to same account");
         }
 
-        let old_role = user.role.clone();
-        user.role = new_role;
+        // Check source user exists
+        let profile = self.users.get(&from)?
+            .ok_or_else(|| app::err!("Source user not found"))?;
 
-        app::emit!(UserEvent::UserUpdated {
-            username: &username,
-            field: "role",
-            old_value: &old_role.to_string(),
-            new_value: &user.role.to_string(),
+        // Check destination doesn't exist
+        if self.users.contains_key(&to)? {
+            return app::bail!("Destination user already exists");
+        }
+
+        // Perform transfer atomically
+        self.users.remove(&from)?;
+        self.users.insert(to, profile)?;
+
+        app::emit!(AppEvent::UserTransferred {
+            from: &from,
+            to: &to,
         });
 
         Ok(())
     }
+}
+```
 
-    fn is_valid_role_transition(&self, from: &UserRole, to: &UserRole) -> bool {
-        match (from, to) {
-            (UserRole::User, UserRole::Moderator) => true,
-            (UserRole::Moderator, UserRole::Admin) => true,
-            (UserRole::User, UserRole::Admin) => false, // Must go through moderator
-            _ => false,
+### State Initialization Patterns
+
+```rust
+#[app::logic]
+impl MyApp {
+    #[app::init]
+    pub fn init() -> Self {
+        Self {
+            users: UnorderedMap::new(),
+            settings: UnorderedMap::new(),
+            metadata: AppMetadata {
+                version: "1.0.0".to_string(),
+                created_at: env::block_timestamp(),
+            },
         }
+    }
+
+    #[app::init]
+    pub fn init_with_config(config: AppConfig) -> Self {
+        let mut app = Self::init();
+
+        // Apply configuration
+        for (key, value) in config.default_settings {
+            app.settings.insert(key, value).expect("Failed to set default");
+        }
+
+        app
     }
 }
 ```
 
 ## Performance Optimization
 
-### Efficient Collection Usage
+### Efficient Iteration
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    // Use references to avoid cloning
-    pub fn get_users_by_role(&self, role: &UserRole) -> Vec {
-        self.users
-            .iter()
-            .filter(|(_, profile)| &profile.role == role)
+impl MyApp {
+    // ✅ Good: Use references to avoid cloning
+    pub fn get_active_users(&self) -> app::Result> {
+        Ok(self.users
+            .entries()?
+            .filter(|(_, profile)| profile.is_active)
             .map(|(_, profile)| profile)
-            .collect()
+            .collect())
     }
 
-    // Batch operations for better performance
-    pub fn bulk_delete_users(&mut self, usernames: Vec) -> Result {
-        for username in usernames {
-            if let Some(profile) = self.users.remove(&username) {
-                app::emit!(UserEvent::UserDeleted {
-                    username: &username,
-                    reason: "Bulk deletion",
-                });
-            }
+    // ❌ Bad: Unnecessary cloning
+    pub fn get_active_users_bad(&self) -> app::Result> {
+        Ok(self.users
+            .entries()?
+            .filter(|(_, profile)| profile.is_active)
+            .map(|(_, profile)| profile.clone()) // Unnecessary clone
+            .collect())
+    }
+}
+```
+
+### Batch Operations
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn bulk_update_users(&mut self, updates: Vec) -> app::Result {
+        for (username, profile) in updates {
+            self.users.insert(username, profile)?;
         }
         Ok(())
+    }
+
+    pub fn bulk_remove_users(&mut self, usernames: Vec) -> app::Result {
+        let mut removed_count = 0;
+        for username in usernames {
+            if self.users.remove(&username)?.is_some() {
+                removed_count += 1;
+            }
+        }
+        Ok(removed_count)
     }
 }
 ```
@@ -2701,73 +3043,325 @@ impl UserManagementApp {
 
 ```rust
 #[app::logic]
-impl UserManagementApp {
-    // Clean up old data periodically
-    pub fn cleanup_old_data(&mut self, cutoff_timestamp: u64) {
+impl MyApp {
+    pub fn cleanup_old_data(&mut self, cutoff_timestamp: u64) -> app::Result {
         let mut to_remove = Vec::new();
 
-        for (username, profile) in self.users.iter() {
-            if profile.last_seen  String {
-        format!(
-            "Users: {}, Settings: {:?}, Maintenance: {}",
-            self.users.len(),
-            self.settings,
-            self.settings.maintenance_mode
-        )
+        // Collect items to remove
+        for (key, profile) in self.users.entries()? {
+            if profile.last_activity  app::Result {
+        app::log!("Starting complex operation with input: {:?}", input);
+
+        // Step 1: Validation
+        app::log!("Step 1: Validating input");
+        self.validate_input(&input)?;
+
+        // Step 2: Processing
+        app::log!("Step 2: Processing input");
+        let intermediate = self.process_input(input)?;
+
+        // Step 3: Finalization
+        app::log!("Step 3: Finalizing operation");
+        let result = self.finalize_operation(intermediate)?;
+
+        app::log!("Complex operation completed successfully");
+        Ok(result)
     }
+}
+```
+
+### Error Context
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn get_user_with_context(&self, username: &str) -> app::Result {
+        self.users.get(username)
+            .map_err(|e| {
+                app::log!("Failed to get user '{}': {:?}", username, e);
+                e
+            })?
+            .ok_or_else(|| {
+                app::log!("User '{}' not found", username);
+                app::err!("User not found: {}", username)
+            })
+    }
+}
+```
+
+### Unit Testing
+
+> **Note**: While the Calimero SDK doesn't provide built-in testing macros, you
+> can use standard Rust testing approaches. Here are examples of how to
+> structure tests for your Calimero applications.
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use calimero_storage::collections::UnorderedMap;
+
+    // Mock storage for testing
+    struct MockStorage;
+
+    impl StorageAdaptor for MockStorage {
+        // Implement mock storage methods for testing
+    }
+
+    #[test]
+    fn test_user_creation() {
+        let mut app = UserManagementApp::default();
+        let profile = UserProfile::default();
+
+        let result = app.create_user("test_user".to_string(), profile);
+        assert!(result.is_ok());
+        assert!(app.users.contains_key("test_user").unwrap());
+    }
+
+    #[test]
+    fn test_duplicate_user_creation() {
+        let mut app = UserManagementApp::default();
+        let profile = UserProfile::default();
+
+        app.create_user("test_user".to_string(), profile.clone()).unwrap();
+        let result = app.create_user("test_user".to_string(), profile);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_user_update() {
+        let mut app = UserManagementApp::default();
+        let profile = UserProfile::default();
+        let updated_profile = UserProfile {
+            name: "Updated Name".to_string(),
+            ..profile.clone()
+        };
+
+        app.create_user("test_user".to_string(), profile).unwrap();
+        let result = app.update_user("test_user".to_string(), updated_profile);
+        assert!(result.is_ok());
+    }
+}
+```
+
+### Debug Logging and State Inspection
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn debug_state(&self) -> app::Result {
+        let user_count = self.users.len()?;
+        let active_users = self.users.entries()?
+            .filter(|(_, profile)| profile.is_active)
+            .count();
+
+        let debug_info = format!(
+            "Users: {}, Active: {}, Settings: {:?}",
+            user_count,
+            active_users,
+            self.settings
+        );
+
+        app::log!("Debug state: {}", debug_info);
+        Ok(debug_info)
+    }
+
+    pub fn validate_integrity(&self) -> app::Result> {
+        let mut issues = Vec::new();
+
+        // Check for orphaned references
+        for (username, profile) in self.users.entries()? {
+            if let Some(referenced_user) = &profile.referenced_by {
+                if !self.users.contains_key(referenced_user)? {
+                    issues.push(format!("User '{}' references non-existent user '{}'", username, referenced_user));
+                }
+            }
+        }
+
+        // Check for circular references
+        // ... implementation details ...
+
+        if !issues.is_empty() {
+            app::log!("Integrity check found {} issues: {:?}", issues.len(), issues);
+        }
+
+        Ok(issues)
+    }
+}
+```
+
+### Performance Monitoring
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn performance_metrics(&self) -> app::Result {
+        let start_time = std::time::Instant::now();
+
+        let user_count = self.users.len()?;
+        let storage_size = self.estimate_storage_size()?;
+        let operation_count = self.get_operation_count()?;
+
+        let metrics = PerformanceMetrics {
+            user_count,
+            storage_size,
+            operation_count,
+            response_time: start_time.elapsed().as_millis() as u64,
+        };
+
+        app::log!("Performance metrics: {:?}", metrics);
+        Ok(metrics)
+    }
+
+    fn estimate_storage_size(&self) -> app::Result {
+        // Estimate storage size based on collection contents
+        let mut total_size = 0;
+
+        for (_, profile) in self.users.entries()? {
+            total_size += std::mem::size_of_val(&profile);
+        }
+
+        Ok(total_size)
+    }
+}
+
+#[derive(Debug)]
+struct PerformanceMetrics {
+    user_count: usize,
+    storage_size: usize,
+    operation_count: u64,
+    response_time: u64,
 }
 ```
 
 ## Common Patterns and Anti-patterns
 
-### Good Patterns
+### ✅ Good Patterns
+
+#### Atomic Operations
 
 ```rust
-// ✅ Use events for important state changes
-pub fn promote_user(&mut self, username: String) -> Result {
-    let user = self.users.get_mut(&username)
-        .ok_or("User not found")?;
+#[app::logic]
+impl MyApp {
+    pub fn atomic_user_update(&mut self, username: String, updates: UserUpdates) -> app::Result {
+        // All operations are atomic - if any fail, all changes are rolled back
+        let mut profile = self.users.get(&username)?
+            .ok_or_else(|| app::err!("User not found"))?;
 
-    let old_role = user.role.clone();
-    user.role = UserRole::Moderator;
+        // Apply updates
+        if let Some(name) = updates.name {
+            profile.name = name;
+        }
+        if let Some(email) = updates.email {
+            profile.email = email;
+        }
 
-    app::emit!(UserEvent::UserUpdated {
-        username: &username,
-        field: "role",
-        old_value: &old_role.to_string(),
-        new_value: &user.role.to_string(),
-    });
+        // Save updated profile
+        self.users.insert(username, profile)?;
 
-    Ok(())
+        app::emit!(AppEvent::UserUpdated {
+            username: &username,
+            field: "profile",
+        });
+
+        Ok(())
+    }
+}
+```
+
+#### Proper Error Handling
+
+```rust
+#[app::logic]
+impl MyApp {
+    pub fn safe_user_operation(&mut self, username: &str) -> app::Result {
+        // Handle all possible error cases
+        match self.users.get(username)? {
+            Some(profile) => {
+                if profile.is_active {
+                    // Perform operation
+                    Ok(())
+                } else {
+                    app::bail!("User is not active")
+                }
+            }
+            None => app::bail!("User not found"),
+        }
+    }
+}
+```
+
+### ❌ Anti-patterns
+
+#### Ignoring Errors
+
+```rust
+// ❌ Bad: Ignoring collection operation results
+pub fn bad_user_operation(&mut self, username: String) {
+    self.users.insert(username, UserProfile::default()); // Ignoring Result
 }
 
-// ✅ Validate input before processing
-pub fn update_user_email(&mut self, username: String, email: String) -> Result {
-    if !self.is_valid_email(&email) {
-        return Err("Invalid email format".to_string());
-    }
-
-    // Process update...
+// ✅ Good: Handle errors properly
+pub fn good_user_operation(&mut self, username: String) -> app::Result {
+    self.users.insert(username, UserProfile::default())?;
     Ok(())
 }
 ```
 
-### Anti-patterns to Avoid
+#### Unnecessary Cloning
 
 ```rust
-// ❌ Don't emit events for every small change
-pub fn update_user_last_seen(&mut self, username: String, timestamp: u64) {
-    if let Some(user) = self.users.get_mut(&username) {
-        user.last_seen = timestamp;
-        // Don't emit event for frequent updates like this
-    }
+// ❌ Bad: Cloning when references would suffice
+pub fn bad_get_users(&self) -> app::Result> {
+    Ok(self.users.entries()?
+        .map(|(k, _)| k.clone()) // Unnecessary clone
+        .collect())
 }
 
-// ❌ Don't ignore errors
-pub fn unsafe_user_creation(&mut self, username: String, profile: UserProfile) {
-    self.users.insert(username, profile); // What if username is empty?
+// ✅ Good: Use references
+pub fn good_get_users(&self) -> app::Result> {
+    Ok(self.users.entries()?
+        .map(|(k, _)| k) // No clone needed
+        .collect())
 }
 ```
+
+#### Complex Nested Operations
+
+```rust
+// ❌ Bad: Deep nesting makes error handling complex
+pub fn bad_nested_operation(&mut self, user_id: &str) -> app::Result {
+    if let Some(user) = self.users.get(user_id)? {
+        if let Some(profile) = user.profile {
+            if let Some(settings) = profile.settings {
+                // Deep nesting makes this hard to read and maintain
+                settings.update()?;
+            }
+        }
+    }
+    Ok(())
+}
+
+// ✅ Good: Early returns for cleaner code
+pub fn good_nested_operation(&mut self, user_id: &str) -> app::Result {
+    let user = self.users.get(user_id)?
+        .ok_or_else(|| app::err!("User not found"))?;
+
+    let profile = user.profile
+        .ok_or_else(|| app::err!("User profile not found"))?;
+
+    let settings = profile.settings
+        .ok_or_else(|| app::err!("User settings not found"))?;
+
+    settings.update()?;
+    Ok(())
+}
+```
+
+## Next Steps
+
+- Learn about [Calimero Collections](./calimero-collections) for data storage
+- See [Rust Protocol SDK](./protocol-rs-sdk) for basic macro usage
 
 ---
 
@@ -2798,12 +3392,15 @@ applications. They provide:
 - **Persistent Storage**: Automatic integration with Calimero's storage system
 - **Type Safety**: Full Rust type safety with compile-time guarantees
 - **Performance**: Optimized for common operations in decentralized apps
+- **Error Handling**: All operations return `Result` for robust
+  error handling
 
 ## Core Collections
 
 ### UnorderedMap
 
 A hash map implementation optimized for Wasm with O(1) average case operations.
+All operations return `Result`.
 
 #### Basic Usage
 
@@ -2820,35 +3417,35 @@ struct UserRegistry {
 
 #[app::logic]
 impl UserRegistry {
-    pub fn add_user(&mut self, username: String, profile: UserProfile) -> Result {
-        if self.users.contains_key(&username) {
-            return Err("User already exists".to_string());
+    pub fn add_user(&mut self, username: String, profile: UserProfile) -> app::Result {
+        if self.users.contains_key(&username)? {
+            return app::bail!("User already exists");
         }
 
-        self.users.insert(username, profile);
+        self.users.insert(username, profile)?;
         self.user_count += 1;
         Ok(())
     }
 
-    pub fn get_user(&self, username: &str) -> Option {
-        self.users.get(username)
+    pub fn get_user(&self, username: &str) -> app::Result> {
+        self.users.get(username).map_err(Into::into)
     }
 
-    pub fn update_user(&mut self, username: String, profile: UserProfile) -> Result {
-        if !self.users.contains_key(&username) {
-            return Err("User not found".to_string());
+    pub fn update_user(&mut self, username: String, profile: UserProfile) -> app::Result {
+        if !self.users.contains_key(&username)? {
+            return app::bail!("User not found");
         }
 
-        self.users.insert(username, profile);
+        self.users.insert(username, profile)?;
         Ok(())
     }
 
-    pub fn remove_user(&mut self, username: &str) -> Option {
-        let user = self.users.remove(username);
+    pub fn remove_user(&mut self, username: &str) -> app::Result> {
+        let user = self.users.remove(username)?;
         if user.is_some() {
             self.user_count -= 1;
         }
-        user
+        Ok(user)
     }
 }
 ```
@@ -2859,60 +3456,42 @@ impl UserRegistry {
 #[app::logic]
 impl UserRegistry {
     // Batch operations
-    pub fn add_multiple_users(&mut self, users: Vec) -> Result {
+    pub fn add_multiple_users(&mut self, users: Vec) -> app::Result {
         for (username, profile) in users {
-            if self.users.contains_key(&username) {
-                return Err(format!("User {} already exists", username));
+            if self.users.contains_key(&username)? {
+                return app::bail!("User {} already exists", username);
             }
-            self.users.insert(username, profile);
+            self.users.insert(username, profile)?;
             self.user_count += 1;
         }
         Ok(())
     }
 
-    // Filtering and searching
-    pub fn get_users_by_role(&self, role: UserRole) -> Vec {
-        self.users
-            .iter()
-            .filter(|(_, profile)| profile.role == role)
+    // Iteration
+    pub fn get_all_users(&self) -> app::Result> {
+        self.users.entries()?.collect()
+    }
+
+    // Search
+    pub fn search_users(&self, query: &str) -> app::Result> {
+        Ok(self.users
+            .entries()?
+            .filter(|(username, _)| username.contains(query))
             .map(|(_, profile)| profile)
-            .collect()
+            .collect())
     }
 
-    // Aggregation
-    pub fn get_user_stats(&self) -> UserStats {
-        let mut stats = UserStats::default();
-
-        for (_, profile) in self.users.iter() {
-            stats.total_users += 1;
-            if profile.is_active {
-                stats.active_users += 1;
-            }
-            if profile.is_premium {
-                stats.premium_users += 1;
-            }
-        }
-
-        stats
-    }
-
-    // Conditional updates
-    pub fn update_user_if_exists(&mut self, username: String, profile: UserProfile) -> bool {
-        if self.users.contains_key(&username) {
-            self.users.insert(username, profile);
-            true
-        } else {
-            false
-        }
+    // Statistics
+    pub fn get_user_count(&self) -> app::Result {
+        self.users.len()
     }
 }
 ```
 
 ### UnorderedSet
 
-A hash set for unique elements with O(1) average case operations.
-
-#### Basic Usage
+A hash set for unique elements with similar performance characteristics to
+UnorderedMap.
 
 ```rust
 use calimero_storage::collections::UnorderedSet;
@@ -2923,75 +3502,36 @@ use calimero_storage::collections::UnorderedSet;
 struct AccessControl {
     admins: UnorderedSet,
     moderators: UnorderedSet,
-    banned_users: UnorderedSet,
 }
 
 #[app::logic]
 impl AccessControl {
-    pub fn add_admin(&mut self, username: String) -> bool {
-        self.admins.insert(username)
-    }
-
-    pub fn remove_admin(&mut self, username: &str) -> bool {
-        self.admins.remove(username)
-    }
-
-    pub fn is_admin(&self, username: &str) -> bool {
-        self.admins.contains(username)
-    }
-
-    pub fn promote_to_moderator(&mut self, username: String) -> Result {
-        if !self.admins.contains(&username) {
-            return Err("Only admins can be promoted to moderator".to_string());
-        }
-
-        self.moderators.insert(username);
+    pub fn add_admin(&mut self, username: String) -> app::Result {
+        self.admins.insert(username)?;
         Ok(())
     }
 
-    pub fn ban_user(&mut self, username: String) {
-        // Remove from all access levels
-        self.admins.remove(&username);
-        self.moderators.remove(&username);
-        self.banned_users.insert(username);
-    }
-}
-```
-
-#### Set Operations
-
-```rust
-#[app::logic]
-impl AccessControl {
-    // Union of two sets
-    pub fn get_all_staff(&self) -> Vec {
-        let mut all_staff: Vec = self.admins.iter().collect();
-        all_staff.extend(self.moderators.iter());
-        all_staff
+    pub fn is_admin(&self, username: &str) -> app::Result {
+        self.admins.contains(username)
     }
 
-    // Check if user has any elevated privileges
-    pub fn has_privileges(&self, username: &str) -> bool {
-        self.admins.contains(username) || self.moderators.contains(username)
+    pub fn remove_admin(&mut self, username: &str) -> app::Result {
+        self.admins.remove(username)
     }
 
-    // Get users with specific role
-    pub fn get_users_by_role(&self, role: UserRole) -> Vec {
-        match role {
-            UserRole::Admin => self.admins.iter().collect(),
-            UserRole::Moderator => self.moderators.iter().collect(),
-            UserRole::User => vec![], // Regular users not stored in sets
-        }
+    pub fn get_admin_count(&self) -> app::Result {
+        self.admins.len()
+    }
+
+    pub fn get_all_admins(&self) -> app::Result> {
+        self.admins.entries()?.collect()
     }
 }
 ```
 
 ### Vector
 
-A dynamic array implementation with O(1) amortized push and O(n) insert/remove
-operations.
-
-#### Basic Usage
+A dynamic array implementation optimized for sequential access.
 
 ```rust
 use calimero_storage::collections::Vector;
@@ -3000,123 +3540,51 @@ use calimero_storage::collections::Vector;
 #[derive(Default, BorshSerialize, BorshDeserialize)]
 #[borsh(crate = "calimero_sdk::borsh")]
 struct TaskManager {
-    pending_tasks: Vector,
+    tasks: Vector,
     completed_tasks: Vector,
-    task_counter: u64,
-}
-
-#[derive(BorshSerialize, BorshDeserialize, Clone)]
-struct Task {
-    id: u64,
-    title: String,
-    description: String,
-    priority: TaskPriority,
-    created_at: u64,
 }
 
 #[app::logic]
 impl TaskManager {
-    pub fn create_task(&mut self, title: String, description: String, priority: TaskPriority) -> u64 {
-        let task = Task {
-            id: self.task_counter,
-            title,
-            description,
-            priority,
-            created_at: env::block_timestamp(),
-        };
-
-        self.pending_tasks.push(task);
-        self.task_counter += 1;
-        self.task_counter - 1
-    }
-
-    pub fn get_task(&self, id: u64) -> Option {
-        self.pending_tasks
-            .iter()
-            .chain(self.completed_tasks.iter())
-            .find(|task| task.id == id)
-    }
-
-    pub fn complete_task(&mut self, id: u64) -> Result {
-        let index = self.pending_tasks
-            .iter()
-            .position(|task| task.id == id)
-            .ok_or("Task not found")?;
-
-        let task = self.pending_tasks.remove(index);
-        self.completed_tasks.push(task);
+    pub fn add_task(&mut self, task: Task) -> app::Result {
+        self.tasks.insert(None, task)?;
         Ok(())
     }
 
-    pub fn get_tasks_by_priority(&self, priority: TaskPriority) -> Vec {
-        self.pending_tasks
-            .iter()
-            .filter(|task| task.priority == priority)
-            .collect()
-    }
-}
-```
-
-#### Advanced Vector Operations
-
-```rust
-#[app::logic]
-impl TaskManager {
-    // Batch operations
-    pub fn create_multiple_tasks(&mut self, tasks: Vec) -> Vec {
-        let mut ids = Vec::new();
-
-        for (title, description, priority) in tasks {
-            let id = self.create_task(title, description, priority);
-            ids.push(id);
+    pub fn complete_task(&mut self, index: u32) -> app::Result {
+        if index >= self.tasks.len()? {
+            return app::bail!("Invalid task index");
         }
 
-        ids
+        let task = self.tasks.remove(index as usize)?;
+        self.completed_tasks.insert(None, task)?;
+        Ok(())
     }
 
-    // Sorting and filtering
-    pub fn get_high_priority_tasks(&self) -> Vec {
-        let mut high_priority: Vec = self.pending_tasks
-            .iter()
-            .filter(|task| task.priority == TaskPriority::High)
-            .collect();
-
-        // Sort by creation time (oldest first)
-        high_priority.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-        high_priority
+    pub fn get_task(&self, index: u32) -> app::Result> {
+        if index >= self.tasks.len()? {
+            return Ok(None);
+        }
+        self.tasks.get(index as usize)
     }
 
-    // Pagination
-    pub fn get_tasks_page(&self, page: u32, page_size: u32) -> Vec {
-        let start = (page * page_size) as usize;
-        let end = start + page_size as usize;
-
-        self.pending_tasks
-            .iter()
-            .skip(start)
-            .take(page_size as usize)
-            .collect()
-    }
-
-    // Search functionality
-    pub fn search_tasks(&self, query: &str) -> Vec {
-        self.pending_tasks
-            .iter()
-            .filter(|task| {
-                task.title.to_lowercase().contains(&query.to_lowercase()) ||
-                task.description.to_lowercase().contains(&query.to_lowercase())
-            })
-            .collect()
+    pub fn get_all_tasks(&self) -> app::Result> {
+        self.tasks.entries()?.collect()
     }
 }
 ```
 
 ## Specialized Collections
 
+> **Note**: Some of these specialized collections may be planned for future
+> releases or available in different versions of the SDK. Check the latest SDK
+> documentation for current availability.
+
 ### LookupMap
 
 A map optimized for cases where you need to iterate over keys or values
-frequently.
+frequently. This collection provides better iteration performance at the cost of
+slightly higher memory usage.
 
 ```rust
 use calimero_storage::collections::LookupMap;
@@ -3133,40 +3601,44 @@ struct Analytics {
 
 #[app::logic]
 impl Analytics {
-    pub fn record_page_view(&mut self, user: String, page: String) {
+    pub fn record_page_view(&mut self, user: String, page: String) -> app::Result {
         // Increment user's page views
-        let user_views = self.page_views.get(&user).unwrap_or(0);
-        self.page_views.insert(user, user_views + 1);
+        let user_views = self.page_views.get(&user)?.unwrap_or(0);
+        self.page_views.insert(user, user_views + 1)?;
 
         // Increment total page views
-        let total = self.total_views.get(&page).unwrap_or(0);
-        self.total_views.insert(page, total + 1);
+        let total = self.total_views.get(&page)?.unwrap_or(0);
+        self.total_views.insert(page, total + 1)?;
+
+        Ok(())
     }
 
-    pub fn get_user_stats(&self, user: &str) -> u32 {
-        self.page_views.get(user).unwrap_or(0)
+    pub fn get_user_stats(&self, user: &str) -> app::Result {
+        Ok(self.page_views.get(user)?.unwrap_or(0))
     }
 
-    pub fn get_page_stats(&self, page: &str) -> u64 {
-        self.total_views.get(page).unwrap_or(0)
+    pub fn get_page_stats(&self, page: &str) -> app::Result {
+        Ok(self.total_views.get(page)?.unwrap_or(0))
     }
 
-    pub fn get_top_pages(&self, limit: usize) -> Vec {
+    pub fn get_top_pages(&self, limit: usize) -> app::Result> {
         let mut pages: Vec = self.total_views
-            .iter()
-            .map(|(page, views)| (page.clone(), *views))
+            .entries()?
+            .map(|(page, views)| (page, views))
             .collect();
 
         pages.sort_by(|a, b| b.1.cmp(&a.1));
         pages.truncate(limit);
-        pages
+        Ok(pages)
     }
 }
 ```
 
 ### TreeMap
 
-A sorted map implementation for cases where you need ordered keys.
+A sorted map implementation for cases where you need ordered keys. This
+collection maintains keys in sorted order, enabling efficient range queries and
+ordered iteration.
 
 ```rust
 use calimero_storage::collections::TreeMap;
@@ -3183,36 +3655,41 @@ struct Leaderboard {
 
 #[app::logic]
 impl Leaderboard {
-    pub fn update_score(&mut self, user: String, new_score: u32) {
+    pub fn update_score(&mut self, user: String, new_score: u32) -> app::Result {
         // Remove user from old score ranking
-        if let Some(old_score) = self.user_scores.get(&user) {
-            if let Some(users_at_score) = self.score_rankings.get_mut(old_score) {
-                users_at_score.remove(&user);
+        if let Some(old_score) = self.user_scores.get(&user)? {
+            if let Some(users_at_score) = self.score_rankings.get(&old_score)? {
+                let mut updated_users = users_at_score.clone();
+                updated_users.remove(&user)?;
 
-                // Remove empty score entry
-                if users_at_score.is_empty() {
-                    self.score_rankings.remove(old_score);
+                if updated_users.is_empty() {
+                    self.score_rankings.remove(&old_score)?;
+                } else {
+                    self.score_rankings.insert(old_score, updated_users)?;
                 }
             }
         }
 
         // Add user to new score ranking
-        self.score_rankings
-            .entry(new_score)
-            .or_insert_with(UnorderedSet::new)
-            .insert(user.clone());
+        let mut users_at_score = self.score_rankings
+            .get(&new_score)?
+            .unwrap_or_else(|| UnorderedSet::new());
+        users_at_score.insert(user.clone())?;
+        self.score_rankings.insert(new_score, users_at_score)?;
 
         // Update user's score
-        self.user_scores.insert(user, new_score);
+        self.user_scores.insert(user, new_score)?;
+
+        Ok(())
     }
 
-    pub fn get_top_players(&self, limit: usize) -> Vec {
+    pub fn get_top_players(&self, limit: usize) -> app::Result> {
         let mut top_players = Vec::new();
 
         // Iterate in reverse order (highest scores first)
-        for (score, users) in self.score_rankings.iter().rev() {
-            for user in users.iter() {
-                top_players.push((user.clone(), *score));
+        for (score, users) in self.score_rankings.entries()?.rev() {
+            for user in users.entries()? {
+                top_players.push((user, score));
                 if top_players.len() >= limit {
                     break;
                 }
@@ -3222,45 +3699,30 @@ impl Leaderboard {
             }
         }
 
-        top_players
+        Ok(top_players)
     }
 
-    pub fn get_user_rank(&self, user: &str) -> Option {
-        let user_score = self.user_scores.get(user)?;
+    pub fn get_user_rank(&self, user: &str) -> app::Result> {
+        let user_score = match self.user_scores.get(user)? {
+            Some(score) => score,
+            None => return Ok(None),
+        };
+
         let mut rank = 1;
 
         // Count users with higher scores
-        for (score, users) in self.score_rankings.iter().rev() {
+        for (score, users) in self.score_rankings.entries()?.rev() {
             if score > user_score {
-                rank += users.len() as u32;
+                rank += users.len()? as u32;
             } else {
                 break;
             }
         }
 
-        Some(rank)
+        Ok(Some(rank))
     }
 }
 ```
-
-## Performance Characteristics
-
-### Operation Complexity
-
-| Collection   | Insert         | Remove   | Lookup   | Iteration |
-| ------------ | -------------- | -------- | -------- | --------- |
-| UnorderedMap | O(1) avg       | O(1) avg | O(1) avg | O(n)      |
-| UnorderedSet | O(1) avg       | O(1) avg | O(1) avg | O(n)      |
-| Vector       | O(1) amortized | O(n)     | O(1)     | O(n)      |
-| LookupMap    | O(1) avg       | O(1) avg | O(1) avg | O(n)      |
-| TreeMap      | O(log n)       | O(log n) | O(log n) | O(n)      |
-
-### Memory Usage
-
-- **UnorderedMap/Set**: Most memory efficient for large datasets
-- **Vector**: Good for sequential access, moderate memory overhead
-- **LookupMap**: Optimized for iteration, slightly more memory than UnorderedMap
-- **TreeMap**: Highest memory overhead due to tree structure
 
 ### When to Use Each Collection
 
@@ -3294,245 +3756,128 @@ impl Leaderboard {
 - Range queries are common
 - Order matters for your use case
 
+## Performance Characteristics
+
+### Operation Complexity
+
+| Operation | UnorderedMap | UnorderedSet | Vector |
+| --------- | ------------ | ------------ | ------ |
+| Insert    | O(1) avg     | O(1) avg     | O(1)   |
+| Get       | O(1) avg     | O(1) avg     | O(1)   |
+| Remove    | O(1) avg     | O(1) avg     | O(n)   |
+| Iterate   | O(n)         | O(n)         | O(n)   |
+| Contains  | O(1) avg     | O(1) avg     | O(n)   |
+
+### Memory Usage
+
+- **UnorderedMap/UnorderedSet**: Hash table overhead + key-value storage
+- **Vector**: Dynamic array with growth factor
+- All collections automatically handle serialization/deserialization
+
 ## Collection Patterns
 
-### Composite Collections
+### Entry API for Conditional Operations
 
 ```rust
-#[app::state]
-#[derive(Default, BorshSerialize, BorshDeserialize)]
-#[borsh(crate = "calimero_sdk::borsh")]
-struct SocialNetwork {
-    // User -> Friends
-    friendships: UnorderedMap>,
-    // User -> Posts
-    user_posts: UnorderedMap>,
-    // Post -> Reactions
-    post_reactions: UnorderedMap>,
-    // User -> Followers
-    followers: UnorderedMap>,
-    // User -> Following
-    following: UnorderedMap>,
-}
-
 #[app::logic]
-impl SocialNetwork {
-    pub fn add_friend(&mut self, user: String, friend: String) {
-        // Add bidirectional friendship
-        self.friendships
-            .entry(user.clone())
-            .or_insert_with(UnorderedSet::new)
-            .insert(friend.clone());
-
-        self.friendships
-            .entry(friend)
-            .or_insert_with(UnorderedSet::new)
-            .insert(user);
-    }
-
-    pub fn create_post(&mut self, user: String, content: String) -> u64 {
-        let post = Post {
-            id: self.generate_post_id(),
-            content,
-            author: user.clone(),
-            created_at: env::block_timestamp(),
-        };
-
-        self.user_posts
-            .entry(user)
-            .or_insert_with(Vector::new)
-            .push(post.clone());
-
-        post.id
-    }
-
-    pub fn follow_user(&mut self, follower: String, following: String) {
-        if follower == following {
-            return; // Can't follow yourself
+impl UserRegistry {
+    pub fn get_or_create_user(&mut self, username: String) -> app::Result {
+        // This pattern doesn't work with current API - collections return Result
+        // Use conditional logic instead
+        if !self.users.contains_key(&username)? {
+            let default_profile = UserProfile::default();
+            self.users.insert(username.clone(), default_profile)?;
         }
 
-        self.followers
-            .entry(following.clone())
-            .or_insert_with(UnorderedSet::new)
-            .insert(follower.clone());
-
-        self.following
-            .entry(follower)
-            .or_insert_with(UnorderedSet::new)
-            .insert(following);
+        // Note: We can't return &mut due to Result wrapper
+        // Consider returning the value or using a different pattern
+        Ok(())
     }
-
-    pub fn get_feed(&self, user: &str) -> Vec {
-        let mut feed = Vec::new();
-
-        // Get posts from followed users
-        if let Some(following) = self.following.get(user) {
-            for followed_user in following.iter() {
-                if let Some(posts) = self.user_posts.get(followed_user) {
-                    feed.extend(posts.iter());
-                }
-            }
-        }
-
-        // Sort by creation time (newest first)
-        feed.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-        feed
-    }
-}
-```
-
-### Indexed Collections
-
-```rust
-#[app::state]
-#[derive(Default, BorshSerialize, BorshDeserialize)]
-#[borsh(crate = "calimero_sdk::borsh")]
-struct ProductCatalog {
-    // Product ID -> Product details
-    products: UnorderedMap,
-    // Category -> Product IDs
-    products_by_category: UnorderedMap>,
-    // Price range -> Product IDs
-    products_by_price: TreeMap>,
-    // Search index: word -> Product IDs
-    search_index: UnorderedMap>,
-}
-
-#[app::logic]
-impl ProductCatalog {
-    pub fn add_product(&mut self, product: Product) {
-        let product_id = product.id;
-
-        // Add to main products map
-        self.products.insert(product_id, product.clone());
-
-        // Add to category index
-        self.products_by_category
-            .entry(product.category.clone())
-            .or_insert_with(UnorderedSet::new)
-            .insert(product_id);
-
-        // Add to price index
-        self.products_by_price
-            .entry(product.price)
-            .or_insert_with(UnorderedSet::new)
-            .insert(product_id);
-
-        // Add to search index
-        for word in product.name.split_whitespace() {
-            let word = word.to_lowercase();
-            self.search_index
-                .entry(word)
-                .or_insert_with(UnorderedSet::new)
-                .insert(product_id);
-        }
-    }
-
-    pub fn search_products(&self, query: &str) -> Vec {
-        let query_words: Vec = query.split_whitespace().collect();
-        let mut product_ids = UnorderedSet::new();
-
-        // Find products matching all query words
-        for word in query_words {
-            let word = word.to_lowercase();
-            if let Some(ids) = self.search_index.get(&word) {
-                if product_ids.is_empty() {
-                    product_ids = ids.clone();
-                } else {
-                    // Intersection of all word matches
-                    product_ids = product_ids.intersection(ids).cloned().collect();
-                }
-            }
-        }
-
-        // Convert IDs to products
-        product_ids
-            .iter()
-            .filter_map(|id| self.products.get(id))
-            .collect()
-    }
-
-    pub fn get_products_by_category(&self, category: &str) -> Vec {
-        self.products_by_category
-            .get(category)
-            .map(|ids| {
-                ids.iter()
-                    .filter_map(|id| self.products.get(id))
-                    .collect()
-            })
-            .unwrap_or_default()
-    }
-
-    pub fn get_products_in_price_range(&self, min_price: u32, max_price: u32) -> Vec {
-        let mut products = Vec::new();
-
-        for (price, ids) in self.products_by_price.range(min_price..=max_price) {
-            for id in ids.iter() {
-                if let Some(product) = self.products.get(id) {
-                    products.push(product);
-                }
-            }
-        }
-
-        products
-    }
-}
-```
-
-## Best Practices
-
-### Memory Management
-
-```rust
-// ✅ Good: Clean up old data
-pub fn cleanup_old_sessions(&mut self, cutoff_time: u64) {
-    let mut to_remove = Vec::new();
-
-    for (session_id, session) in self.active_sessions.iter() {
-        if session.last_activity  Vec {
-    self.users
-        .iter()
-        .filter(|(_, profile)| profile.is_active)
-        .map(|(_, profile)| profile)
-        .collect()
-}
-
-// ❌ Bad: Unnecessary cloning
-pub fn get_active_users_bad(&self) -> Vec {
-    self.users
-        .iter()
-        .filter(|(_, profile)| profile.is_active)
-        .map(|(_, profile)| profile.clone()) // Unnecessary clone
-        .collect()
 }
 ```
 
 ### Batch Operations
 
 ```rust
-// ✅ Good: Batch operations for better performance
-pub fn bulk_update_users(&mut self, updates: Vec) -> Result {
-    for (username, profile) in updates {
-        if !self.users.contains_key(&username) {
-            return Err(format!("User {} not found", username));
+#[app::logic]
+impl UserRegistry {
+    pub fn bulk_update_users(&mut self, updates: Vec) -> app::Result {
+        for (username, profile) in updates {
+            self.users.insert(username, profile)?;
         }
-        self.users.insert(username, profile);
+        Ok(())
     }
-    Ok(())
-}
 
-// ❌ Bad: Multiple individual operations
-pub fn bulk_update_users_bad(&mut self, updates: Vec) -> Result {
-    for (username, profile) in updates {
-        self.update_user(username, profile)?; // Multiple function calls
+    pub fn bulk_remove_users(&mut self, usernames: Vec) -> app::Result {
+        let mut removed_count = 0;
+        for username in usernames {
+            if self.users.remove(&username)?.is_some() {
+                removed_count += 1;
+            }
+        }
+        Ok(removed_count)
     }
-    Ok(())
+}
+```
+
+## Best Practices
+
+### Error Handling
+
+Always handle the `Result` returned by collection operations:
+
+```rust
+// ❌ Bad - ignoring errors
+let value = self.users.get(&key).unwrap();
+
+// ✅ Good - proper error handling
+let value = match self.users.get(&key)? {
+    Some(v) => v,
+    None => return app::bail!("User not found"),
+};
+```
+
+### Memory Management
+
+```rust
+// ❌ Bad - creating unnecessary clones
+let all_users: Vec = self.users.entries()?
+    .map(|(k, _)| k.clone())
+    .collect();
+
+// ✅ Good - avoid unnecessary cloning
+let all_users: Vec = self.users.entries()?
+    .map(|(k, _)| k)
+    .collect();
+```
+
+### Transaction Safety
+
+```rust
+#[app::logic]
+impl UserRegistry {
+    pub fn transfer_user(&mut self, from: String, to: String) -> app::Result {
+        // All operations are atomic - if any fail, all changes are rolled back
+        let profile = self.users.remove(&from)?
+            .ok_or_else(|| app::err!("Source user not found"))?;
+
+        self.users.insert(to, profile)?;
+        Ok(())
+    }
 }
 ```
 
 ## Migration from Standard Collections
 
-### From std::collections::HashMap
+### Key Differences
+
+| Standard Collection | Calimero Collection  | Key Changes                     |
+| ------------------- | -------------------- | ------------------------------- |
+| `HashMap`     | `UnorderedMap` | Returns `Result` |
+| `HashSet`        | `UnorderedSet`    | Returns `Result` |
+| `Vec`            | `Vector`          | Returns `Result` |
+
+### Migration Example
 
 ```rust
 // Before (standard collections)
@@ -3540,6 +3885,12 @@ use std::collections::HashMap;
 
 struct OldApp {
     users: HashMap,
+}
+
+impl OldApp {
+    pub fn add_user(&mut self, username: String, profile: UserProfile) {
+        self.users.insert(username, profile);
+    }
 }
 
 // After (Calimero collections)
@@ -3551,47 +3902,54 @@ use calimero_storage::collections::UnorderedMap;
 struct NewApp {
     users: UnorderedMap,
 }
+
+#[app::logic]
+impl NewApp {
+    pub fn add_user(&mut self, username: String, profile: UserProfile) -> app::Result {
+        self.users.insert(username, profile)?;
+        Ok(())
+    }
+}
 ```
 
-### From std::collections::HashSet
+## Common Pitfalls
+
+### Forgetting Error Handling
 
 ```rust
-// Before
-use std::collections::HashSet;
+// ❌ This will not compile
+let user = self.users.get(&username).unwrap();
 
-struct OldApp {
-    admins: HashSet,
-}
-
-// After
-use calimero_storage::collections::UnorderedSet;
-
-#[app::state]
-#[derive(Default, BorshSerialize, BorshDeserialize)]
-#[borsh(crate = "calimero_sdk::borsh")]
-struct NewApp {
-    admins: UnorderedSet,
-}
+// ✅ Handle the Result
+let user = self.users.get(&username)?;
 ```
 
-### From Vec
+### Assuming Standard Collection Methods
 
 ```rust
-// Before
-struct OldApp {
-    tasks: Vec,
-}
+// ❌ Standard collections don't have these methods
+let count = self.users.len(); // Standard collections return usize directly
 
-// After
-use calimero_storage::collections::Vector;
-
-#[app::state]
-#[derive(Default, BorshSerialize, BorshDeserialize)]
-#[borsh(crate = "calimero_sdk::borsh")]
-struct NewApp {
-    tasks: Vector,
-}
+// ✅ Calimero collections return Result
+let count = self.users.len()?; // Returns Result
 ```
+
+### Ignoring Storage Errors
+
+```rust
+// ❌ Bad - storage errors can indicate serious issues
+if let Ok(user) = self.users.get(&username) {
+    // Handle user
+}
+
+// ✅ Good - propagate errors up
+let user = self.users.get(&username)?;
+```
+
+## Next Steps
+
+- Learn about [Rust SDK Macros](./protocol-rs-sdk) for application structure
+- See [Rust SDK Deep Dive](./rust-sdk-deep-dive) for advanced patterns
 
 ---
 
