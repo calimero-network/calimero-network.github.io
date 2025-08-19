@@ -24,12 +24,11 @@ meroctl [OPTIONS] --node <NAME> <COMMAND>
 ### Commands:
 
 - `app` Command for managing applications
+- `blob` Command for managing blobs
 - `context` Command for managing contexts
-- `identity` Command for creating an empty identity
-- `proxy` Command for managing proxy contract
-- `call` Executing read and write RPC calls
-- `peers` Show a number of connected peers
-- `bootstrap` Setup two nodes inside the same context
+- `call` Call a method on a context
+- `peers` Return the number of connected peers
+- `node` Command for managing nodes
 - `help` Print this message or the help of the given subcommand(s)
 
 :::tip
@@ -67,13 +66,14 @@ your nodes private key.
 
 ### Examples:
 
-| **Command**                                                                  | **Description**                     |
-| ---------------------------------------------------------------------------- | ----------------------------------- |
-| `meroctl --node <NAME> app <COMMAND>`                                        | Command for managing applications   |
-| `meroctl --node <NAME> context <COMMAND>`                                    | Command for managing contexts       |
-| `meroctl --node <NAME> identity <COMMAND>`                                   | Command for creating identities     |
-| `meroctl --node <NAME> proxy <COMMAND>`                                      | Command for managing proxy contract |
-| `meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Executing read and write RPC calls  |
+| **Command**                                                                  | **Description**                      |
+| ---------------------------------------------------------------------------- | ------------------------------------ |
+| `meroctl --node <NAME> app <COMMAND>`                                        | Command for managing applications    |
+| `meroctl --node <NAME> blob <COMMAND>`                                       | Command for managing blobs           |
+| `meroctl --node <NAME> context <COMMAND>`                                    | Command for managing contexts        |
+| `meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Call a method on a context           |
+| `meroctl --node <NAME> peers`                                                | Return the number of connected peers |
+| `meroctl --node <NAME> node <COMMAND>`                                       | Command for managing nodes           |
 
 ### Manage Applications
 
@@ -86,6 +86,19 @@ Commands:
 - `get` Fetch application details
 - `install` Install an application
 - `list` List installed applications
+- `uninstall` Uninstall an application
+
+### Manage Blobs
+
+```bash title="Terminal"
+meroctl --node <NAME> blob <COMMAND>
+```
+
+Commands:
+
+- `list` List all blobs
+- `info` Get information about a specific blob
+- `delete` Delete a specific blob
 
 ### Manage Contexts
 
@@ -101,6 +114,13 @@ Commands:
 - `join` Join an application context
 - `invite` Create invitation to a context for a invitee
 - `get` Fetch details about the context
+- `delete` Delete a context
+- `watch` Watch events from a context and optionally execute commands
+- `update` Update app in context
+- `identity` Manage context identities
+- `use` Set the default context
+- `proposals` Manage proposals within a context
+- `sync` Explicitly request a sync
 
   <details>
     <summary>`get` subcommands</summary>- `info` Get context information -
@@ -173,6 +193,19 @@ streamline context management.
 
 :::
 
+### Manage Nodes
+
+```bash title="Terminal"
+meroctl --node <NAME> node <COMMAND>
+```
+
+Commands:
+
+- `add` Add or connect to a node
+- `remove` Remove a node connection
+- `use` Set a node as active (default for commands)
+- `list` List all configured nodes
+
 ### Manage Identities
 
 ```bash title="Terminal"
@@ -183,23 +216,13 @@ Commands:
 
 - `generate` Generate public/private key pair used for context identity
 
-### Command for managing proxy contract
-
-```bash title="Terminal"
- meroctl --node <NAME> proxy <COMMAND>
-```
-
-Commands:
-
-- `get` Fetch details about the proxy contract
-
 ### Show a number of connected peers
 
 ```bash title="Terminal"
 meroctl --node <NAME> peers
 ```
 
-### Executing read and write RPC calls
+### Call a method on a context
 
 ```bash title="Terminal"
 meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
@@ -208,7 +231,7 @@ meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
 Arguments:
 
 - `<CONTEXT_ID>` ContextId of the context
-- `<METHOD>` Method to fetch details
+- `<METHOD>` Method to call on the context
 
 Options:
 
