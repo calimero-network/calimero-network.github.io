@@ -18,8 +18,37 @@ node directly from the shell.
 ## Usage
 
 ```bash title="Terminal"
-meroctl [OPTIONS] --node <NAME> <COMMAND>
+meroctl [OPTIONS] --node <NODE_NAME> <COMMAND>
 ```
+
+### Examples with Real Values
+
+```bash title="Terminal"
+# Basic usage with a node named "node1"
+meroctl --node node1 app list
+
+# Using a different node name
+meroctl --node my-production-node context list
+
+# With additional options
+meroctl --home ~/.calimero --node node1 app install my-app
+```
+
+### Parameter Reference
+
+| **Parameter**  | **Description**                   | **Real Examples**                              |
+| -------------- | --------------------------------- | ---------------------------------------------- |
+| `<NODE_NAME>`  | Name of the node to connect to    | `node1`, `prod-node`, `test-node`              |
+| `<COMMAND>`    | Subcommand to execute             | `list`, `install`, `get`, `create`             |
+| `<EXECUTOR>`   | Identity/alias executing the call | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| `<CONTEXT_ID>` | Unique context identifier         | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| `<METHOD>`     | Method name to call               | `get_value`, `set_value`, `create_user`        |
+| `<app_id>`     | Application identifier            | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| `<blob_id>`    | Blob storage identifier           | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| `<context_id>` | Context identifier                | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| `<alias>`      | User-friendly alias name          | `alice`, `bob`, `admin`, `user123`             |
+| `<path>`       | File system path                  | `/path/to/node`, `./my-node`, `~/calimero`     |
+| `<url>`        | Remote node URL                   | `http://node.com`, `https://api.example.com`   |
 
 ### Commands:
 
@@ -66,19 +95,55 @@ your nodes private key.
 
 ### Examples:
 
-| **Command**                                                                  | **Description**                      |
-| ---------------------------------------------------------------------------- | ------------------------------------ |
-| `meroctl --node <NAME> app <COMMAND>`                                        | Command for managing applications    |
-| `meroctl --node <NAME> blob <COMMAND>`                                       | Command for managing blobs           |
-| `meroctl --node <NAME> context <COMMAND>`                                    | Command for managing contexts        |
-| `meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Call a method on a context           |
-| `meroctl --node <NAME> peers`                                                | Return the number of connected peers |
-| `meroctl --node <NAME> node <COMMAND>`                                       | Command for managing nodes           |
+| **Syntax**                                                                        | **Description**                      |
+| --------------------------------------------------------------------------------- | ------------------------------------ |
+| `meroctl --node <NODE_NAME> app <COMMAND>`                                        | Command for managing applications    |
+| `meroctl --node <NODE_NAME> blob <COMMAND>`                                       | Command for managing blobs           |
+| `meroctl --node <NODE_NAME> context <COMMAND>`                                    | Command for managing contexts        |
+| `meroctl --node <NODE_NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>` | Call a method on a context           |
+| `meroctl --node <NODE_NAME> peers`                                                | Return the number of connected peers |
+| `meroctl --node <NODE_NAME> node <COMMAND>`                                       | Command for managing nodes           |
+
+### Practical Examples with Real Values
+
+| **Command**                                                                                                                          | **Description**                   |
+| ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- |
+| `meroctl --node node1 app list`                                                                                                      | List all applications on node1    |
+| `meroctl --node node1 blob list`                                                                                                     | List all blobs on node1           |
+| `meroctl --node node1 context list`                                                                                                  | List all contexts on node1        |
+| `meroctl --node node1 call --as 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf get_value` | Call get_value method as executor |
+| `meroctl --node node1 peers`                                                                                                         | Show connected peers on node1     |
+| `meroctl --node node1 node list`                                                                                                     | List configured nodes             |
 
 ### Manage Applications
 
+**Syntax:**
+
 ```bash title="Terminal"
-meroctl --node <NAME> app <COMMAND>
+meroctl --node <NODE_NAME> app <COMMAND>
+```
+
+**Commands:**
+
+- `get <app_id>` - Fetch application details
+- `install <app_id>` - Install an application
+- `list` - List installed applications
+- `uninstall <app_id>` - Uninstall an application
+
+**Real Examples:**
+
+```bash
+# List all applications
+meroctl --node node1 app list
+
+# Install an application
+meroctl --node node1 app install 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Get details of a specific application
+meroctl --node node1 app get 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Uninstall an application
+meroctl --node node1 app uninstall 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 Commands:
@@ -90,8 +155,29 @@ Commands:
 
 ### Manage Blobs
 
+**Syntax:**
+
 ```bash title="Terminal"
-meroctl --node <NAME> blob <COMMAND>
+meroctl --node <NODE_NAME> blob <COMMAND>
+```
+
+**Commands:**
+
+- `list` - List all blobs
+- `info <blob_id>` - Get information about a specific blob
+- `delete <blob_id>` - Delete a specific blob
+
+**Real Examples:**
+
+```bash
+# List all blobs
+meroctl --node node1 blob list
+
+# Get information about a specific blob
+meroctl --node node1 blob info 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Delete a specific blob
+meroctl --node node1 blob delete 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 Commands:
@@ -102,8 +188,47 @@ Commands:
 
 ### Manage Contexts
 
+**Syntax:**
+
 ```bash title="Terminal"
-meroctl --node <NAME> context <COMMAND>
+meroctl --node <NODE_NAME> context <COMMAND>
+```
+
+**Commands:**
+
+- `list` - List all contexts
+- `create --application-id <app_id>` - Create a new context
+- `join <context_id>` - Join an existing context
+- `get <context_id>` - Get context details
+- `watch <context_id>` - Watch context events
+- `delete <context_id>` - Delete a context
+- `update <context_id>` - Update app in context
+- `identity <COMMAND>` - Manage context identities
+- `alias <COMMAND>` - Manage context aliases
+- `use <context_id>` - Set the default context
+- `proposals <COMMAND>` - Manage proposals within a context
+- `sync <context_id>` - Explicitly request a sync
+
+**Real Examples:**
+
+```bash
+# List all contexts
+meroctl --node node1 context list
+
+# Create a new context
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Join an existing context
+meroctl --node node1 context join 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Get context details
+meroctl --node node1 context get 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Watch context events
+meroctl --node node1 context watch 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Delete a context
+meroctl --node node1 context delete 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 Commands:
@@ -195,8 +320,36 @@ streamline context management.
 
 ### Manage Nodes
 
+**Syntax:**
+
 ```bash title="Terminal"
-meroctl --node <NAME> node <COMMAND>
+meroctl --node <NODE_NAME> node <COMMAND>
+```
+
+**Commands:**
+
+- `list` - List all configured nodes
+- `add <alias> <path_or_url>` - Add or connect to a node
+- `remove <alias>` - Remove a node connection
+- `use <alias>` - Set a node as active (default for commands)
+
+**Real Examples:**
+
+```bash
+# List all configured nodes
+meroctl --node node1 node list
+
+# Add a new local node
+meroctl --node node1 node add node2 /path/to/node2
+
+# Add a remote node
+meroctl --node node1 node add remote-node http://remote-node.com
+
+# Set a node as active
+meroctl --node node1 node use node2
+
+# Remove a node connection
+meroctl --node node1 node remove node2
 ```
 
 Commands:
@@ -208,24 +361,81 @@ Commands:
 
 ### Manage Identities
 
+**Syntax:**
+
 ```bash title="Terminal"
-meroctl --node <NAME> identity <COMMAND>
+meroctl --node <NODE_NAME> identity <COMMAND>
+```
+
+**Commands:**
+
+- `generate` - Generate public/private key pair used for context identity
+
+**Real Examples:**
+
+```bash
+# Generate a new key pair
+meroctl --node node1 identity generate
+
+# List identities in a context
+meroctl --node node1 context identity list 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# List only owned identities
+meroctl --node node1 context identity list 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --owned
 ```
 
 Commands:
 
 - `generate` Generate public/private key pair used for context identity
 
-### Show a number of connected peers
+### Show connected peers
+
+**Syntax:**
 
 ```bash title="Terminal"
-meroctl --node <NAME> peers
+meroctl --node <NODE_NAME> peers
+```
+
+**Real Examples:**
+
+```bash
+# Show peers for default node
+meroctl --node node1 peers
+
+# Show peers with JSON output
+meroctl --node node1 peers --output-format json
 ```
 
 ### Call a method on a context
 
+**Syntax:**
+
 ```bash title="Terminal"
-meroctl --node <NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
+meroctl --node <NODE_NAME> call [OPTIONS] --as <EXECUTOR> <CONTEXT_ID> <METHOD>
+```
+
+**Arguments:**
+
+- `<CONTEXT_ID>` - ContextId of the context
+- `<METHOD>` - Method to call on the context
+
+**Options:**
+
+- `--args <ARGS>` - JSON arguments to pass to the method
+- `--as <EXECUTOR>` - Public key or alias of the executor
+- `--id <ID>` - Id of the RPC execute call [default: dontcare]
+
+**Real Examples:**
+
+```bash
+# Call a simple method
+meroctl --node node1 call --as 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf get_value
+
+# Call with arguments
+meroctl --node node1 call --as 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf set_value --args '{"key": "name", "value": "John"}'
+
+# Call with specific ID
+meroctl --node node1 call --as 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf create_user --id user-123
 ```
 
 Arguments:
