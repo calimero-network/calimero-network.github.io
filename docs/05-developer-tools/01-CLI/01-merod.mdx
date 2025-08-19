@@ -5,7 +5,7 @@ title: Merod
 
 import MerodInstallation from '../../shared/install-merod.mdx';
 
-Merod is a command-line tool that allows you to initialize, configure and run
+Merod is a command-line tool that allows you to initialize, configure, and run
 Calimero nodes.
 
 <details>
@@ -18,51 +18,295 @@ Calimero nodes.
 ## Usage
 
 ```bash title="Terminal"
-merod [OPTIONS] --node-name <NAME> <COMMAND>
+merod [OPTIONS] --node-name <NODE_NAME> <COMMAND>
 ```
 
-### Commands:
-
-- `config` Configure the node
-- `init` Initialize node configuration
-- `run` Run a node
-- `relay` Relay incoming requests to specific location
-- `help` Print this message or the help of the given subcommand(s)
-
-:::tip
-
-Run help to get more information about the available options and commands.
+## Examples with Real Values
 
 ```bash title="Terminal"
-merod --help
+# Basic usage with a node named "node1"
+merod --node-name node1 init
+
+# Using a different node name
+merod --node-name my-production-node run
+
+# With custom home directory
+merod --home ~/.calimero-custom --node-name node1 init
+
+# With additional options
+merod --node-name node1 init --server-port 3000 --swarm-port 4000
 ```
 
-:::
+## Parameter Reference
 
-### Options:
+| **Parameter** | **Description**             | **Real Examples**                                |
+| ------------- | --------------------------- | ------------------------------------------------ |
+| `<NODE_NAME>` | Name of the node to manage  | `node1`, `prod-node`, `test-node`                |
+| `<COMMAND>`   | Subcommand to execute       | `init`, `config`, `run`, `relay`                 |
+| `<PATH>`      | File system path            | `/path/to/node`, `./my-node`, `~/calimero`       |
+| `<HOST>`      | Network host address        | `127.0.0.1`, `0.0.0.0`, `143.34.182.202`         |
+| `<PORT>`      | Network port number         | `2428`, `2528`, `3000`, `63529`                  |
+| `<URL>`       | Remote service URL          | `http://relayer.com`, `https://api.example.com`  |
+| `<NETWORK>`   | Network identifier          | `calimero-dev`, `ipfs`                           |
+| `<PROTOCOL>`  | Blockchain protocol         | `near`, `starknet`, `icp`, `stellar`, `ethereum` |
+| `<ADDR>`      | Network address             | `127.0.0.1:2428`, `192.168.1.100:2528`           |
+| `<URI>`       | Uniform Resource Identifier | `0.0.0.0:63529`, `127.0.0.1:63529`               |
 
-- `--home <PATH>` Directory for config and data
-- `-n`, `--node-name <NAME>` Name of node
-- `-h`, `--help` Print help
-- `-V`, `--version` Print version
+## Commands
+
+### Initialize Node Configuration
+
+**Syntax:**
+
+```bash title="Terminal"
+merod --node-name <NODE_NAME> init [OPTIONS]
+```
+
+**Commands:**
+
+- `init` - Initialize node configuration with default or custom settings
+
+**Options:**
+
+- `--boot-nodes <ADDR>` - List of bootstrap nodes
+- `--boot-network <NETWORK>` - Use nodes from a known network [default:
+  calimero-dev] [possible values: calimero-dev, ipfs]
+- `--swarm-host <HOST>` - Host to listen on [default: 0.0.0.0,::]
+- `--swarm-port <PORT>` - Port to listen on [default: 2428]
+- `--server-host <HOST>` - Host to listen on for RPC [default: 127.0.0.1,::1]
+- `--server-port <PORT>` - Port to listen on for RPC [default: 2528]
+- `--relayer-url <URL>` - URL of the relayer for submitting NEAR transactions
+- `--protocol <PROTOCOL>` - Name of protocol [default: near] [possible values:
+  near, starknet, icp, stellar, ethereum]
+- `--mdns` - Enable mDNS discovery
+- `--advertise-address` - Advertise observed address
+- `--rendezvous-registrations-limit <RENDEZVOUS_REGISTRATIONS_LIMIT>` - Maximum
+  number of rendezvous registrations allowed [default: 3]
+- `--relay-registrations-limit <RELAY_REGISTRATIONS_LIMIT>` - Maximum number of
+  relay registrations allowed [default: 3]
+- `--autonat-confidence-threshold <AUTONAT_CONFIDENCE_THRESHOLD>` - Minimum
+  number of successful autonat probes required to be confident about NAT status
+  [default: 2]
+- `--force` - Force initialization even if the directory already exists
+
+**Real Examples:**
+
+```bash
+# Initialize a node with default settings
+merod --node-name node1 init
+
+# Initialize with custom ports
+merod --node-name node1 init --server-port 3000 --swarm-port 4000
+
+# Initialize with custom home directory
+mkdir data
+merod --home data/ --node-name node1 init
+
+# Initialize with specific protocol and network
+merod --node-name node1 init --protocol ethereum --boot-network ipfs
+
+# Initialize with custom swarm host
+merod --node-name node1 init --swarm-host 192.168.1.100 --swarm-port 2428
+
+# Force initialization
+merod --node-name node1 init --force
+```
+
+### Configure Node
+
+**Syntax:**
+
+```bash title="Terminal"
+merod --node-name <NODE_NAME> config [ARGS]...
+```
+
+**Commands:**
+
+- `config` - Configure an existing node with key-value pairs
+
+**Arguments:**
+
+- `[ARGS]...` - Key-value pairs to be added or updated in the TOML file
+
+**Real Examples:**
+
+```bash
+# Configure server host and port
+merod --node-name node1 config --server-host 143.34.182.202 --server-port 3000
+
+# Configure swarm settings
+merod --node-name node1 config --swarm-host 0.0.0.0 --swarm-port 2428
+
+# Configure protocol and relayer
+merod --node-name node1 config --protocol near --relayer-url https://relayer.near.org
+
+# Configure multiple settings at once
+merod --node-name node1 config --server-host 192.168.1.100 --server-port 8080 --swarm-port 9090
+```
+
+### Run Node
+
+**Syntax:**
+
+```bash title="Terminal"
+merod --node-name <NODE_NAME> run
+```
+
+**Commands:**
+
+- `run` - Start and run the configured node
+
+**Real Examples:**
+
+```bash
+# Run a node with default configuration
+merod --node-name node1 run
+
+# Run a node with custom home directory
+merod --home ~/.calimero-custom --node-name node1 run
+
+# Run a production node
+merod --node-name prod-node run
+```
+
+### Relay Mode
+
+**Syntax:**
+
+```bash title="Terminal"
+merod --node-name <NODE_NAME> relay [OPTIONS]
+```
+
+**Commands:**
+
+- `relay` - Spin up a relay for external client interactions
+
+**Options:**
+
+- `-l, --listen <URI>` - Sets the address to listen on [default: 0.0.0.0:63529] [env:
+  PORT]
+
+**Real Examples:**
+
+```bash
+# Start relay with default port
+merod --node-name node1 relay
+
+# Start relay on specific address and port
+merod --node-name node1 relay --listen 127.0.0.1:8080
+
+# Start relay on custom port
+merod --node-name node1 relay --listen 0.0.0.0:9000
+
+# Start relay using environment variable
+PORT=7000 merod --node-name node1 relay
+```
+
+## Global Options
+
+**Syntax:**
+
+```bash title="Terminal"
+merod [OPTIONS] --node-name <NODE_NAME> <COMMAND>
+```
+
+**Options:**
+
+- `--home <PATH>` - Directory for config and data [env: CALIMERO_HOME] [default:
+  /Users/anton/.calimero]
+- `-n, --node-name <NAME>` - Name of node
+- `-h, --help` - Print help
+- `-V, --version` - Print version
+
+**Environment Variables:**
+
+- `CALIMERO_HOME` - Directory for config and data
+- `NEAR_API_KEY` - NEAR API key for blockchain operations
+
+**Real Examples:**
+
+```bash
+# Use custom home directory
+merod --home ~/.calimero-custom --node-name node1 init
+
+# Set home via environment variable
+export CALIMERO_HOME=~/.calimero-custom
+merod --node-name node1 init
+
+# Check version
+merod --version
+
+# Get help for specific command
+merod --node-name node1 init --help
+```
+
+## Complete Workflow Examples
+
+### Basic Node Setup
+
+```bash
+# 1. Initialize a new node
+merod --node-name node1 init
+
+# 2. Configure the node (optional)
+merod --node-name node1 config --server-port 3000 --swarm-port 4000
+
+# 3. Run the node
+merod --node-name node1 run
+```
+
+### Production Node Setup
+
+```bash
+# 1. Create custom directory
+mkdir -p /opt/calimero/prod-node
+
+# 2. Initialize with production settings
+merod --home /opt/calimero/prod-node --node-name prod-node init \
+  --server-host 0.0.0.0 \
+  --server-port 8080 \
+  --swarm-host 0.0.0.0 \
+  --swarm-port 9090 \
+  --protocol near \
+  --relayer-url https://relayer.near.org
+
+# 3. Run the production node
+merod --home /opt/calimero/prod-node --node-name prod-node run
+```
+
+### Multi-Protocol Node
+
+```bash
+# 1. Initialize node supporting multiple protocols
+merod --node-name multi-node init \
+  --protocol near \
+  --boot-network calimero-dev \
+  --mdns \
+  --advertise-address
+
+# 2. Configure additional protocols
+merod --node-name multi-node config \
+  --protocol ethereum \
+  --relayer-url https://ethereum-relayer.com
+
+# 3. Run the multi-protocol node
+merod --node-name multi-node run
+```
 
 :::tip
 
-Default location of the config and data directory is `~/.calimero`. You can
-change the location by using the `--home` option.
+Run `merod --help` or `merod --node-name <NODE_NAME> <COMMAND> --help` to get
+detailed information about available options and commands.
 
 :::
 
-### Examples:
+:::info
 
-| **Command**                                                                      | **Description**                                                                      |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `merod --node-name node1 init`                                                   | Initialize a node with default settings. (server-port = 2428 and swarm-port = 2528`) |
-| `merod --node-name node1 init --server-port 2429 --swarm-port 2529`              | Initialize a node with custom ports.                                                 |
-| `mkdir data && merod --home data/ --node-name node1 init`                        | Initialize a node with a custom home directory.                                      |
-| `merod --node-name node1 config --server-host 143.34.182.202 --server-port 3000` | Configure an existing node with a specific server host and port.                     |
-| `merod --node-name node1 run`                                                    | Run a node.                                                                          |
-| `merod --node-name node2 relay --listen 127.0.0.1:3333`                          | Relay incoming requests to a specific location.                                      |
+The default location of the config and data directory is `~/.calimero`. You can
+change this location by using the `--home` option or setting the `CALIMERO_HOME`
+environment variable.
+
+:::
 
 ```
 
