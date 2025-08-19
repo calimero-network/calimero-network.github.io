@@ -1629,7 +1629,7 @@ We have few repositories that demonstrate how SDK can be used. Check our
 
 import MerodInstallation from '../../shared/install-merod.mdx';
 
-Merod is a command-line tool that allows you to initialize, configure and run
+Merod is a command-line tool that allows you to initialize, configure, and run
 Calimero nodes.
 
   Installation
@@ -1643,48 +1643,292 @@ Calimero nodes.
 merod [OPTIONS] --node-name  
 ```
 
-### Commands:
-
-- `config` Configure the node
-- `init` Initialize node configuration
-- `run` Run a node
-- `relay` Relay incoming requests to specific location
-- `help` Print this message or the help of the given subcommand(s)
-
-:::tip
-
-Run help to get more information about the available options and commands.
+## Examples with Real Values
 
 ```bash title="Terminal"
-merod --help
+# Basic usage with a node named "node1"
+merod --node-name node1 init
+
+# Using a different node name
+merod --node-name my-production-node run
+
+# With custom home directory
+merod --home ~/.calimero-custom --node-name node1 init
+
+# With additional options
+merod --node-name node1 init --server-port 3000 --swarm-port 4000
 ```
 
-:::
+## Parameter Reference
 
-### Options:
+| **Parameter** | **Description**             | **Real Examples**                                |
+| ------------- | --------------------------- | ------------------------------------------------ |
+| `` | Name of the node to manage  | `node1`, `prod-node`, `test-node`                |
+| ``   | Subcommand to execute       | `init`, `config`, `run`, `relay`                 |
+| ``      | File system path            | `/path/to/node`, `./my-node`, `~/.calimero`      |
+| ``      | Network host address        | `127.0.0.1`, `0.0.0.0`, `143.34.182.202`         |
+| ``      | Network port number         | `2428`, `2528`, `3000`, `63529`                  |
+| ``       | Remote service URL          | `http://relayer.com`, `https://api.example.com`  |
+| ``   | Network identifier          | `calimero-dev`, `ipfs`                           |
+| ``  | Blockchain protocol         | `near`, `starknet`, `icp`, `stellar`, `ethereum` |
+| ``      | Network address             | `127.0.0.1:2428`, `192.168.1.100:2528`           |
+| ``       | Uniform Resource Identifier | `0.0.0.0:63529`, `127.0.0.1:63529`               |
 
-- `--home ` Directory for config and data
-- `-n`, `--node-name ` Name of node
-- `-h`, `--help` Print help
-- `-V`, `--version` Print version
+## Commands
+
+### Initialize Node Configuration
+
+**Syntax:**
+
+```bash title="Terminal"
+merod --node-name  init [OPTIONS]
+```
+
+**Commands:**
+
+- `init` - Initialize node configuration with default or custom settings
+
+**Options:**
+
+- `--boot-nodes ` - List of bootstrap nodes
+- `--boot-network ` - Use nodes from a known network [default:
+  calimero-dev] [possible values: calimero-dev, ipfs]
+- `--swarm-host ` - Host to listen on [default: 0.0.0.0,::]
+- `--swarm-port ` - Port to listen on [default: 2428]
+- `--server-host ` - Host to listen on for RPC [default: 127.0.0.1,::1]
+- `--server-port ` - Port to listen on for RPC [default: 2528]
+- `--relayer-url ` - URL of the relayer for submitting NEAR transactions
+- `--protocol ` - Name of protocol [default: near] [possible values:
+  near, starknet, icp, stellar, ethereum]
+- `--mdns` - Enable mDNS discovery
+- `--advertise-address` - Advertise observed address
+- `--rendezvous-registrations-limit ` - Maximum
+  number of rendezvous registrations allowed [default: 3]
+- `--relay-registrations-limit ` - Maximum number of
+  relay registrations allowed [default: 3]
+- `--autonat-confidence-threshold ` - Minimum
+  number of successful autonat probes required to be confident about NAT status
+  [default: 2]
+- `--force` - Force initialization even if the directory already exists
+
+**Real Examples:**
+
+```bash
+# Initialize a node with default settings
+merod --node-name node1 init
+
+# Initialize with custom ports
+merod --node-name node1 init --server-port 3000 --swarm-port 4000
+
+# Initialize with custom home directory
+mkdir data
+merod --home data/ --node-name node1 init
+
+# Initialize with specific protocol and network
+merod --node-name node1 init --protocol ethereum --boot-network ipfs
+
+# Initialize with custom swarm host
+merod --node-name node1 init --swarm-host 192.168.1.100 --swarm-port 2428
+
+# Force initialization
+merod --node-name node1 init --force
+```
+
+### Configure Node
+
+**Syntax:**
+
+```bash title="Terminal"
+merod --node-name  config [ARGS]...
+```
+
+**Commands:**
+
+- `config` - Configure an existing node with key-value pairs
+
+**Arguments:**
+
+- `[ARGS]...` - Key-value pairs to be added or updated in the TOML file
+
+**Real Examples:**
+
+```bash
+# Configure server host and port
+merod --node-name node1 config --server-host 143.34.182.202 --server-port 3000
+
+# Configure swarm settings
+merod --node-name node1 config --swarm-host 0.0.0.0 --swarm-port 2428
+
+# Configure protocol and relayer
+merod --node-name node1 config --protocol near --relayer-url https://relayer.near.org
+
+# Configure multiple settings at once
+merod --node-name node1 config --server-host 192.168.1.100 --server-port 8080 --swarm-port 9090
+```
+
+### Run Node
+
+**Syntax:**
+
+```bash title="Terminal"
+merod --node-name  run
+```
+
+**Commands:**
+
+- `run` - Start and run the configured node
+
+**Real Examples:**
+
+```bash
+# Run a node with default configuration
+merod --node-name node1 run
+
+# Run a node with custom home directory
+merod --home ~/.calimero-custom --node-name node1 run
+
+# Run a production node
+merod --node-name prod-node run
+```
+
+### Relay Mode
+
+**Syntax:**
+
+```bash title="Terminal"
+merod --node-name  relay [OPTIONS]
+```
+
+**Commands:**
+
+- `relay` - Spin up a relay for external client interactions
+
+**Options:**
+
+- `-l, --listen ` - Sets the address to listen on [default: 0.0.0.0:63529] [env:
+  PORT]
+
+**Real Examples:**
+
+```bash
+# Start relay with default port
+merod --node-name node1 relay
+
+# Start relay on specific address and port
+merod --node-name node1 relay --listen 127.0.0.1:8080
+
+# Start relay on custom port
+merod --node-name node1 relay --listen 0.0.0.0:9000
+
+# Start relay using environment variable
+PORT=7000 merod --node-name node1 relay
+```
+
+## Global Options
+
+**Syntax:**
+
+```bash title="Terminal"
+merod [OPTIONS] --node-name  
+```
+
+**Options:**
+
+- `--home ` - Directory for config and data [env: CALIMERO_HOME] [default:
+  /Users/anton/.calimero]
+- `-n, --node-name ` - Name of node
+- `-h, --help` - Print help
+- `-V, --version` - Print version
+
+**Environment Variables:**
+
+- `CALIMERO_HOME` - Directory for config and data
+- `NEAR_API_KEY` - NEAR API key for blockchain operations
+
+**Real Examples:**
+
+```bash
+# Use custom home directory
+merod --home ~/.calimero-custom --node-name node1 init
+
+# Set home via environment variable
+export CALIMERO_HOME=~/.calimero-custom
+merod --node-name node1 init
+
+# Check version
+merod --version
+
+# Get help for specific command
+merod --node-name node1 init --help
+```
+
+## Complete Workflow Examples
+
+### Basic Node Setup
+
+```bash
+# 1. Initialize a new node
+merod --node-name node1 init
+
+# 2. Configure the node (optional)
+merod --node-name node1 config --server-port 3000 --swarm-port 4000
+
+# 3. Run the node
+merod --node-name node1 run
+```
+
+### Production Node Setup
+
+```bash
+# 1. Create custom directory
+mkdir -p /opt/.calimero/prod-node
+
+# 2. Initialize with production settings
+merod --home /opt/.calimero/prod-node --node-name prod-node init \
+  --server-host 0.0.0.0 \
+  --server-port 8080 \
+  --swarm-host 0.0.0.0 \
+  --swarm-port 9090 \
+  --protocol near \
+  --relayer-url https://relayer.near.org
+
+# 3. Run the production node
+merod --home /opt/.calimero/prod-node --node-name prod-node run
+```
+
+### Multi-Protocol Node
+
+```bash
+# 1. Initialize node supporting multiple protocols
+merod --node-name multi-node init \
+  --protocol near \
+  --boot-network calimero-dev \
+  --mdns \
+  --advertise-address
+
+# 2. Configure additional protocols
+merod --node-name multi-node config \
+  --protocol ethereum \
+  --relayer-url https://ethereum-relayer.com
+
+# 3. Run the multi-protocol node
+merod --node-name multi-node run
+```
 
 :::tip
 
-Default location of the config and data directory is `~/.calimero`. You can
-change the location by using the `--home` option.
+Run `merod --help` or `merod --node-name   --help` to get
+detailed information about available options and commands.
 
 :::
 
-### Examples:
+:::info
 
-| **Command**                                                                      | **Description**                                                                      |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `merod --node-name node1 init`                                                   | Initialize a node with default settings. (server-port = 2428 and swarm-port = 2528`) |
-| `merod --node-name node1 init --server-port 2429 --swarm-port 2529`              | Initialize a node with custom ports.                                                 |
-| `mkdir data && merod --home data/ --node-name node1 init`                        | Initialize a node with a custom home directory.                                      |
-| `merod --node-name node1 config --server-host 143.34.182.202 --server-port 3000` | Configure an existing node with a specific server host and port.                     |
-| `merod --node-name node1 run`                                                    | Run a node.                                                                          |
-| `merod --node-name node2 relay --listen 127.0.0.1:3333`                          | Relay incoming requests to a specific location.                                      |
+The default location of the config and data directory is `~/.calimero`. You can
+change this location by using the `--home` option or setting the `CALIMERO_HOME`
+environment variable.
+
+:::
 
 ```
 
@@ -1710,15 +1954,43 @@ node directly from the shell.
 meroctl [OPTIONS] --node  
 ```
 
+### Examples with Real Values
+
+```bash title="Terminal"
+# Basic usage with a node named "node1"
+meroctl --node node1 app list
+
+# Using a different node name
+meroctl --node my-production-node context list
+
+# With additional options
+meroctl --home ~/.calimero --node node1 app install my-app
+```
+
+### Parameter Reference
+
+| **Parameter**  | **Description**                   | **Real Examples**                              |
+| -------------- | --------------------------------- | ---------------------------------------------- |
+| ``  | Name of the node to connect to    | `node1`, `prod-node`, `test-node`              |
+| ``    | Subcommand to execute             | `list`, `install`, `get`, `create`             |
+| ``   | Identity/alias executing the call | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| `` | Unique context identifier         | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| ``     | Method name to call               | `get_value`, `set_value`, `create_user`        |
+| ``     | Application identifier            | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| ``    | Blob storage identifier           | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| `` | Context identifier                | `3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf` |
+| ``      | User-friendly alias name          | `alice`, `bob`, `admin`, `user123`             |
+| ``       | File system path                  | `/path/to/node`, `./my-node`, `~/.calimero`    |
+| ``        | Remote node URL                   | `http://node.com`, `https://api.example.com`   |
+
 ### Commands:
 
 - `app` Command for managing applications
+- `blob` Command for managing blobs
 - `context` Command for managing contexts
-- `identity` Command for creating an empty identity
-- `proxy` Command for managing proxy contract
-- `call` Executing read and write RPC calls
-- `peers` Show a number of connected peers
-- `bootstrap` Setup two nodes inside the same context
+- `call` Call a method on a context
+- `peers` Return the number of connected peers
+- `node` Command for managing nodes
 - `help` Print this message or the help of the given subcommand(s)
 
 :::tip
@@ -1756,18 +2028,55 @@ your nodes private key.
 
 ### Examples:
 
-| **Command**                                                                  | **Description**                     |
-| ---------------------------------------------------------------------------- | ----------------------------------- |
-| `meroctl --node  app `                                        | Command for managing applications   |
-| `meroctl --node  context `                                    | Command for managing contexts       |
-| `meroctl --node  identity `                                   | Command for creating identities     |
-| `meroctl --node  proxy `                                      | Command for managing proxy contract |
-| `meroctl --node  call [OPTIONS] --as   ` | Executing read and write RPC calls  |
+| **Syntax**                                                                        | **Description**                      |
+| --------------------------------------------------------------------------------- | ------------------------------------ |
+| `meroctl --node  app `                                        | Command for managing applications    |
+| `meroctl --node  blob `                                       | Command for managing blobs           |
+| `meroctl --node  context `                                    | Command for managing contexts        |
+| `meroctl --node  call [OPTIONS] --as   ` | Call a method on a context           |
+| `meroctl --node  peers`                                                | Return the number of connected peers |
+| `meroctl --node  node `                                       | Command for managing nodes           |
+
+### Practical Examples with Real Values
+
+| **Command**                                                                                                                          | **Description**                   |
+| ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- |
+| `meroctl --node node1 app list`                                                                                                      | List all applications on node1    |
+| `meroctl --node node1 blob list`                                                                                                     | List all blobs on node1           |
+| `meroctl --node node1 context list`                                                                                                  | List all contexts on node1        |
+| `meroctl --node node1 call --as 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf get_value` | Call get_value method as executor |
+| `meroctl --node node1 peers`                                                                                                         | Show connected peers on node1     |
+| `meroctl --node node1 node list`                                                                                                     | List configured nodes             |
 
 ### Manage Applications
 
+**Syntax:**
+
 ```bash title="Terminal"
 meroctl --node  app 
+```
+
+**Commands:**
+
+- `get ` - Fetch application details
+- `install ` - Install an application
+- `list` - List installed applications
+- `uninstall ` - Uninstall an application
+
+**Real Examples:**
+
+```bash
+# List all applications
+meroctl --node node1 app list
+
+# Install an application
+meroctl --node node1 app install 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Get details of a specific application
+meroctl --node node1 app get 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Uninstall an application
+meroctl --node node1 app uninstall 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 Commands:
@@ -1775,11 +2084,84 @@ Commands:
 - `get` Fetch application details
 - `install` Install an application
 - `list` List installed applications
+- `uninstall` Uninstall an application
+
+### Manage Blobs
+
+**Syntax:**
+
+```bash title="Terminal"
+meroctl --node  blob 
+```
+
+**Commands:**
+
+- `list` - List all blobs
+- `info ` - Get information about a specific blob
+- `delete ` - Delete a specific blob
+
+**Real Examples:**
+
+```bash
+# List all blobs
+meroctl --node node1 blob list
+
+# Get information about a specific blob
+meroctl --node node1 blob info 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Delete a specific blob
+meroctl --node node1 blob delete 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+```
+
+Commands:
+
+- `list` List all blobs
+- `info` Get information about a specific blob
+- `delete` Delete a specific blob
 
 ### Manage Contexts
 
+**Syntax:**
+
 ```bash title="Terminal"
 meroctl --node  context 
+```
+
+**Commands:**
+
+- `list` - List all contexts
+- `create --application-id ` - Create a new context
+- `join ` - Join an existing context
+- `get ` - Get context details
+- `watch ` - Watch context events
+- `delete ` - Delete a context
+- `update ` - Update app in context
+- `identity ` - Manage context identities
+- `alias ` - Manage context aliases
+- `use ` - Set the default context
+- `proposals ` - Manage proposals within a context
+- `sync ` - Explicitly request a sync
+
+**Real Examples:**
+
+```bash
+# List all contexts
+meroctl --node node1 context list
+
+# Create a new context
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Join an existing context
+meroctl --node node1 context join 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Get context details
+meroctl --node node1 context get 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Watch context events
+meroctl --node node1 context watch 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# Delete a context
+meroctl --node node1 context delete 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 Commands:
@@ -1790,6 +2172,13 @@ Commands:
 - `join` Join an application context
 - `invite` Create invitation to a context for a invitee
 - `get` Fetch details about the context
+- `delete` Delete a context
+- `watch` Watch events from a context and optionally execute commands
+- `update` Update app in context
+- `identity` Manage context identities
+- `use` Set the default context
+- `proposals` Manage proposals within a context
+- `sync` Explicitly request a sync
 
   
     `get` subcommands- `info` Get context information -
@@ -1862,42 +2251,130 @@ streamline context management.
 
 :::
 
+### Manage Nodes
+
+**Syntax:**
+
+```bash title="Terminal"
+meroctl --node  node 
+```
+
+**Commands:**
+
+- `list` - List all configured nodes
+- `add  ` - Add or connect to a node
+- `remove ` - Remove a node connection
+- `use ` - Set a node as active (default for commands)
+
+**Real Examples:**
+
+```bash
+# List all configured nodes
+meroctl --node node1 node list
+
+# Add a new local node
+meroctl --node node1 node add node2 /path/to/node2
+
+# Add a remote node
+meroctl --node node1 node add remote-node http://remote-node.com
+
+# Set a node as active
+meroctl --node node1 node use node2
+
+# Remove a node connection
+meroctl --node node1 node remove node2
+```
+
+Commands:
+
+- `add` Add or connect to a node
+- `remove` Remove a node connection
+- `use` Set a node as active (default for commands)
+- `list` List all configured nodes
+
 ### Manage Identities
+
+**Syntax:**
 
 ```bash title="Terminal"
 meroctl --node  identity 
+```
+
+**Commands:**
+
+- `generate` - Generate public/private key pair used for context identity
+
+**Real Examples:**
+
+```bash
+# Generate a new key pair
+meroctl --node node1 identity generate
+
+# List identities in a context
+meroctl --node node1 context identity list 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
+
+# List only owned identities
+meroctl --node node1 context identity list 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --owned
 ```
 
 Commands:
 
 - `generate` Generate public/private key pair used for context identity
 
-### Command for managing proxy contract
+### Show connected peers
 
-```bash title="Terminal"
- meroctl --node  proxy 
-```
-
-Commands:
-
-- `get` Fetch details about the proxy contract
-
-### Show a number of connected peers
+**Syntax:**
 
 ```bash title="Terminal"
 meroctl --node  peers
 ```
 
-### Executing read and write RPC calls
+**Real Examples:**
+
+```bash
+# Show peers for default node
+meroctl --node node1 peers
+
+# Show peers with JSON output
+meroctl --node node1 peers --output-format json
+```
+
+### Call a method on a context
+
+**Syntax:**
 
 ```bash title="Terminal"
 meroctl --node  call [OPTIONS] --as   
 ```
 
+**Arguments:**
+
+- `` - ContextId of the context
+- `` - Method to call on the context
+
+**Options:**
+
+- `--args ` - JSON arguments to pass to the method
+- `--as ` - Public key or alias of the executor
+- `--id ` - Id of the RPC execute call [default: dontcare]
+
+**Real Examples:**
+
+```bash
+# Call a simple method
+meroctl --node node1 call --as 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf get_value
+
+# Call with arguments
+meroctl --node node1 call --as 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf set_value --args '{"key": "name", "value": "John"}'
+
+# Call with specific ID
+meroctl --node node1 call --as 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf create_user --id user-123
+```
+
 Arguments:
 
 - `` ContextId of the context
-- `` Method to fetch details
+- `` Method to call on the context
 
 Options:
 
@@ -1911,9 +2388,8 @@ Options:
 
 import CargoMeroInstallation from '../../shared/install-cargo-mero.mdx';
 
-# cargo-mero
-
-A Cargo subcommand for building applications on the Calimero network.
+Cargo Mero is a Cargo subcommand for building applications on the Calimero
+network.
 
   Installation
   
@@ -1922,6 +2398,12 @@ A Cargo subcommand for building applications on the Calimero network.
 
 Make sure `~/.cargo/bin` is in your `PATH` so that `cargo mero` is available as
 a subcommand.
+
+## Usage
+
+```bash title="Terminal"
+cargo mero 
+```
 
 ## Commands
 
@@ -1933,6 +2415,16 @@ Scaffold a new Calimero application.
 cargo mero new 
 ```
 
+**Examples:**
+
+```bash
+# Create a new application called "kv-store"
+cargo mero new kv-store
+
+# Create a new application called "dao-app"
+cargo mero new dao-app
+```
+
 ### build
 
 Build your Calimero application to WASM.
@@ -1941,7 +2433,7 @@ Build your Calimero application to WASM.
 cargo mero build [OPTIONS]
 ```
 
-#### Build Options
+**Build Options:**
 
 | Option                  | Description                                           |
 | ----------------------- | ----------------------------------------------------- |
@@ -1951,12 +2443,26 @@ cargo mero build [OPTIONS]
 | `-q`, `--quiet`         | Do not print cargo log messages                       |
 | `-F`, `--features`      | Space or comma separated list of features to activate |
 | `--no-default-features` | No default features                                   |
+| `-p`, `--package`       | Package to build                                      |
 | `-h`, `--help`          | Print help                                            |
 
-#### Example: Build with options
+**Examples:**
 
-```bash title="Terminal"
-cargo mero build --verbose --features feature1,feature2 --no-release
+```bash
+# Basic build
+cargo mero build
+
+# Build with verbose output
+cargo mero build --verbose
+
+# Build in development mode
+cargo mero build --no-release
+
+# Build with specific features
+cargo mero build --features test,debug
+
+# Build a specific package
+cargo mero build --package my-app
 ```
 
 ### help
@@ -1965,7 +2471,19 @@ Prints the help message or the help of the given subcommand(s).
 
 ```bash title="Terminal"
 cargo mero --help
+cargo mero  --help
 ```
+
+## Next Steps
+
+After building your application with `cargo mero build`, you can:
+
+1. **Install on a node**: Use `meroctl app install` to deploy your built
+   application
+2. **Create contexts**: Use `meroctl context create` to set up application
+   networks
+3. **Test locally**: Use the development profile for faster iteration
+4. **Deploy to production**: Use the release profile for optimized builds
 
 ---
 
@@ -5641,7 +6159,7 @@ You have now created a new context.
 To create an alias for this context, use:
 
 ```bash title="Terminal"
-context alias add my_context 
+meroctl --node node1 context alias add my_context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 Next step is to invite users to join your context. Continue with
@@ -5673,13 +6191,13 @@ In the example below, Node 2 is the invitee, and Node 1 is the invitor.
 If you create an Context Alias for your context using
 
 ```bash title="Context Alias (Node1)"
-context alias add my_context {contextID}
+meroctl --node node1 context alias add my_context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 And then create an Identity Alias for your identity in the context using
 
 ```bash title="Identity Alias (Node1)"
-identity alias add bob {PublicKey} --context my_context ## ERROR HERE
+meroctl --node node1 context identity alias add bob 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --context my_context
 ```
 
 Everywhere in the tutorial, on the node which you have created the aliases
@@ -5695,29 +6213,29 @@ contextID and the invitorContextIdentity
    using the following command:
 
 ```bash title="Node 2"
-context identity new
+meroctl --node node1 context identity generate
 ```
 
 This generates a private and public key pair, where the public key is the
 inviteeContextIdentity. Share this public key with the invitor.
 
 ```bash title="Example"
-context identity new
+meroctl --node node1 context identity generate
 │ Private Key: 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7
 │ Public Key: 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
 ```
 
 ![Create Identity](/cli/3-create-identity.png)
 
-2. Invitor Creates an Invitation Once the invitee’s public key is shared, the
+2. Invitor Creates an Invitation Once the invitee's public key is shared, the
    invitor generates an invitation to the context using the following command:
 
 ```bash title="Node 1"
-context invite -c {contextId} {inviteeContextIdentity} --as {inviterContextIdentity}
+meroctl --node node1 context invite 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
 ```
 
 ```bash title="Example"
-context invite -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
+meroctl --node node1 context invite 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
 │ Invited 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 to context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Invitation Payload: axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 ```
@@ -5727,11 +6245,11 @@ context invite -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2Zw
 To check the invitor's identity, use this command:
 
 ```bash title="Node 1"
-context identity ls -c {contextId}
+meroctl --node node1 context identity list --context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 ```bash title="Example"
-context identity ls -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+meroctl --node node1 context identity list --context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 │ Identity                                     |  Owned │
 | DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 | *
 ```
@@ -5743,11 +6261,11 @@ Listed identity is invitorContextIdentity used above.
    private key:
 
 ```bash title="Node 2"
-context join {inviteePrivateKey} {invitationPayload}
+meroctl --node node1 context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 ```
 
 ```bash title="Example"
-context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
+meroctl --node node1 context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 2024-10-07T12:18:51.809231Z  INFO calimero_context: Subscribed to context context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 2024-10-07T12:18:51.811102Z  INFO calimero_context: Joined context with pending catchup context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Joined context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn as 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9, waiting for catchup to complete...
@@ -5759,11 +6277,11 @@ context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9Jqh
    the invitee can list their contexts with the following command:
 
 ```bash title="Node 2"
-context ls
+meroctl --node node1 context list
 ```
 
 ```bash title="Example"
-context ls
+meroctl --node node1 context list
 │ Context ID                                   | Application ID                               | Last Transaction
 │ 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn | Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF | b3ipivssRRm1ehRTSpUD3GKdUpvi3vq311pCT4iLvui
 ```
@@ -5773,11 +6291,11 @@ context ls
 5. The invitee can also list identities in the context
 
 ```bash title="Node 2"
-context identity ls -c {contextId}
+meroctl --node node1 context identity list --context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 ```bash title="Example"
-context identity ls -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+meroctl --node node1 context identity list --context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 │ Identity                                     | Owned
 │ 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 | *
 │ DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 |
@@ -6017,7 +6535,7 @@ impl KvStore {
     pub fn init() -> KvStore {
         // highlight-start
         KvStore {
-            items: UnorderedMap::new(),
+            entries: UnorderedMap::new(),
         }
         // highlight-end
     }
@@ -6036,7 +6554,7 @@ impl KvStore {
     pub fn entries(&self) -> Result, Error> {
         env::log("Getting all entries");
 
-        Ok(self.items.entries()?.collect())
+        Ok(self.entries.entries()?.collect())
     }
     // highlight-end
 
@@ -6044,7 +6562,7 @@ impl KvStore {
     pub fn get(&self, key: &str) -> Result, Error> {
         env::log(&format!("Getting key: {:?}", key));
 
-        self.items.get(key).map_err(Into::into)
+        self.entries.get(key).map_err(Into::into)
     }
     // highlight-end
 
@@ -6052,7 +6570,7 @@ impl KvStore {
     pub fn remove(&mut self, key: &str) -> Result, Error> {
         env::log(&format!("Removing key: {:?}", key));
 
-        self.items.remove(key).map_err(Into::into)
+        self.entries.remove(key).map_err(Into::into)
     }
     // highlight-end
 }
@@ -6489,23 +7007,23 @@ If you want to install an application that is published in the registry, check
 After the application is installed, you can create new context:
 
 ```bash title="Terminal"
-meroctl --node node1 context create --application-id  --protocol near
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol near
 ```
 
 ```bash title="Terminal"
-meroctl --node node1 context create --application-id  --protocol starknet
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol starknet
 ```
 
 ```bash title="Terminal"
-meroctl --node node1 context create --application-id  --protocol icp
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol icp
 ```
 
 ```bash title="Terminal"
-meroctl --node node1 context create --application-id  --protocol stellar
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol stellar
 ```
 
 ```bash title="Terminal"
-meroctl --node node1 context create --application-id  --protocol ethereum
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol ethereum
 ```
 
 You are now part of the context and can start using the application.
@@ -8774,29 +9292,28 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch  --protocol near
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol near
 ```
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch  --protocol starknet
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1brV1RKEXtfvfsf --protocol starknet
 ```
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch  --protocol icp
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol icp
 ```
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch  --protocol stellar
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol stellar
 ```
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch  --protocol ethereum
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol ethereum
 ```
 
 :::tip
 
-- `--watch` flag enables watching for changes of wasm files and updating context
-  with the new version
+- `--application-id` flag specifies the application ID to attach to the context
 - `--protocol` flag specifies the protocol to use for the context
 - `--as` flag creates an alias for your identity in your context, you can use it
   instead of the PublicKey
@@ -8815,7 +9332,7 @@ import TabItem from '@theme/TabItem';
 Run the following command to install the application:
 
 ```bash title="Node Terminal"
-application install url {url} {metadata}
+application install url {url} {metadata}
 ```
 
 :::note
@@ -8823,7 +9340,7 @@ application install url {url} {metadata}
 metadata example:
 
 ```bash
-'{"contractAppId": ""}'
+'{"contractAppId": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"}'
 ```
 
 :::
@@ -8831,27 +9348,28 @@ metadata example:
 ### Create a New Context
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol near
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol near
 ```
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol starknet
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol starknet
 ```
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol icp
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol icp
 ```
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol stellar
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol stellar
 ```
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol ethereum
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol ethereum
 ```
 
 :::tip
 
+`--application-id` flag specifies the application ID to attach to the context.
 `--protocol` flag specifies the protocol to use for the context.
 
 :::
