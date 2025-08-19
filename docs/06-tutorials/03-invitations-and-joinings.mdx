@@ -25,13 +25,13 @@ In the example below, Node 2 is the invitee, and Node 1 is the invitor.
 If you create an Context Alias for your context using
 
 ```bash title="Context Alias (Node1)"
-context alias add my_context {contextID}
+meroctl --node node1 context alias add my_context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 And then create an Identity Alias for your identity in the context using
 
 ```bash title="Identity Alias (Node1)"
-identity alias add bob {PublicKey} --context my_context ## ERROR HERE
+meroctl --node node1 context identity alias add bob 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --context my_context
 ```
 
 Everywhere in the tutorial, on the node which you have created the aliases
@@ -47,29 +47,29 @@ contextID and the invitorContextIdentity
    using the following command:
 
 ```bash title="Node 2"
-context identity new
+meroctl --node node1 context identity generate
 ```
 
 This generates a private and public key pair, where the public key is the
 inviteeContextIdentity. Share this public key with the invitor.
 
 ```bash title="Example"
-context identity new
+meroctl --node node1 context identity generate
 │ Private Key: 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7
 │ Public Key: 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9
 ```
 
 ![Create Identity](/cli/3-create-identity.png)
 
-2. Invitor Creates an Invitation Once the invitee’s public key is shared, the
+2. Invitor Creates an Invitation Once the invitee's public key is shared, the
    invitor generates an invitation to the context using the following command:
 
 ```bash title="Node 1"
-context invite -c {contextId} {inviteeContextIdentity} --as {inviterContextIdentity}
+meroctl --node node1 context invite 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
 ```
 
 ```bash title="Example"
-context invite -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
+meroctl --node node1 context invite 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 --as DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5
 │ Invited 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 to context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Invitation Payload: axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 ```
@@ -79,11 +79,11 @@ context invite -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn 3yBQQvn2G8ghWk2Zw
 To check the invitor's identity, use this command:
 
 ```bash title="Node 1"
-context identity ls -c {contextId}
+meroctl --node node1 context identity list --context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 ```bash title="Example"
-context identity ls -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+meroctl --node node1 context identity list --context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 │ Identity                                     |  Owned │
 | DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 | *
 ```
@@ -95,11 +95,11 @@ Listed identity is invitorContextIdentity used above.
    private key:
 
 ```bash title="Node 2"
-context join {inviteePrivateKey} {invitationPayload}
+meroctl --node node1 context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 ```
 
 ```bash title="Example"
-context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
+meroctl --node node1 context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9JqhsYrNXRSvg6hXVWYpdsxNRhAjKD35S5FruCzyRWHYHzQyN1QbSVyRKRiTwz8Kbq4aj2dSdmi7HNxwcjTS5JkK1xwJMA8ogYuWHhDj4jfLdukPZb2SavC8cq3npFydinVZ
 2024-10-07T12:18:51.809231Z  INFO calimero_context: Subscribed to context context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 2024-10-07T12:18:51.811102Z  INFO calimero_context: Joined context with pending catchup context_id=567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
 │ Joined context 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn as 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9, waiting for catchup to complete...
@@ -111,11 +111,11 @@ context join 6i52ykNTqSqCgfDPYiKktListssSP9YwxLMzApDZe5U7 axDfZcWCw7jc3i7MeG9Jqh
    the invitee can list their contexts with the following command:
 
 ```bash title="Node 2"
-context ls
+meroctl --node node1 context list
 ```
 
 ```bash title="Example"
-context ls
+meroctl --node node1 context list
 │ Context ID                                   | Application ID                               | Last Transaction
 │ 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn | Ahe2vLWLgswJARv5LsafXp7uJyb2Ba9GjzUSeLc71gUF | b3ipivssRRm1ehRTSpUD3GKdUpvi3vq311pCT4iLvui
 ```
@@ -125,11 +125,11 @@ context ls
 5. The invitee can also list identities in the context
 
 ```bash title="Node 2"
-context identity ls -c {contextId}
+meroctl --node node1 context identity list --context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 ```
 
 ```bash title="Example"
-context identity ls -c 567C5Gg4mxHMPKy2wLJ4uvb3DHsbcpVDYUsuAWgTPgXn
+meroctl --node node1 context identity list --context 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf
 │ Identity                                     | Owned
 │ 3yBQQvn2G8ghWk2ZwmLFYxJQgM1YmDtiigi84nGpZBb9 | *
 │ DaSkad6DK7f6fUhjz1CvNW7L4TkWZmWqAcwysZHG3Xs5 |

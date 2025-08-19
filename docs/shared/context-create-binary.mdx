@@ -13,28 +13,28 @@ import TabItem from '@theme/TabItem';
 <TabItem value="near">
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch <application_path> --protocol near
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol near
 ```
 
 </TabItem>
 <TabItem value="starknet">
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch <application_path> --protocol starknet
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1brV1RKEXtfvfsf --protocol starknet
 ```
 
 </TabItem>
 <TabItem value="icp">
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch <application_path> --protocol icp
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol icp
 ```
 
 </TabItem>
 <TabItem value="stellar">
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch <application_path> --protocol stellar
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol stellar
 ```
 
 </TabItem>
@@ -42,7 +42,7 @@ meroctl --node node1 context create --watch <application_path> --protocol stella
 <TabItem value="ethereum">
 
 ```bash title="Terminal"
-meroctl --node node1 context create --watch <application_path> --protocol ethereum
+meroctl --node node1 context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol ethereum
 ```
 
 </TabItem>
@@ -50,8 +50,7 @@ meroctl --node node1 context create --watch <application_path> --protocol ethere
 
 :::tip
 
-- `--watch` flag enables watching for changes of wasm files and updating context
-  with the new version
+- `--application-id` flag specifies the application ID to attach to the context
 - `--protocol` flag specifies the protocol to use for the context
 - `--as` flag creates an alias for your identity in your context, you can use it
   instead of the PublicKey
