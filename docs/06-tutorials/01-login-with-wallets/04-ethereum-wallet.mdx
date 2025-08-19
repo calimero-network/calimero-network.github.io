@@ -1,0 +1,93 @@
+---
+id: ethereum-wallet
+title: Ethereum Wallet
+---
+
+## Logging in with Ethereum Wallet
+
+Calimero allows users to authenticate via their Ethereum wallet (such as
+Metamask), ensuring secure access to the Admin Dashboard. The process of logging
+in with an Ethereum wallet involves the following steps:
+
+### 1. User Initiates Login
+
+- The user navigates to the Admin Dashboard and selects the option to "Login
+  with Ethereum Wallet."
+- They are presented with wallet options, typically Metamask or other Web3
+  wallet extensions.
+
+### 2. Wallet Connection
+
+- The user connects their Ethereum wallet (e.g., Metamask) to the Calimero
+  application.
+- The wallet extension prompts the user to approve the connection and select the
+  desired account.
+- The user's Ethereum address is retrieved from the connected wallet.
+
+### 3. Server Issues Challenge
+
+- Upon successful wallet connection, the server generates a challenge message.
+- This challenge is presented to the user for signing through their Ethereum
+  wallet.
+
+### 4. User Signs Challenge
+
+- The user is prompted to sign the server-issued challenge using their Ethereum
+  wallet.
+- The wallet extension displays the message to be signed and requests user
+  confirmation.
+- The user approves the signature request in their wallet.
+
+### 5. Signature Verification
+
+The backend verifies the Ethereum signature to ensure its authenticity using
+Ethereum's cryptographic standards:
+
+1. **Message Hash Verification**:
+
+   - The original challenge message is hashed using Ethereum's standard hashing
+     algorithm.
+   - The signature is verified against the message hash and the user's public
+     key.
+
+2. **Ethereum Address Recovery**:
+   - The user's Ethereum address is recovered from the signature.
+   - This address serves as the user's unique identifier for authentication.
+
+### 6. Successful Login
+
+- Once verified, the user is successfully logged into the Admin Dashboard.
+- Their Ethereum address becomes their Decentralized Identifier (DID), enabling
+  decentralized authentication across different contexts and applications.
+
+## Supported Ethereum Wallets
+
+Calimero supports various Ethereum-compatible wallets:
+
+- **Metamask**: The most popular Web3 wallet extension
+- **WalletConnect**: For mobile wallet connections
+- **Other Web3 Wallets**: Any wallet that supports the standard Ethereum signing
+  interface
+
+## Network Support
+
+Ethereum wallet authentication works across multiple Ethereum networks:
+
+- **Ethereum Mainnet**: Production network
+- **Ethereum Testnets**: Sepolia, Goerli, and other test networks
+- **Ethereum Layer 2s**: Polygon, Arbitrum, Optimism, and other L2 solutions
+- **Ethereum-compatible chains**: BSC, Avalanche C-Chain, and other
+  EVM-compatible networks
+
+## Security Features
+
+- **Nonce-based Challenges**: Each login attempt uses a unique challenge to
+  prevent replay attacks
+- **Cryptographic Verification**: All signatures are verified using Ethereum's
+  standard cryptographic methods
+- **Address-based Identity**: User identity is tied to their Ethereum address,
+  ensuring decentralized authentication
+
+This login flow ensures a secure and seamless authentication process leveraging
+Ethereum's robust blockchain-based security and the widespread adoption of Web3
+wallets.
