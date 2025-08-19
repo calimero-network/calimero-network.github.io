@@ -6,7 +6,7 @@ import TabItem from '@theme/TabItem';
 Run the following command to install the application:
 
 ```bash title="Node Terminal"
-application install url {url} {metadata}
+application install url {url} {metadata}
 ```
 
 :::note
@@ -14,7 +14,7 @@ application install url {url} {metadata}
 metadata example:
 
 ```bash
-'{"contractAppId": "<application_id>"}'
+'{"contractAppId": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"}'
 ```
 
 :::
@@ -34,39 +34,35 @@ metadata example:
 <TabItem value="near">
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol near
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol near
 ```
 
 </TabItem>
-
 <TabItem value="starknet">
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol starknet
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol starknet
 ```
 
 </TabItem>
-
 <TabItem value="icp">
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol icp
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol icp
 ```
 
 </TabItem>
-
 <TabItem value="stellar">
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol stellar
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol stellar
 ```
 
 </TabItem>
-
 <TabItem value="ethereum">
 
 ```bash title="Node Terminal"
-context create {applicationId} --protocol ethereum
+context create --application-id 3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf --protocol ethereum
 ```
 
 </TabItem>
@@ -74,6 +70,7 @@ context create {applicationId} --protocol ethereum
 
 :::tip
 
+`--application-id` flag specifies the application ID to attach to the context.
 `--protocol` flag specifies the protocol to use for the context.
 
 :::

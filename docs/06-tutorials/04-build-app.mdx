@@ -234,7 +234,7 @@ impl KvStore {
     pub fn init() -> KvStore {
         // highlight-start
         KvStore {
-            items: UnorderedMap::new(),
+            entries: UnorderedMap::new(),
         }
         // highlight-end
     }
@@ -253,7 +253,7 @@ impl KvStore {
     pub fn entries(&self) -> Result<BTreeMap<String, String>, Error> {
         env::log("Getting all entries");
 
-        Ok(self.items.entries()?.collect())
+        Ok(self.entries.entries()?.collect())
     }
     // highlight-end
 
@@ -261,7 +261,7 @@ impl KvStore {
     pub fn get(&self, key: &str) -> Result<Option<String>, Error> {
         env::log(&format!("Getting key: {:?}", key));
 
-        self.items.get(key).map_err(Into::into)
+        self.entries.get(key).map_err(Into::into)
     }
     // highlight-end
 
@@ -269,7 +269,7 @@ impl KvStore {
     pub fn remove(&mut self, key: &str) -> Result<Option<String>, Error> {
         env::log(&format!("Removing key: {:?}", key));
 
-        self.items.remove(key).map_err(Into::into)
+        self.entries.remove(key).map_err(Into::into)
     }
     // highlight-end
 }
