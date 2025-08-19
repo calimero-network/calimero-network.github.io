@@ -43,7 +43,7 @@ merod --node-name node1 init --server-port 3000 --swarm-port 4000
 | ------------- | --------------------------- | ------------------------------------------------ |
 | `<NODE_NAME>` | Name of the node to manage  | `node1`, `prod-node`, `test-node`                |
 | `<COMMAND>`   | Subcommand to execute       | `init`, `config`, `run`, `relay`                 |
-| `<PATH>`      | File system path            | `/path/to/node`, `./my-node`, `~/calimero`       |
+| `<PATH>`      | File system path            | `/path/to/node`, `./my-node`, `~/.calimero`      |
 | `<HOST>`      | Network host address        | `127.0.0.1`, `0.0.0.0`, `143.34.182.202`         |
 | `<PORT>`      | Network port number         | `2428`, `2528`, `3000`, `63529`                  |
 | `<URL>`       | Remote service URL          | `http://relayer.com`, `https://api.example.com`  |
@@ -259,10 +259,10 @@ merod --node-name node1 run
 
 ```bash
 # 1. Create custom directory
-mkdir -p /opt/calimero/prod-node
+mkdir -p /opt/.calimero/prod-node
 
 # 2. Initialize with production settings
-merod --home /opt/calimero/prod-node --node-name prod-node init \
+merod --home /opt/.calimero/prod-node --node-name prod-node init \
   --server-host 0.0.0.0 \
   --server-port 8080 \
   --swarm-host 0.0.0.0 \
@@ -271,7 +271,7 @@ merod --home /opt/calimero/prod-node --node-name prod-node init \
   --relayer-url https://relayer.near.org
 
 # 3. Run the production node
-merod --home /opt/calimero/prod-node --node-name prod-node run
+merod --home /opt/.calimero/prod-node --node-name prod-node run
 ```
 
 ### Multi-Protocol Node
