@@ -5,9 +5,8 @@ title: Cargo Mero
 
 import CargoMeroInstallation from '../../shared/install-cargo-mero.mdx';
 
-# cargo-mero
-
-A Cargo subcommand for building applications on the Calimero network.
+Cargo Mero is a Cargo subcommand for building applications on the Calimero
+network.
 
 <details>
   <summary>Installation</summary>
@@ -19,6 +18,12 @@ A Cargo subcommand for building applications on the Calimero network.
 Make sure `~/.cargo/bin` is in your `PATH` so that `cargo mero` is available as
 a subcommand.
 
+## Usage
+
+```bash title="Terminal"
+cargo mero <COMMAND>
+```
+
 ## Commands
 
 ### new
@@ -29,6 +34,16 @@ Scaffold a new Calimero application.
 cargo mero new <app-name>
 ```
 
+**Examples:**
+
+```bash
+# Create a new application called "kv-store"
+cargo mero new kv-store
+
+# Create a new application called "dao-app"
+cargo mero new dao-app
+```
+
 ### build
 
 Build your Calimero application to WASM.
@@ -37,7 +52,7 @@ Build your Calimero application to WASM.
 cargo mero build [OPTIONS]
 ```
 
-#### Build Options
+**Build Options:**
 
 | Option                  | Description                                           |
 | ----------------------- | ----------------------------------------------------- |
@@ -47,12 +62,26 @@ cargo mero build [OPTIONS]
 | `-q`, `--quiet`         | Do not print cargo log messages                       |
 | `-F`, `--features`      | Space or comma separated list of features to activate |
 | `--no-default-features` | No default features                                   |
+| `-p`, `--package`       | Package to build                                      |
 | `-h`, `--help`          | Print help                                            |
 
-#### Example: Build with options
+**Examples:**
 
-```bash title="Terminal"
-cargo mero build --verbose --features feature1,feature2 --no-release
+```bash
+# Basic build
+cargo mero build
+
+# Build with verbose output
+cargo mero build --verbose
+
+# Build in development mode
+cargo mero build --no-release
+
+# Build with specific features
+cargo mero build --features test,debug
+
+# Build a specific package
+cargo mero build --package my-app
 ```
 
 ### help
@@ -61,4 +90,16 @@ Prints the help message or the help of the given subcommand(s).
 
 ```bash title="Terminal"
 cargo mero --help
+cargo mero <COMMAND> --help
 ```
+
+## Next Steps
+
+After building your application with `cargo mero build`, you can:
+
+1. **Install on a node**: Use `meroctl app install` to deploy your built
+   application
+2. **Create contexts**: Use `meroctl context create` to set up application
+   networks
+3. **Test locally**: Use the development profile for faster iteration
+4. **Deploy to production**: Use the release profile for optimized builds
