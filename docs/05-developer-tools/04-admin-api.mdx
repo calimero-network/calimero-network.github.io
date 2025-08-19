@@ -1,0 +1,970 @@
+---
+id: admin-api
+title: Admin API Reference
+---
+
+The Calimero Admin API provides programmatic access to manage various aspects of
+a Calimero node. This API is essential for building administrative tools,
+monitoring systems, and integrating Calimero nodes into existing infrastructure.
+
+## Base URL
+
+All admin API endpoints are served under the `/admin-api` path:
+
+```bash
+http://your-node-address:port/admin-api
+```
+
+## Authentication
+
+The admin API supports session-based authentication. When enabled, endpoints
+require valid authentication credentials.
+
+## Response Format
+
+All API responses follow a consistent JSON format:
+
+```json
+{
+  "payload": {
+    // Response data here
+  }
+}
+```
+
+Error responses include an error message:
+
+```json
+{
+  "error": "Error description"
+}
+```
+
+## Endpoints
+
+### Health Check
+
+#### GET `/admin-api/health`
+
+Check if the admin API is running and healthy.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "status": "alive"
+    }
+  }
+}
+```
+
+### Authentication Status
+
+#### GET `/admin-api/is-authed`
+
+Check if the current request is authenticated.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "is_authed": true
+    }
+  }
+}
+```
+
+### SSL Certificate
+
+#### GET `/admin-api/certificate`
+
+Retrieve the SSL certificate for the node.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "certificate": "-----BEGIN CERTIFICATE-----\n..."
+    }
+  }
+}
+```
+
+## Application Management
+
+### Install Application
+
+#### POST `/admin-api/install-application`
+
+Install a new application on the node.
+
+**Request Body:**
+
+```json
+{
+  "path": "/path/to/application.wasm",
+  "metadata": {
+    "name": "My Application",
+    "version": "1.0.0"
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
+    }
+  }
+}
+```
+
+### Install Development Application
+
+#### POST `/admin-api/install-dev-application`
+
+Install a development version of an application.
+
+**Request Body:**
+
+```json
+{
+  "path": "/path/to/dev-application.wasm",
+  "metadata": {
+    "name": "My Dev App",
+    "version": "dev"
+  }
+}
+```
+
+### List Applications
+
+#### GET `/admin-api/applications`
+
+Get a list of all installed applications.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": [
+      {
+        "id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "name": "My Application",
+        "version": "1.0.0",
+        "installed_at": "2024-01-01T00:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Application
+
+#### GET `/admin-api/applications/:application_id`
+
+Get details of a specific application.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "name": "My Application",
+      "version": "1.0.0",
+      "installed_at": "2024-01-01T00:00:00Z",
+      "contexts_count": 5
+    }
+  }
+}
+```
+
+### Uninstall Application
+
+#### DELETE `/admin-api/applications/:application_id`
+
+Remove an application from the node.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "success": true,
+      "message": "Application uninstalled successfully"
+    }
+  }
+}
+```
+
+## Context Management
+
+### Create Context
+
+#### POST `/admin-api/contexts`
+
+Create a new context.
+
+**Request Body:**
+
+```json
+{
+  "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+  "name": "My Context",
+  "protocol": "near"
+}
+```
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "name": "My Context",
+      "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  }
+}
+```
+
+### List Contexts
+
+#### GET `/admin-api/contexts`
+
+Get a list of all contexts.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": [
+      {
+        "id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "name": "My Context",
+        "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "created_at": "2024-01-01T00:00:00Z",
+        "members_count": 3
+      }
+    ]
+  }
+}
+```
+
+### Get Context
+
+#### GET `/admin-api/contexts/:context_id`
+
+Get details of a specific context.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "name": "My Context",
+      "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "created_at": "2024-01-01T00:00:00Z",
+      "members": [
+        {
+          "identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+          "alias": "alice",
+          "capabilities": ["read", "write"]
+        }
+      ]
+    }
+  }
+}
+```
+
+### Delete Context
+
+#### DELETE `/admin-api/contexts/:context_id`
+
+Delete a context and all its data.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "success": true,
+      "message": "Context deleted successfully"
+    }
+  }
+}
+```
+
+### Invite to Context
+
+#### POST `/admin-api/contexts/invite`
+
+Invite a peer to join a context.
+
+**Request Body:**
+
+```json
+{
+  "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+  "peer_identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+  "capabilities": ["read", "write"]
+}
+```
+
+### Join Context
+
+#### POST `/admin-api/contexts/join`
+
+Accept an invitation to join a context.
+
+**Request Body:**
+
+```json
+{
+  "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+  "invitation_data": "base64_encoded_invitation"
+}
+```
+
+### Update Context Application
+
+#### POST `/admin-api/contexts/:context_id/application`
+
+Update the application associated with a context.
+
+**Request Body:**
+
+```json
+{
+  "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
+}
+```
+
+### Get Context Storage
+
+#### GET `/admin-api/contexts/:context_id/storage`
+
+Get the raw storage data for a context.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "entries": [
+        {
+          "key": "user:alice",
+          "value": "encrypted_data_here"
+        }
+      ],
+      "total_size": 1024
+    }
+  }
+}
+```
+
+### Get Context Identities
+
+#### GET `/admin-api/contexts/:context_id/identities`
+
+Get all identities in a context.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": [
+      {
+        "identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "alias": "alice",
+        "capabilities": ["read", "write"],
+        "joined_at": "2024-01-01T00:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Owned Context Identities
+
+#### GET `/admin-api/contexts/:context_id/identities-owned`
+
+Get only the identities owned by the current user in a context.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": [
+      {
+        "identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "alias": "alice",
+        "capabilities": ["read", "write"],
+        "joined_at": "2024-01-01T00:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### Grant Capabilities
+
+#### POST `/admin-api/contexts/:context_id/capabilities/grant`
+
+Grant capabilities to an identity in a context.
+
+**Request Body:**
+
+```json
+{
+  "identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+  "capabilities": ["read", "write", "admin"]
+}
+```
+
+### Revoke Capabilities
+
+#### POST `/admin-api/contexts/:context_id/capabilities/revoke`
+
+Revoke capabilities from an identity in a context.
+
+**Request Body:**
+
+```json
+{
+  "identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+  "capabilities": ["admin"]
+}
+```
+
+## Identity Management
+
+### Generate Context Identity
+
+#### POST `/admin-api/identity/context`
+
+Generate a new identity for use in a context.
+
+**Request Body:**
+
+```json
+{
+  "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
+}
+```
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "private_key": "base64_encoded_private_key"
+    }
+  }
+}
+```
+
+## Proposal Management
+
+### Get Active Proposals Count
+
+#### GET `/admin-api/contexts/:context_id/proposals/count`
+
+Get the number of active proposals in a context.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "count": 5
+    }
+  }
+}
+```
+
+### Get Proposals
+
+#### POST `/admin-api/contexts/:context_id/proposals`
+
+Get a list of proposals in a context.
+
+**Request Body:**
+
+```json
+{
+  "limit": 10,
+  "offset": 0,
+  "status": "active"
+}
+```
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": [
+      {
+        "id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "title": "Update Protocol",
+        "status": "active",
+        "created_by": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "created_at": "2024-01-01T00:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Proposal
+
+#### GET `/admin-api/contexts/:context_id/proposals/:proposal_id`
+
+Get details of a specific proposal.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "title": "Update Protocol",
+      "description": "Update to latest protocol version",
+      "status": "active",
+      "created_by": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "created_at": "2024-01-01T00:00:00Z",
+      "approvals_count": 3,
+      "required_approvals": 5
+    }
+  }
+}
+```
+
+### Get Proposal Approvals Count
+
+#### GET `/admin-api/contexts/:context_id/proposals/:proposal_id/approvals/count`
+
+Get the number of approvals for a proposal.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "count": 3,
+      "required": 5
+    }
+  }
+}
+```
+
+### Get Proposal Approvers
+
+#### GET `/admin-api/contexts/:context_id/proposals/:proposal_id/approvals/users`
+
+Get the list of users who approved a proposal.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": [
+      {
+        "identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "alias": "alice",
+        "approved_at": "2024-01-01T00:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Context Value
+
+#### POST `/admin-api/contexts/:context_id/proposals/get-context-value`
+
+Get a specific value from the context storage.
+
+**Request Body:**
+
+```json
+{
+  "key": "user:alice"
+}
+```
+
+### Get Context Storage Entries
+
+#### POST `/admin-api/contexts/:context_id/proposals/context-storage-entries`
+
+Get multiple storage entries from a context.
+
+**Request Body:**
+
+```json
+{
+  "keys": ["user:alice", "user:bob"],
+  "limit": 100
+}
+```
+
+### Get Proxy Contract
+
+#### GET `/admin-api/contexts/:context_id/proxy-contract`
+
+Get the proxy contract information for a context.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "contract_address": "0x1234...",
+      "network": "ethereum",
+      "status": "active"
+    }
+  }
+}
+```
+
+## Context Synchronization
+
+### Sync Context
+
+#### POST `/admin-api/contexts/sync`
+
+Synchronize a context with the network.
+
+**Request Body:**
+
+```json
+{
+  "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
+}
+```
+
+#### POST `/admin-api/contexts/sync/:context_id`
+
+Synchronize a specific context.
+
+## Network Information
+
+### Get Peers Count
+
+#### GET `/admin-api/peers`
+
+Get the number of connected peers.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "count": 15,
+      "active": 12
+    }
+  }
+}
+```
+
+## Blob Management
+
+### Upload Blob
+
+#### PUT `/admin-api/blobs`
+
+Upload a new blob to the node.
+
+**Request Body:** Binary data
+
+**Headers:**
+
+```
+Content-Type: application/octet-stream
+```
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "blob_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "size": 1024,
+      "uploaded_at": "2024-01-01T00:00:00Z"
+    }
+  }
+}
+```
+
+### List Blobs
+
+#### GET `/admin-api/blobs`
+
+Get a list of all blobs.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": [
+      {
+        "id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+        "size": 1024,
+        "uploaded_at": "2024-01-01T00:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### Download Blob
+
+#### GET `/admin-api/blobs/:blob_id`
+
+Download a blob by ID.
+
+**Response:** Binary data
+
+**Headers:**
+
+```
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="blob.bin"
+```
+
+### Get Blob Info
+
+#### HEAD `/admin-api/blobs/:blob_id`
+
+Get metadata about a blob without downloading it.
+
+**Response Headers:**
+
+```
+Content-Length: 1024
+Content-Type: application/octet-stream
+X-Uploaded-At: 2024-01-01T00:00:00Z
+```
+
+### Delete Blob
+
+#### DELETE `/admin-api/blobs/:blob_id`
+
+Delete a blob from the node.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "success": true,
+      "message": "Blob deleted successfully"
+    }
+  }
+}
+```
+
+## Alias Management
+
+### Create Alias
+
+#### POST `/admin-api/alias/create/context`
+
+Create an alias for a context.
+
+**Request Body:**
+
+```json
+{
+  "name": "my-context",
+  "target": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
+}
+```
+
+#### POST `/admin-api/alias/create/application`
+
+Create an alias for an application.
+
+**Request Body:**
+
+```json
+{
+  "name": "my-app",
+  "target": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
+}
+```
+
+#### POST `/admin-api/alias/create/identity/:context`
+
+Create an alias for an identity in a context.
+
+**Request Body:**
+
+```json
+{
+  "name": "alice",
+  "target": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
+}
+```
+
+### Lookup Alias
+
+#### POST `/admin-api/alias/lookup/context/:name`
+
+Look up a context by alias.
+
+**Response:**
+
+```json
+{
+  "payload": {
+    "data": {
+      "target": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  }
+}
+```
+
+#### POST `/admin-api/alias/lookup/application/:name`
+
+Look up an application by alias.
+
+#### POST `/admin-api/alias/lookup/identity/:context/:name`
+
+Look up an identity by alias in a specific context.
+
+### Delete Alias
+
+#### POST `/admin-api/alias/delete/context/:name`
+
+Delete a context alias.
+
+#### POST `/admin-api/alias/delete/application/:name`
+
+Delete an application alias.
+
+#### POST `/admin-api/alias/delete/identity/:context/:name`
+
+Delete an identity alias.
+
+### List Aliases
+
+#### GET `/admin-api/alias/list/context`
+
+List all context aliases.
+
+#### GET `/admin-api/alias/list/application`
+
+List all application aliases.
+
+#### GET `/admin-api/alias/list/identity/:context`
+
+List all identity aliases in a context.
+
+## Error Handling
+
+The admin API returns appropriate HTTP status codes and error messages:
+
+- **400 Bad Request**: Invalid request parameters
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Resource not found
+- **500 Internal Server Error**: Server-side error
+
+## Rate Limiting
+
+The admin API may implement rate limiting to prevent abuse. Check response
+headers for rate limit information.
+
+## WebSocket Support
+
+Some endpoints support WebSocket connections for real-time updates. Check the
+specific endpoint documentation for WebSocket support details.
+
+## Examples
+
+### Complete Workflow: Create Context and Invite Users
+
+```bash
+# 1. Create a context
+curl -X POST http://localhost:2428/admin-api/contexts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+    "name": "Team Collaboration",
+    "protocol": "near"
+  }'
+
+# 2. Generate an identity for the context
+curl -X POST http://localhost:2428/admin-api/identity/context \
+  -H "Content-Type: application/json" \
+  -d '{
+    "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
+  }'
+
+# 3. Invite a peer to the context
+curl -X POST http://localhost:2428/admin-api/contexts/invite \
+  -H "Content-Type: application/json" \
+  -d '{
+    "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+    "peer_identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
+    "capabilities": ["read", "write"]
+  }'
+```
+
+### Monitoring Node Health
+
+```bash
+# Check API health
+curl http://localhost:2428/admin-api/health
+
+# Get peer count
+curl http://localhost:2428/admin-api/peers
+
+# List all contexts
+curl http://localhost:2428/admin-api/contexts
+```
+
+## Next Steps
+
+- **Build Admin Tools**: Use these endpoints to create custom administrative
+  interfaces
+- **Monitor Nodes**: Implement monitoring and alerting based on API responses
+- **Automate Operations**: Create scripts for common administrative tasks
+- **Integration**: Connect Calimero nodes to existing infrastructure management
+  systems
