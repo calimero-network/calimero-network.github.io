@@ -6,8 +6,14 @@ title: Ethereum Wallet
 ## Logging in with Ethereum Wallet
 
 Calimero allows users to authenticate via their Ethereum wallet (such as
-Metamask), ensuring secure access to the Admin Dashboard. The process of logging
-in with an Ethereum wallet involves the following steps:
+Metamask), ensuring secure access to the Admin Dashboard. The authentication
+process leverages Ethereum's ECDSA signature verification through smart
+contracts deployed on the Ethereum network.
+
+## Authentication Flow
+
+The Ethereum authentication in Calimero follows a smart contract-based approach
+rather than a traditional challenge-response pattern. Here's how it works:
 
 ### 1. User Initiates Login
 
@@ -24,41 +30,71 @@ in with an Ethereum wallet involves the following steps:
   desired account.
 - The user's Ethereum address is retrieved from the connected wallet.
 
-### 3. Server Issues Challenge
+### 3. Request Preparation
 
-- Upon successful wallet connection, the server generates a challenge message.
-- This challenge is presented to the user for signing through their Ethereum
+Instead of a server-generated challenge, Calimero uses a structured request
+format that includes:
+
+```solidity
+struct Request {
+    bytes32 signerId;    // ECDSA public key (Ethereum address)
+    bytes32 userId;       // Ed25519 public key
+    uint64 nonce;         // Unique request identifier
+    RequestKind kind;     // Type of operation
+    bytes data;           // Operation-specific data
+}
+```
+
+### 4. User Signs Request
+
+- The user is prompted to sign the structured request using their Ethereum
   wallet.
-
-### 4. User Signs Challenge
-
-- The user is prompted to sign the server-issued challenge using their Ethereum
-  wallet.
-- The wallet extension displays the message to be signed and requests user
-  confirmation.
+- The wallet extension displays the request data and requests user confirmation.
 - The user approves the signature request in their wallet.
 
 ### 5. Signature Verification
 
-The backend verifies the Ethereum signature to ensure its authenticity using
-Ethereum's cryptographic standards:
+The backend verifies the Ethereum signature using the smart contract's
+verification logic:
 
-1. **Message Hash Verification**:
+1. **Message Hash Creation**:
 
-   - The original challenge message is hashed using Ethereum's standard hashing
-     algorithm.
-   - The signature is verified against the message hash and the user's public
-     key.
+   ```solidity
+   bytes32 messageHash = keccak256(abi.encode(request));
+   ```
 
-2. **Ethereum Address Recovery**:
-   - The user's Ethereum address is recovered from the signature.
-   - This address serves as the user's unique identifier for authentication.
+2. **Ethereum Signed Message Hash**:
 
-### 6. Successful Login
+   ```solidity
+   bytes32 ethSignedMessageHash = keccak256(
+       abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
+   );
+   ```
 
-- Once verified, the user is successfully logged into the Admin Dashboard.
-- Their Ethereum address becomes their Decentralized Identifier (DID), enabling
-  decentralized authentication across different contexts and applications.
+3. **Signature Recovery and Verification**:
+   ```solidity
+   address signer = ecrecover(ethSignedMessageHash, v, r, s);
+   if (signer == address(0) || bytes32(uint256(uint160(signer))) != request.signerId) {
+       revert InvalidSignature();
+   }
+   ```
+
+### 6. Successful Authentication
+
+- Once verified through the smart contract, the user is successfully
+  authenticated.
+- Their Ethereum address serves as their identifier for blockchain operations
+  and context management.
+
+## Smart Contract Integration
+
+Calimero's Ethereum authentication is built on two main smart contracts:
+
+- **Context Config Contract**: Manages context creation and member management
+- **Context Proxy Contract**: Handles cross-contract calls and state management
+
+These contracts are deployed on the Ethereum network (including testnets like
+Sepolia) and provide the foundation for secure, decentralized authentication.
 
 ## Supported Ethereum Wallets
 
@@ -81,13 +117,16 @@ Ethereum wallet authentication works across multiple Ethereum networks:
 
 ## Security Features
 
-- **Nonce-based Challenges**: Each login attempt uses a unique challenge to
-  prevent replay attacks
-- **Cryptographic Verification**: All signatures are verified using Ethereum's
-  standard cryptographic methods
+- **Smart Contract Verification**: All authentication is verified on-chain
+  through deployed smart contracts
+- **ECDSA Signature Verification**: Uses Ethereum's standard cryptographic
+  methods for signature validation
+- **Nonce-based Requests**: Each request includes a unique nonce to prevent
+  replay attacks
 - **Address-based Identity**: User identity is tied to their Ethereum address,
   ensuring decentralized authentication
 
-This login flow ensures a secure and seamless authentication process leveraging
-Ethereum's robust blockchain-based security and the widespread adoption of Web3
-wallets.
+This authentication flow leverages Ethereum's robust smart contract
+infrastructure and ECDSA signature verification to provide secure, decentralized
+access to Calimero's features while maintaining consistency with the
+blockchain's native security model.
