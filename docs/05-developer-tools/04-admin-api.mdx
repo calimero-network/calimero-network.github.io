@@ -98,41 +98,82 @@ Retrieve the SSL certificate for the node.
 
 ## Application Management
 
+:::note
+
+The admin API endpoints for application management provide the same
+functionality as the `meroctl` CLI tool. Both support installing applications
+from local file paths and remote URLs.
+
+:::
+
 ### Install Application
 
 #### POST `/admin-api/install-application`
 
-Install a new application on the node.
+Install a new application on the node. This endpoint requires a **publicly
+accessible HTTP/HTTPS URL** for the WASM file.
 
 **Request Body:**
 
 ```json
 {
-  "path": "/path/to/application.wasm",
-  "metadata": {
-    "name": "My Application",
-    "version": "1.0.0"
-  }
+  "url": "https://example.com/application.wasm",
+  "metadata": [],
+  "hash": "optional-hash-value"
 }
 ```
+
+**Required Fields:**
+
+- `url`: **HTTP/HTTPS URL** to the WASM file (local file paths are not
+  supported)
+- `metadata`: Array of bytes (can be empty `[]` for basic installation)
+
+**Optional Fields:**
+
+- `hash`: Optional hash verification for the WASM file
 
 **Response:**
 
 ```json
 {
-  "payload": {
-    "data": {
-      "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf"
-    }
+  "data": {
+    "applicationId": "HiHvjUJwQEAJKYr9yaTUPcNQi8BfBdnBWEVGqVFNHFF"
   }
 }
 ```
+
+:::note
+
+**Important:** The `url` field must be a valid HTTP/HTTPS URL. Local file paths
+(`/path/to/file.wasm`) and file protocol URLs (`file:///path/to/file.wasm`) are
+not supported for security reasons.
+
+**Testing with Local Files:** To test with local WASM files, you need to serve
+them via a local HTTP server first:
+
+```bash
+# Start a local HTTP server in the directory containing your WASM file
+cd /path/to/your/wasm/files
+python3 -m http.server 8000
+
+# Then use the HTTP URL in your request
+curl -X POST http://localhost:2428/admin-api/install-application \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "http://localhost:8000/your-app.wasm",
+    "metadata": []
+  }'
+```
+
+:::
 
 ### Install Development Application
 
 #### POST `/admin-api/install-dev-application`
 
-Install a development version of an application.
+Install a development version of an application. This endpoint supports both
+local file paths and remote URLs.
 
 **Request Body:**
 
@@ -146,11 +187,277 @@ Install a development version of an application.
 }
 ```
 
+**Alternative Request Body (URL-based):**
+
+```json
+{
+  "path": "https://example.com/dev-application.wasm",
+  "metadata": {
+    "name": "My Dev App",
+    "version": "dev"
+  }
+}
+```
+
+:::note
+
+Similar to the main install endpoint, the `path` field accepts both local file
+paths and remote URLs for development applications.
+
+:::
+
+### Working Examples
+
+#### Example 1: Install Application from Local HTTP Server
+
+```bash
+# Step 1: Start a local HTTP server
+cd /path/to/your/wasm/files
+python3 -m http.server 8000
+
+# Step 2: Install the application
+curl -X POST http://localhost:2428/admin-api/install-application \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "http://localhost:8000/your-app.wasm",
+    "metadata": []
+  }'
+```
+
+**Expected Response:**
+
+```json
+{
+  "data": {
+    "applicationId": "HiHvjUJwQEAJKYr9yaTUPcNQi8BfBdnBWEVGqVFNHFF"
+  }
+}
+```
+
+#### Example 2: Install Application from Remote URL
+
+```bash
+curl -X POST http://localhost:2428/admin-api/install-application \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/application.wasm",
+    "metadata": []
+  }'
+```
+
+#### Example 3: Install with Metadata (Advanced)
+
+```bash
+# If you need to include metadata, encode it as bytes
+curl -X POST http://localhost:2428/admin-api/install-application \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "http://localhost:8000/your-app.wasm",
+    "metadata": [99, 117, 114, 98],
+    "hash": "optional-hash-here"
+  }'
+```
+
+### Understanding Metadata
+
+The `metadata` field allows you to attach additional information to your
+application installation. While optional, it's useful for tracking application
+details and displaying information in the admin dashboard.
+
+#### Metadata Structure
+
+The admin dashboard uses this metadata structure:
+
+```typescript
+interface AppMetadata {
+  applicationUrl: string; // URL where the WASM file is hosted
+  applicationName: string; // Human-readable name of the application
+  applicationOwner: string; // Name of the developer/owner
+  applicationVersion: string; // Version number (e.g., "1.0.0")
+  description: string; // Brief description of the application
+  contractAppId: string; // Optional contract identifier
+  repositoryUrl: string; // Link to source code repository
+}
+```
+
+#### How Metadata Gets Encoded
+
+The metadata must be provided as an array of bytes (0-255 values). The admin
+dashboard automatically handles this encoding:
+
+```typescript
+function createAppMetadata(application: AppMetadata): Uint8Array {
+  return new TextEncoder().encode(JSON.stringify(application));
+}
+```
+
+#### Metadata Examples
+
+**Example 1: Empty Metadata (Simplest)**
+
+```json
+{
+  "url": "http://localhost:8000/app.wasm",
+  "metadata": []
+}
+```
+
+**Example 2: Basic Metadata (Name and Version)**
+
+```json
+{
+  "url": "http://localhost:8000/app.wasm",
+  "metadata": [
+    123, 34, 110, 97, 109, 101, 34, 58, 34, 67, 117, 114, 98, 32, 65, 112, 112,
+    34, 44, 34, 118, 101, 114, 115, 105, 111, 110, 34, 58, 34, 49, 46, 48, 46,
+    48, 34, 125
+  ]
+}
+```
+
+This represents: `{"name":"Curb App","version":"1.0.0"}`
+
+**Example 3: Full Metadata Structure**
+
+```json
+{
+  "url": "http://localhost:8000/app.wasm",
+  "metadata": [
+    123, 34, 97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 78, 97, 109,
+    101, 34, 58, 34, 67, 117, 114, 98, 32, 67, 104, 97, 116, 34, 44, 34, 97,
+    112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 79, 119, 110, 101, 114, 34,
+    58, 34, 65, 110, 116, 111, 110, 34, 44, 34, 97, 112, 112, 108, 105, 99, 97,
+    116, 105, 111, 110, 86, 101, 114, 115, 105, 111, 110, 34, 58, 34, 49, 46,
+    48, 46, 48, 34, 44, 34, 100, 101, 115, 99, 114, 105, 112, 116, 105, 111,
+    110, 34, 58, 34, 76, 111, 99, 97, 108, 32, 116, 101, 115, 116, 32, 105, 110,
+    115, 116, 97, 108, 108, 97, 116, 105, 111, 110, 34, 125
+  ]
+}
+```
+
+This represents:
+`{"applicationName":"Curb Chat","applicationOwner":"Anton","applicationVersion":"1.0.0","description":"Local test installation"}`
+
+#### How to Generate Metadata Bytes
+
+**Option 1: Use JavaScript/Node.js**
+
+```javascript
+const metadata = {
+  applicationName: 'My App',
+  applicationVersion: '1.0.0',
+};
+
+const bytes = Array.from(new TextEncoder().encode(JSON.stringify(metadata)));
+console.log(bytes); // [123, 34, 97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 78, 97, 109, 101, 34, 58, 34, 77, 121, 32, 65, 112, 112, 34, 44, 34, 97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 86, 101, 114, 115, 105, 111, 110, 34, 58, 34, 49, 46, 48, 46, 48, 34, 125]
+```
+
+**Option 2: Use Online Tools**
+
+- Convert your JSON to bytes using online text-to-bytes converters
+- Or use the admin dashboard which handles encoding automatically
+
+#### When to Use Metadata
+
+- **Empty `[]`**: For quick testing and basic installations
+- **Basic metadata**: When you want to track app name and version
+- **Full metadata**: For production deployments where you need complete app
+  information
+
+#### Metadata Best Practices
+
+1. **Keep it simple**: Start with empty metadata for testing
+2. **Use consistent naming**: Follow the same structure across applications
+3. **Include essential info**: At minimum, include `applicationName` and
+   `applicationVersion`
+4. **Avoid sensitive data**: Don't include API keys, passwords, or private
+   information
+
 ### List Applications
 
 #### GET `/admin-api/applications`
 
 Get a list of all installed applications.
+
+### Troubleshooting Common Issues
+
+#### Issue: "Failed to deserialize the JSON body into the target type: missing field `url`"
+
+**Cause:** Using `path` instead of `url` field **Solution:** Use `url` field for
+the install endpoint:
+
+```json
+{
+  "url": "http://example.com/app.wasm",
+  "metadata": []
+}
+```
+
+#### Issue: "Failed to deserialize the JSON body into the target type: metadata: invalid type: map, expected a sequence"
+
+**Cause:** Metadata should be an array, not an object **Solution:** Use array
+format:
+
+```json
+{
+  "url": "http://example.com/app.wasm",
+  "metadata": []
+}
+```
+
+#### Issue: "Failed to deserialize the JSON body into the target type: metadata[0]: invalid type: string, expected u8"
+
+**Cause:** Metadata array should contain numbers (0-255), not strings
+**Solution:** Use empty array or encode strings as byte values:
+
+```json
+{
+  "url": "http://example.com/app.wasm",
+  "metadata": []
+}
+```
+
+#### Issue: "HTTP 404 Not Found" on `/admin-api/install-dev-application`
+
+**Cause:** The dev endpoint may not be available on your node version
+**Solution:** Use the regular install endpoint with an HTTP URL instead
+
+#### Issue: "relative URL without a base" or "file:// protocol not supported"
+
+**Cause:** Local file paths and file:// URLs are not supported **Solution:**
+Serve your WASM file via HTTP server:
+
+```bash
+# Start local HTTP server
+cd /path/to/wasm/files
+python3 -m http.server 8000
+
+# Use HTTP URL
+curl -X POST http://localhost:2428/admin-api/install-application \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "http://localhost:8000/app.wasm",
+    "metadata": []
+  }'
+```
+
+#### Issue: "error sending request for url" or "builder error for url"
+
+**Cause:** The URL is not accessible or the web server is not running
+**Solution:**
+
+1. Verify the web server is running
+2. Test URL accessibility: `curl http://localhost:8000/app.wasm`
+3. Check firewall/network settings
+
+#### Issue: App installed but not visible in admin dashboard
+
+**Cause:** Dashboard may be pointing to different node or have connection issues
+**Solution:**
+
+1. Verify app exists via CLI: `meroctl --node node1 app list`
+2. Check dashboard node configuration
+3. Verify dashboard can access the admin API
 
 **Response:**
 
@@ -959,6 +1266,123 @@ curl http://localhost:2428/admin-api/peers
 # List all contexts
 curl http://localhost:2428/admin-api/contexts
 ```
+
+### Understanding Metadata
+
+The `metadata` field allows you to attach additional information to your
+application installation. While optional, it's useful for tracking application
+details and displaying information in the admin dashboard.
+
+#### Metadata Structure
+
+The admin dashboard uses this metadata structure:
+
+```typescript
+interface AppMetadata {
+  applicationUrl: string; // URL where the WASM file is hosted
+  applicationName: string; // Human-readable name of the application
+  applicationOwner: string; // Name of the developer/owner
+  applicationVersion: string; // Version number (e.g., "1.0.0")
+  description: string; // Brief description of the application
+  contractAppId: string; // Optional contract identifier
+  repositoryUrl: string; // Link to source code repository
+}
+```
+
+#### How Metadata Gets Encoded
+
+The metadata must be provided as an array of bytes (0-255 values). The admin
+dashboard automatically handles this encoding:
+
+```typescript
+function createAppMetadata(application: AppMetadata): Uint8Array {
+  return new TextEncoder().encode(JSON.stringify(application));
+}
+```
+
+#### Metadata Examples
+
+**Example 1: Empty Metadata (Simplest)**
+
+```json
+{
+  "url": "http://localhost:8000/app.wasm",
+  "metadata": []
+}
+```
+
+**Example 2: Basic Metadata (Name and Version)**
+
+```json
+{
+  "url": "http://localhost:8000/app.wasm",
+  "metadata": [
+    123, 34, 110, 97, 109, 101, 34, 58, 34, 67, 117, 114, 98, 32, 65, 112, 112,
+    34, 44, 34, 118, 101, 114, 115, 105, 111, 110, 34, 58, 34, 49, 46, 48, 46,
+    48, 34, 125
+  ]
+}
+```
+
+This represents: `{"name":"Curb App","version":"1.0.0"}`
+
+**Example 3: Full Metadata Structure**
+
+```json
+{
+  "url": "http://localhost:8000/app.wasm",
+  "metadata": [
+    123, 34, 97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 78, 97, 109,
+    101, 34, 58, 34, 67, 117, 114, 98, 32, 67, 104, 97, 116, 34, 44, 34, 97,
+    112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 79, 119, 110, 101, 114, 34,
+    58, 34, 65, 110, 116, 111, 110, 34, 44, 34, 97, 112, 112, 108, 105, 99, 97,
+    116, 105, 111, 110, 86, 101, 114, 115, 105, 111, 110, 34, 58, 34, 49, 46,
+    48, 46, 48, 34, 44, 34, 100, 101, 115, 99, 114, 105, 112, 116, 105, 111,
+    110, 34, 58, 34, 76, 111, 99, 97, 108, 32, 116, 101, 115, 116, 32, 105, 110,
+    115, 116, 97, 108, 108, 97, 116, 105, 111, 110, 34, 125
+  ]
+}
+```
+
+This represents:
+`{"applicationName":"Curb Chat","applicationOwner":"Anton","applicationVersion":"1.0.0","description":"Local test installation"}`
+
+#### How to Generate Metadata Bytes
+
+**Option 1: Use JavaScript/Node.js**
+
+```javascript
+const metadata = {
+  applicationName: 'My App',
+  applicationVersion: '1.0.0',
+};
+
+const bytes = Array.from(new TextEncoder().encode(JSON.stringify(metadata)));
+console.log(bytes); // [123, 34, 97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 78, 97, 109, 101, 34, 58, 34, 77, 121, 32, 65, 112, 112, 34, 44, 34, 97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 86, 101, 114, 115, 105, 111, 110, 34, 58, 34, 49, 46, 48, 46, 48, 34, 125]
+```
+
+**Option 2: Use Online Tools**
+
+- Convert your JSON to bytes using online text-to-bytes converters
+- Or use the admin dashboard which handles encoding automatically
+
+#### When to Use Metadata
+
+- **Empty `[]`**: For quick testing and basic installations
+- **Basic metadata**: When you want to track app name and version
+- **Full metadata**: For production deployments where you need complete app
+  information
+
+#### Metadata Best Practices
+
+1. **Keep it simple**: Start with empty metadata for testing
+2. **Use consistent naming**: Follow the same structure across applications
+3. **Include essential info**: At minimum, include `applicationName` and
+   `applicationVersion`
+4. **Avoid sensitive data**: Don't include API keys, passwords, or private
+   information
+
+### Troubleshooting Common Issues
 
 ## Next Steps
 
