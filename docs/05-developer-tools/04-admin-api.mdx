@@ -115,11 +115,23 @@ accessible HTTP/HTTPS URL** for the WASM file.
 
 **Request Body:**
 
+**Example with descriptive placeholders:**
+
 ```json
 {
   "url": "https://example.com/application.wasm",
   "metadata": [],
   "hash": "optional-hash-value"
+}
+```
+
+**Example with realistic dummy values:**
+
+```json
+{
+  "url": "https://github.com/calimero/example-app/releases/v1.0.0/app.wasm",
+  "metadata": [],
+  "hash": "8BtADbnT4DyX6P7rYjKh2trR5zk3nk5L5zSp4G7rHArc"
 }
 ```
 
@@ -177,25 +189,41 @@ local file paths and remote URLs.
 
 **Request Body:**
 
+**Example with descriptive placeholders:**
+
 ```json
 {
   "path": "/path/to/dev-application.wasm",
-  "metadata": {
-    "name": "My Dev App",
-    "version": "dev"
-  }
+  "metadata": []
+}
+```
+
+**Example with realistic dummy values:**
+
+```json
+{
+  "path": "/Users/developer/projects/my-app/target/wasm32-unknown-unknown/release/app.wasm",
+  "metadata": []
 }
 ```
 
 **Alternative Request Body (URL-based):**
 
+**Example with descriptive placeholders:**
+
 ```json
 {
   "path": "https://example.com/dev-application.wasm",
-  "metadata": {
-    "name": "My Dev App",
-    "version": "dev"
-  }
+  "metadata": []
+}
+```
+
+**Example with realistic dummy values:**
+
+```json
+{
+  "path": "https://github.com/calimero/example-app/releases/nightly/app.wasm",
+  "metadata": []
 }
 ```
 
@@ -527,6 +555,18 @@ Create a new context.
 
 **Request Body:**
 
+**Example with descriptive placeholders:**
+
+```json
+{
+  "application_id": "application_identity_hash",
+  "name": "context_name",
+  "protocol": "near"
+}
+```
+
+**Example with realistic dummy values:**
+
 ```json
 {
   "application_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
@@ -629,13 +669,31 @@ Invite a peer to join a context.
 
 **Request Body:**
 
+**Example with descriptive placeholders:**
+
 ```json
 {
-  "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
-  "peer_identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
-  "capabilities": ["read", "write"]
+  "context_id": "context_identity_hash",
+  "invitee_identity": "invitee_public_key",
+  "inviter_identity": "inviter_identity_hash"
 }
 ```
+
+**Example with realistic dummy values:**
+
+```json
+{
+  "context_id": "A4NyeJydZYKeSDiDV4CHYADVGywVekWEubi47Syf6FQy",
+  "invitee_identity": "57kiq6jgag3iL7vp4D5iwFLnecB4sig9sP6ELJLv87tL",
+  "inviter_identity": "3aipBNQaNzkWeMrSTzWwAQRdfWvwvFXqSKCZ1CBT8d4k"
+}
+```
+
+**Note:** This endpoint corresponds to the CLI command
+`meroctl context invite {invitee_identity} --as {inviter_identity} -c {context_id}`.
+The `invitee_identity` is the public key of the person being invited,
+`inviter_identity` is the identity of the person doing the inviting, and
+`context_id` specifies which context to invite them to.
 
 ### Join Context
 
@@ -645,12 +703,27 @@ Accept an invitation to join a context.
 
 **Request Body:**
 
+**Example with descriptive placeholders:**
+
 ```json
 {
-  "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
-  "invitation_data": "base64_encoded_invitation"
+  "invitation_payload": "base64_encoded_invitation_payload"
 }
 ```
+
+**Example with realistic dummy values:**
+
+```json
+{
+  "invitation_payload": "maWT6kDxpR1EMXb2YSXzdHkegU76QVcf3yXUAyDUEQ27nuHJkpYQbyota6BpZbaouxDn1biAywcj2GnUSRurDn2mvjMwuo6WrjvvgvvAUGDKmAtzN7oqhtWVt5cGEucgrZaei7S255e1KXikmFHWN8UPKMBkuWVFq"
+}
+```
+
+**Note:** This endpoint corresponds to the CLI command
+`meroctl context join {invitation_payload}`. The `invitation_payload` is the
+result of a successful context invite operation and contains all the necessary
+information to join the context, including the context ID and invitation
+details.
 
 ### Update Context Application
 
@@ -1248,9 +1321,16 @@ curl -X POST http://localhost:2428/admin-api/identity/context \
 curl -X POST http://localhost:2428/admin-api/contexts/invite \
   -H "Content-Type: application/json" \
   -d '{
-    "context_id": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
-    "peer_identity": "3Hfk2VekXQ58vYHW3hUtA3mh2Rwtb1brV1RKEXtfvfsf",
-    "capabilities": ["read", "write"]
+    "context_id": "A4NyeJydZYKeSDiDV4CHYADVGywVekWEubi47Syf6FQy",
+    "invitee_identity": "57kiq6jgag3iL7vp4D5iwFLnecB4sig9sP6ELJLv87tL",
+    "inviter_identity": "3aipBNQaNzkWeMrSTzWwAQRdfWvwvFXqSKCZ1CBT8d4k"
+  }'
+
+# 4. Accept the invitation (using the payload from step 3)
+curl -X POST http://localhost:2428/admin-api/contexts/join \
+  -H "Content-Type: application/json" \
+  -d '{
+    "invitation_payload": "maWT6kDxpR1EMXb2YSXzdHkegU76QVcf3yXUAyDUEQ27nuHJkpYQbyota6BpZbaouxDn1biAywcj2GnUSRurDn2mvjMwuo6WrjvvgvvAUGDKmAtzN7oqhtWVt5cGEucgrZaei7S255e1KXikmFHWN8UPKMBkuWVFq"
   }'
 ```
 
