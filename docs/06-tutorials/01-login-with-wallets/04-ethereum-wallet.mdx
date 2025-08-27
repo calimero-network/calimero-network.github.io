@@ -12,8 +12,8 @@ contracts deployed on the Ethereum network.
 
 ## Authentication Flow
 
-The Ethereum authentication in Calimero follows a smart contract-based approach
-rather than a traditional challenge-response pattern. Here's how it works:
+The Ethereum authentication in Calimero follows the same challenge-response
+pattern as other supported wallets. Here's how it works:
 
 ### 1. User Initiates Login
 
@@ -30,80 +30,66 @@ rather than a traditional challenge-response pattern. Here's how it works:
   desired account.
 - The user's Ethereum address is retrieved from the connected wallet.
 
-### 3. Request Preparation
+### 3. Server Issues Structured Challenge
 
-Instead of a server-generated challenge, Calimero uses a structured request
-format that includes:
+- Upon selecting the wallet, the server generates a structured challenge. This
+  challenge follows a specific format and includes:
+  ```solidity
+  struct Request {
+      bytes32 signerId;     // ECDSA public key (Ethereum address)
+      bytes32 userId;       // Ed25519 public key
+      uint64 nonce;         // Unique request identifier
+      RequestKind kind;     // Type of operation
+      bytes data;           // Operation-specific data
+  }
+  ```
+- The challenge is still server-generated, but it's structured rather than a
+  simple random string.
 
-```solidity
-struct Request {
-    bytes32 signerId;    // ECDSA public key (Ethereum address)
-    bytes32 userId;       // Ed25519 public key
-    uint64 nonce;         // Unique request identifier
-    RequestKind kind;     // Type of operation
-    bytes data;           // Operation-specific data
-}
-```
+### 4. User Signs Structured Challenge
 
-### 4. User Signs Request
-
-- The user is prompted to sign the structured request using their Ethereum
-  wallet.
-- The wallet extension displays the request data and requests user confirmation.
+- The user is prompted to sign the server-issued structured challenge using
+  their Ethereum wallet.
+- The wallet extension displays the challenge data and requests user
+  confirmation.
 - The user approves the signature request in their wallet.
 
-### 5. Signature Verification
+### 5. Signature Sent to Backend
 
-The backend verifies the Ethereum signature using the smart contract's
-verification logic:
+- After the user signs the challenge, the signature is sent back to the server
+  for verification.
 
-1. **Message Hash Creation**:
+### 6. Signature Verification
 
-   ```solidity
-   bytes32 messageHash = keccak256(abi.encode(request));
-   ```
+- The backend verifies the Ethereum signature to ensure its authenticity using
+  standard ECDSA signature verification.
+- The signature is verified against the structured challenge that was signed.
+- If the signature is valid, the user's Ethereum address is extracted and stored
+  as the user's unique identifier.
 
-2. **Ethereum Signed Message Hash**:
+### 7. Successful Authentication
 
-   ```solidity
-   bytes32 ethSignedMessageHash = keccak256(
-       abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
-   );
-   ```
-
-3. **Signature Recovery and Verification**:
-   ```solidity
-   address signer = ecrecover(ethSignedMessageHash, v, r, s);
-   if (signer == address(0) || bytes32(uint256(uint160(signer))) != request.signerId) {
-       revert InvalidSignature();
-   }
-   ```
-
-### 6. Successful Authentication
-
-- Once verified through the smart contract, the user is successfully
-  authenticated.
+- Once verified, the user is successfully authenticated.
 - Their Ethereum address serves as their identifier for blockchain operations
   and context management.
 
-## Smart Contract Integration
+## Authentication Implementation
 
-Calimero's Ethereum authentication is built on two main smart contracts:
+Calimero's Ethereum authentication uses structured challenges with ECDSA
+signature verification:
 
-- **Context Config Contract**: Manages context creation and member management
-- **Context Proxy Contract**: Handles cross-contract calls and state management
-
-These contracts are deployed on the Ethereum network (including testnets like
-Sepolia) and provide the foundation for secure, decentralized authentication.
+- **Structured Challenge Generation**: The server generates a unique structured
+  challenge for each login attempt using the Request format
+- **Signature Verification**: The backend verifies the ECDSA signature against
+  the structured challenge
+- **Identity Storage**: The user's Ethereum address serves as their unique
+  identifier
 
 ## Supported Ethereum Wallets
 
-Calimero supports various Ethereum-compatible wallets:
+Calimero supports MetaMask for Ethereum authentication:
 
 - **Metamask**: The most popular Web3 wallet extension
-- **WalletConnect**: For mobile wallet connections
-- **Other Web3 Wallets**: Any wallet that supports the standard Ethereum signing
-  interface
 
 ## Network Support
 
@@ -117,16 +103,16 @@ Ethereum wallet authentication works across multiple Ethereum networks:
 
 ## Security Features
 
-- **Smart Contract Verification**: All authentication is verified on-chain
-  through deployed smart contracts
+- **Structured Challenge-Response Authentication**: Each login attempt uses a
+  unique server-generated structured challenge with specific fields for enhanced
+  security
 - **ECDSA Signature Verification**: Uses Ethereum's standard cryptographic
   methods for signature validation
-- **Nonce-based Requests**: Each request includes a unique nonce to prevent
-  replay attacks
 - **Address-based Identity**: User identity is tied to their Ethereum address,
   ensuring decentralized authentication
+- **Standard Wallet Security**: Leverages the security features of established
+  Ethereum wallets like Metamask
 
-This authentication flow leverages Ethereum's robust smart contract
-infrastructure and ECDSA signature verification to provide secure, decentralized
-access to Calimero's features while maintaining consistency with the
-blockchain's native security model.
+This authentication flow leverages Ethereum's robust ECDSA signature
+verification to provide secure, decentralized access to Calimero's features
+while maintaining consistency with the blockchain's native security model.
