@@ -7,8 +7,8 @@ title: Ethereum Wallet
 
 Calimero allows users to authenticate via their Ethereum wallet (such as
 Metamask), ensuring secure access to the Admin Dashboard. The authentication
-process leverages Ethereum's ECDSA signature verification through smart
-contracts deployed on the Ethereum network.
+process leverages Ethereum's ECDSA signature verification through the
+authentication service.
 
 ## Authentication Flow
 
@@ -17,36 +17,17 @@ pattern as other supported wallets. Here's how it works:
 
 ### 1. User Initiates Login
 
-- The user navigates to the Admin Dashboard and selects the option to "Login
-  with Ethereum Wallet."
-- They are presented with wallet options, typically Metamask or other Web3
-  wallet extensions.
+- The user initiates login and is redirected to the authentication page
+- They are presented with wallet options, typically Metamask for Ethereum
+  authentication
 
-### 2. Wallet Connection
+### 2. Server Issues Authentication Challenge
 
-- The user connects their Ethereum wallet (e.g., Metamask) to the Calimero
-  application.
-- The wallet extension prompts the user to approve the connection and select the
-  desired account.
-- The user's Ethereum address is retrieved from the connected wallet.
+- The authentication service generates a unique challenge for the user to sign
+- This challenge typically includes a timestamp and unique identifier to prevent
+  replay attacks
 
-### 3. Server Issues Structured Challenge
-
-- Upon selecting the wallet, the server generates a structured challenge. This
-  challenge follows a specific format and includes:
-  ```solidity
-  struct Request {
-      bytes32 signerId;     // ECDSA public key (Ethereum address)
-      bytes32 userId;       // Ed25519 public key
-      uint64 nonce;         // Unique request identifier
-      RequestKind kind;     // Type of operation
-      bytes data;           // Operation-specific data
-  }
-  ```
-- The challenge is still server-generated, but it's structured rather than a
-  simple random string.
-
-### 4. User Signs Structured Challenge
+### 3. User Signs Authentication Challenge
 
 - The user is prompted to sign the server-issued structured challenge using
   their Ethereum wallet.
@@ -54,12 +35,12 @@ pattern as other supported wallets. Here's how it works:
   confirmation.
 - The user approves the signature request in their wallet.
 
-### 5. Signature Sent to Backend
+### 4. Signature Sent to Backend
 
 - After the user signs the challenge, the signature is sent back to the server
   for verification.
 
-### 6. Signature Verification
+### 5. Signature Verification
 
 - The backend verifies the Ethereum signature to ensure its authenticity using
   standard ECDSA signature verification.
@@ -67,11 +48,10 @@ pattern as other supported wallets. Here's how it works:
 - If the signature is valid, the user's Ethereum address is extracted and stored
   as the user's unique identifier.
 
-### 7. Successful Authentication
+### 6. Successful Authentication
 
 - Once verified, the user is successfully authenticated.
-- Their Ethereum address serves as their identifier for blockchain operations
-  and context management.
+- The user's identifier is the wallet's public key.
 
 ## Authentication Implementation
 
@@ -82,24 +62,14 @@ signature verification:
   challenge for each login attempt using the Request format
 - **Signature Verification**: The backend verifies the ECDSA signature against
   the structured challenge
-- **Identity Storage**: The user's Ethereum address serves as their unique
-  identifier
+- **Identity Storage**: The user's Ethereum wallet public key serves as their
+  unique identifier
 
 ## Supported Ethereum Wallets
 
 Calimero supports MetaMask for Ethereum authentication:
 
 - **Metamask**: The most popular Web3 wallet extension
-
-## Network Support
-
-Ethereum wallet authentication works across multiple Ethereum networks:
-
-- **Ethereum Mainnet**: Production network
-- **Ethereum Testnets**: Sepolia, Goerli, and other test networks
-- **Ethereum Layer 2s**: Polygon, Arbitrum, Optimism, and other L2 solutions
-- **Ethereum-compatible chains**: BSC, Avalanche C-Chain, and other
-  EVM-compatible networks
 
 ## Security Features
 
@@ -108,8 +78,8 @@ Ethereum wallet authentication works across multiple Ethereum networks:
   security
 - **ECDSA Signature Verification**: Uses Ethereum's standard cryptographic
   methods for signature validation
-- **Address-based Identity**: User identity is tied to their Ethereum address,
-  ensuring decentralized authentication
+- **Public Key-based Identity**: User identity is tied to their Ethereum wallet
+  public key, ensuring decentralized authentication
 - **Standard Wallet Security**: Leverages the security features of established
   Ethereum wallets like Metamask
 
