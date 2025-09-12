@@ -74,5 +74,13 @@
   "version.label": {
     "message": "Next",
     "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.merobox": {
+    "message": "merobox",
+    "description": "The label for category merobox in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Merobox": {
+    "message": "Merobox",
+    "description": "The label for category Merobox in sidebar tutorialSidebar"
   }
 }

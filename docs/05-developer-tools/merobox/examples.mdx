@@ -1,0 +1,192 @@
+---
+title: Examples and Tutorials
+description:
+  Practical examples and step-by-step tutorials for using Merobox effectively.
+sidebar_position: 4
+---
+
+# Examples and Tutorials
+
+This section provides comprehensive examples and tutorials to help you get
+started with Merobox and understand its capabilities across different use cases.
+
+## Overview
+
+Merobox examples are organized into specialized areas to help you find exactly
+what you need:
+
+- **[Quick Start Tutorials](./quick-start-tutorials)** - Step-by-step tutorials
+  to get you started quickly
+- **[Real-World Examples](./real-world-examples)** - Practical examples for
+  common real-world scenarios
+- **[Testing Integration Examples](./testing-integration-examples)** -
+  Integration with testing frameworks and CI/CD
+- **[Advanced Examples](./advanced-examples)** - Complex workflows and advanced
+  features for power users
+- **[Best Practices](./best-practices)** - Guidelines and best practices for
+  effective Merobox usage
+
+## Quick Start
+
+If you're new to Merobox, start with the
+[Quick Start Tutorials](./quick-start-tutorials) to learn the basics:
+
+1. **Your First Workflow** - Create and run your first Merobox workflow
+2. **Application Deployment** - Deploy a simple WASM application
+3. **Multi-Node Setup** - Work with multiple nodes
+4. **Authentication Service** - Set up auth service integration
+5. **Custom Scripts** - Use custom scripts in workflows
+
+## Common Use Cases
+
+### Development and Testing
+
+- **Local Development**: Set up isolated development environments
+- **Unit Testing**: Test individual components in isolation
+- **Integration Testing**: Test component interactions
+- **Performance Testing**: Test application performance under load
+
+### Production Scenarios
+
+- **Multi-Node Deployments**: Deploy across multiple nodes
+- **Authentication Integration**: Integrate with authentication services
+- **Monitoring and Alerting**: Set up comprehensive monitoring
+- **Load Balancing**: Test applications behind load balancers
+
+### CI/CD Integration
+
+- **Automated Testing**: Integrate with CI/CD pipelines
+- **Parallel Test Execution**: Run tests in parallel for faster feedback
+- **Test Data Management**: Manage test data effectively
+- **Reporting and Coverage**: Generate comprehensive test reports
+
+## Example Categories
+
+### Basic Examples
+
+Start with these fundamental examples:
+
+```yaml
+# Simple workflow
+description: My first Merobox workflow
+name: First Workflow
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+
+steps:
+  - name: Wait for Node
+    type: wait
+    seconds: 5
+
+  - name: Check Health
+    type: script
+    script: echo "Node is running!"
+
+stop_all_nodes: true
+```
+
+### Intermediate Examples
+
+Build on the basics with these examples:
+
+- Multi-node communication
+- Application deployment and testing
+- Authentication service integration
+- Performance testing
+- Database integration
+
+### Advanced Examples
+
+For power users, explore these advanced features:
+
+- Custom step types
+- Dynamic workflow generation
+- Workflow composition
+- Advanced monitoring
+- Error handling and recovery
+
+## Getting Help
+
+### Documentation
+
+- **Workflow System**: Learn about workflow configuration and step types
+- **Node Management**: Understand node operations and management
+- **Advanced Configuration**: Explore advanced configuration options
+- **Python Customization**: Extend Merobox with Python
+
+### Community
+
+- **GitHub Issues**: Report bugs and request features
+- **Discussions**: Ask questions and share experiences
+- **Examples Repository**: Find more examples and templates
+
+### Support
+
+- **Troubleshooting**: Common issues and solutions
+- **Best Practices**: Guidelines for effective usage
+- **Performance Tips**: Optimize your workflows
+
+## Next Steps
+
+Choose your path based on your needs:
+
+### For Beginners
+
+1. Start with [Quick Start Tutorials](./quick-start-tutorials)
+2. Try [Real-World Examples](./real-world-examples)
+3. Learn [Best Practices](./best-practices)
+
+### For Developers
+
+1. Explore [Testing Integration Examples](./testing-integration-examples)
+2. Study [Advanced Examples](./advanced-examples)
+3. Follow [Best Practices](./best-practices)
+
+### For DevOps Engineers
+
+1. Review [Real-World Examples](./real-world-examples)
+2. Implement [Testing Integration Examples](./testing-integration-examples)
+3. Apply [Best Practices](./best-practices)
+
+## Contributing Examples
+
+We welcome contributions to improve our examples:
+
+1. **Fork the repository**
+2. **Create your example** following our guidelines
+3. **Test thoroughly** to ensure it works
+4. **Submit a pull request** with clear documentation
+
+### Example Guidelines
+
+- **Clear Documentation**: Include comprehensive comments and explanations
+- **Working Code**: Ensure all examples are tested and functional
+- **Best Practices**: Follow established patterns and conventions
+- **Error Handling**: Include proper error handling and validation
+- **Resource Cleanup**: Always clean up resources when done
+
+## Resources
+
+### Documentation
+
+- [Installation and Setup](./installation) - Get started with Merobox
+- [Node Management](./node-management) - Manage Calimero nodes
+- [Workflow System](./workflows) - Configure and run workflows
+- [Advanced Configuration](./advanced-configuration) - Advanced features
+
+### Tools
+
+- [Python Customization](./python-customization) - Extend Merobox with Python
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
+
+### Community
+
+- [GitHub Repository](https://github.com/calimero-network/merobox) - Source code
+  and issues
+- [Discussions](https://github.com/calimero-network/merobox/discussions) -
+  Community discussions
+- [Examples Repository](https://github.com/calimero-network/merobox-examples) -
+  More examples and templates

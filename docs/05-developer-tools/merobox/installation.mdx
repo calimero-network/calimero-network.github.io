@@ -1,0 +1,359 @@
+---
+title: Installation and Setup
+description:
+  Complete guide to installing and setting up Merobox CLI for Calimero node
+  management.
+sidebar_position: 1
+---
+
+# Installation and Setup
+
+This guide covers installing Merobox CLI and setting up your development
+environment for managing Calimero nodes in Docker containers.
+
+## Prerequisites
+
+Before installing Merobox, ensure you have the following prerequisites installed
+on your system:
+
+### Required Software
+
+- **Python 3.8 or higher**: Merobox is a Python CLI tool
+- **Docker 20.10 or higher**: For running Calimero nodes in containers
+- **Docker Compose**: For managing multi-container applications
+- **Git**: For cloning repositories and version control
+
+### System Requirements
+
+- **Operating System**: Linux, macOS, or Windows
+- **Memory**: At least 4GB RAM (8GB recommended for multiple nodes)
+- **Storage**: At least 10GB free disk space
+- **Network**: Internet connection for downloading Docker images
+
+### Verify Prerequisites
+
+Check that all prerequisites are installed and working:
+
+```bash
+# Check Python version
+python3 --version
+# Should output: Python 3.8.x or higher
+
+# Check Docker installation
+docker --version
+# Should output: Docker version 20.10.x or higher
+
+# Check Docker Compose
+docker compose version
+# Should output: Docker Compose version 2.x.x or higher
+
+# Check Git
+git --version
+# Should output: git version 2.x.x or higher
+```
+
+## Installation Methods
+
+### Method 1: Install from PyPI (Recommended)
+
+The easiest way to install Merobox is using pip:
+
+```bash
+pip install merobox
+```
+
+For Python 3.x specifically:
+
+```bash
+pip3 install merobox
+```
+
+### Method 2: Install from Source
+
+If you want to use the latest development version or contribute to the project:
+
+```bash
+# Clone the repository
+git clone https://github.com/calimero-network/merobox.git
+cd merobox
+
+# Install in development mode
+pip install -e .
+```
+
+### Method 3: Install in Virtual Environment (Recommended for Development)
+
+For isolated development environments:
+
+```bash
+# Create virtual environment
+python3 -m venv merobox-env
+
+# Activate virtual environment
+# On Linux/macOS:
+source merobox-env/bin/activate
+# On Windows:
+# merobox-env\Scripts\activate
+
+# Install Merobox
+pip install merobox
+```
+
+## Verify Installation
+
+After installation, verify that Merobox is working correctly:
+
+```bash
+# Check Merobox version
+merobox --version
+# Should output: merobox, version 0.1.20
+
+# Check available commands
+merobox --help
+# Should display the help message with available commands
+```
+
+## Docker Setup
+
+Merobox relies on Docker to run Calimero nodes. Ensure Docker is properly
+configured:
+
+### Start Docker Service
+
+**Linux (systemd):**
+
+```bash
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+**macOS:** Start Docker Desktop from Applications or:
+
+```bash
+open -a Docker
+```
+
+**Windows:** Start Docker Desktop from Start Menu
+
+### Verify Docker is Running
+
+```bash
+# Check Docker daemon status
+docker info
+# Should show Docker system information
+
+# Test Docker with a simple container
+docker run hello-world
+# Should download and run the hello-world container
+```
+
+### Docker Permissions (Linux)
+
+If you get permission errors, add your user to the docker group:
+
+```bash
+# Add user to docker group
+sudo usermod -aG docker $USER
+
+# Log out and log back in, or run:
+newgrp docker
+
+# Verify permissions
+docker run hello-world
+```
+
+## Configuration
+
+### Environment Variables
+
+Merobox supports several environment variables for configuration:
+
+```bash
+# Set Docker image for Calimero nodes
+export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
+
+# Set Docker daemon connection
+export DOCKER_HOST="unix:///var/run/docker.sock"
+
+# Set logging level
+export LOG_LEVEL="INFO"  # DEBUG, INFO, WARNING, ERROR
+```
+
+### Docker Image Management
+
+Merobox automatically manages Docker images, but you can pre-pull images for
+faster startup:
+
+```bash
+# Pull the default Calimero image
+docker pull ghcr.io/calimero-network/merod:edge
+
+# Pull the authentication service image
+docker pull ghcr.io/calimero-network/mero-auth:edge
+
+# List available images
+docker images | grep calimero
+```
+
+## Quick Test
+
+Test your installation with a simple workflow:
+
+```bash
+# Start a single Calimero node
+merobox run --count 1
+
+# Check if the node is running
+merobox list
+
+# Check node health
+merobox health
+
+# Stop the node
+merobox stop
+```
+
+## Troubleshooting Installation
+
+### Common Issues
+
+#### Python Not Found
+
+```bash
+# Error: python3: command not found
+```
+
+**Solution:**
+
+- Install Python 3.8+ from [python.org](https://python.org)
+- On Ubuntu/Debian: `sudo apt install python3 python3-pip`
+- On macOS: `brew install python3`
+- On Windows: Download from Microsoft Store or python.org
+
+#### Docker Not Running
+
+```bash
+# Error: Cannot connect to the Docker daemon
+```
+
+**Solution:**
+
+- Start Docker service: `sudo systemctl start docker` (Linux)
+- Start Docker Desktop (macOS/Windows)
+- Check Docker status: `docker info`
+
+#### Permission Denied
+
+```bash
+# Error: Permission denied while trying to connect to Docker daemon
+```
+
+**Solution:**
+
+- Add user to docker group: `sudo usermod -aG docker $USER`
+- Log out and log back in
+- Or run: `newgrp docker`
+
+#### Port Already in Use
+
+```bash
+# Error: Port 2528 already in use
+```
+
+**Solution:**
+
+- Find process using port: `lsof -ti:2528`
+- Kill process: `lsof -ti:2528 | xargs kill`
+- Or use different ports: `merobox run --count 1`
+
+#### Network Issues
+
+```bash
+# Error: Failed to pull image
+```
+
+**Solution:**
+
+- Check internet connection
+- Verify Docker registry access: `docker pull hello-world`
+- Check firewall settings
+- Try with different DNS:
+  `echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf`
+
+### Getting Help
+
+If you encounter issues not covered here:
+
+1. **Check Merobox help**: `merobox --help`
+2. **Check command help**: `merobox <command> --help`
+3. **Enable debug logging**: `LOG_LEVEL=DEBUG merobox <command>`
+4. **Check Docker logs**: `docker logs <container_name>`
+5. **GitHub Issues**:
+   [Report issues on GitHub](https://github.com/calimero-network/merobox/issues)
+
+## Next Steps
+
+Now that Merobox is installed and configured:
+
+- [Basic Node Management](./node-management) - Learn how to start, stop, and
+  manage nodes
+- [Workflow Configuration](./workflows) - Create and run complex workflows
+- [Examples and Tutorials](./examples) - Practical examples and tutorials
+- [Advanced Configuration](./advanced-configuration) - Advanced setup options
+
+## Development Setup
+
+If you plan to contribute to Merobox or run it from source:
+
+### Clone and Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/calimero-network/merobox.git
+cd merobox
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install development dependencies
+pip install -r requirements.txt
+
+# Install in development mode
+pip install -e .
+```
+
+### Development Dependencies
+
+The development environment includes:
+
+- **Black**: Code formatting
+- **Ruff**: Linting and code quality
+- **Pytest**: Testing framework
+- **Pre-commit**: Git hooks for code quality
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_specific.py
+
+# Run with verbose output
+pytest -v
+```
+
+### Code Quality
+
+```bash
+# Format code
+black merobox/
+
+# Check formatting
+black --check merobox/
+
+# Lint code
+ruff merobox/
+```

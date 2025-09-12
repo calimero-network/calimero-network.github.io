@@ -1,0 +1,540 @@
+---
+title: Node Management
+description:
+  Complete guide to managing Calimero nodes with Merobox CLI commands.
+sidebar_position: 2
+---
+
+# Node Management
+
+Merobox provides comprehensive commands for managing Calimero nodes in Docker
+containers. This guide covers all the essential node management operations.
+
+## Overview
+
+Merobox's node management system allows you to:
+
+- **Start and Stop Nodes**: Launch single or multiple Calimero nodes
+- **Monitor Health**: Check node status and connectivity
+- **View Logs**: Access real-time and historical logs
+- **Manage Data**: Clean up node data and reset environments
+- **Authentication**: Enable authentication services with Traefik proxy
+
+## Starting Nodes
+
+### Basic Node Startup
+
+Start a single Calimero node with default settings:
+
+```bash
+merobox run
+```
+
+This creates a node named `calimero-node-1` with:
+
+- Chain ID: `testnet-1`
+- Auto-detected ports
+- Default Docker image: `ghcr.io/calimero-network/merod:edge`
+
+### Multiple Nodes
+
+Start multiple nodes for testing multi-node scenarios:
+
+```bash
+# Start 3 nodes
+merobox run --count 3
+
+# Start 5 nodes with custom prefix
+merobox run --count 5 --prefix my-nodes
+```
+
+### Custom Configuration
+
+Configure nodes with specific settings:
+
+```bash
+# Custom chain ID and ports
+merobox run --count 2 --chain-id mainnet-1 --base-port 2428 --base-rpc-port 2528
+
+# Custom Docker image
+merobox run --image ghcr.io/calimero-network/merod:latest
+
+# Force pull latest image
+merobox run --force-pull --image ghcr.io/calimero-network/merod:edge
+```
+
+### Authentication Service
+
+Enable authentication service with Traefik proxy:
+
+```bash
+# Start nodes with auth service
+merobox run --count 2 --auth-service
+
+# Custom auth service image
+merobox run --auth-service --auth-image ghcr.io/calimero-network/mero-auth:latest
+```
+
+When auth service is enabled:
+
+- Nodes are accessible via `http://node1.127.0.0.1.nip.io`
+- Admin dashboard: `http://node1.127.0.0.1.nip.io/admin-dashboard`
+- API endpoints require authentication
+
+### Single Node with Custom Data Directory
+
+For development with persistent data:
+
+```bash
+merobox run --data-dir /path/to/custom/data
+```
+
+## Command Reference
+
+### `merobox run`
+
+Start Calimero nodes in Docker containers.
+
+**Syntax:**
+
+```bash
+merobox run [OPTIONS]
+```
+
+**Options:**
+
+| Option            | Short | Default            | Description                              |
+| ----------------- | ----- | ------------------ | ---------------------------------------- |
+| `--count`         | `-c`  | `1`                | Number of nodes to start                 |
+| `--base-port`     | `-p`  | Auto-detect        | Base P2P port for first node             |
+| `--base-rpc-port` | `-r`  | Auto-detect        | Base RPC port for first node             |
+| `--chain-id`      |       | `testnet-1`        | Blockchain chain ID                      |
+| `--prefix`        |       | `calimero-node`    | Node name prefix                         |
+| `--data-dir`      |       |                    | Custom data directory (single node only) |
+| `--image`         |       | Default image      | Custom Docker image                      |
+| `--force-pull`    |       | `False`            | Force pull Docker image                  |
+| `--auth-service`  |       | `False`            | Enable authentication service            |
+| `--auth-image`    |       | Default auth image | Custom auth service image                |
+
+**Examples:**
+
+```bash
+# Basic usage
+merobox run
+
+# Multiple nodes
+merobox run --count 3
+
+# Custom configuration
+merobox run --count 2 --chain-id mainnet-1 --prefix my-nodes
+
+# With authentication
+merobox run --count 2 --auth-service
+
+# Force pull latest image
+merobox run --force-pull --image ghcr.io/calimero-network/merod:edge
+```
+
+## Stopping Nodes
+
+### Stop Specific Node
+
+Stop a single node by name:
+
+```bash
+merobox stop calimero-node-1
+```
+
+### Stop All Nodes
+
+Stop all running Calimero nodes:
+
+```bash
+merobox stop --all
+```
+
+### Stop Authentication Service
+
+Stop only the authentication service stack:
+
+```bash
+merobox stop --auth-service
+```
+
+### Command Reference
+
+### `merobox stop`
+
+Stop Calimero nodes and services.
+
+**Syntax:**
+
+```bash
+merobox stop [NODE_NAME] [OPTIONS]
+```
+
+**Arguments:**
+
+- `NODE_NAME`: Specific node name to stop (optional)
+
+**Options:**
+
+| Option           | Description                                   |
+| ---------------- | --------------------------------------------- |
+| `--all`          | Stop all running nodes and auth service stack |
+| `--auth-service` | Stop auth service stack only (Traefik + Auth) |
+
+**Examples:**
+
+```bash
+# Stop specific node
+merobox stop calimero-node-1
+
+# Stop all nodes
+merobox stop --all
+
+# Stop auth service only
+merobox stop --auth-service
+```
+
+## Monitoring Nodes
+
+### List Running Nodes
+
+View all currently running Calimero nodes:
+
+```bash
+merobox list
+```
+
+Output shows:
+
+- Node names
+- Container status
+- Port mappings
+- Image information
+
+### Check Node Health
+
+Monitor node health and connectivity:
+
+```bash
+# Check all running nodes
+merobox health
+
+# Check specific node
+merobox health --node calimero-node-1
+
+# Verbose output with detailed information
+merobox health --verbose
+```
+
+Health check includes:
+
+- **Health Status**: Node operational status
+- **Authentication**: Admin API authentication status
+- **Peers**: Number of connected peers
+- **API Connectivity**: Admin API endpoint availability
+
+### View Node Logs
+
+Access real-time and historical logs:
+
+```bash
+# Show last 100 lines
+merobox logs calimero-node-1
+
+# Show last 500 lines
+merobox logs calimero-node-1 --tail 500
+
+# Follow logs in real-time
+merobox logs calimero-node-1 --follow
+```
+
+### Command Reference
+
+#### `merobox list`
+
+List all running Calimero nodes.
+
+**Syntax:**
+
+```bash
+merobox list
+```
+
+#### `merobox health`
+
+Check node health status.
+
+**Syntax:**
+
+```bash
+merobox health [OPTIONS]
+```
+
+**Options:**
+
+| Option      | Short | Default   | Description                            |
+| ----------- | ----- | --------- | -------------------------------------- |
+| `--node`    | `-n`  | All nodes | Specific node name to check            |
+| `--timeout` |       | `10`      | Timeout in seconds for health check    |
+| `--verbose` | `-v`  | `False`   | Show verbose output with raw responses |
+
+#### `merobox logs`
+
+View node logs.
+
+**Syntax:**
+
+```bash
+merobox logs NODE_NAME [OPTIONS]
+```
+
+**Arguments:**
+
+- `NODE_NAME`: Name of the node to view logs for
+
+**Options:**
+
+| Option   | Default | Description                 |
+| -------- | ------- | --------------------------- |
+| `--tail` | `100`   | Number of log lines to show |
+
+## Data Management
+
+### Complete Reset
+
+Remove all node data and containers for a fresh start:
+
+```bash
+# Dry run to see what would be deleted
+merobox nuke --dry-run
+
+# Actually delete all data (requires confirmation)
+merobox nuke
+
+# Force deletion without confirmation
+merobox nuke --force
+```
+
+The `nuke` command:
+
+- Stops all running nodes
+- Deletes all data directories
+- Removes containers
+- Shows space freed
+
+### Command Reference
+
+#### `merobox nuke`
+
+Delete all Calimero node data for complete reset.
+
+**Syntax:**
+
+```bash
+merobox nuke [OPTIONS]
+```
+
+**Options:**
+
+| Option      | Short | Description                                          |
+| ----------- | ----- | ---------------------------------------------------- |
+| `--dry-run` |       | Show what would be deleted without actually deleting |
+| `--force`   | `-f`  | Force deletion without confirmation prompt           |
+| `--verbose` | `-v`  | Show verbose output                                  |
+
+## Port Management
+
+### Automatic Port Detection
+
+Merobox automatically detects available ports:
+
+- **P2P Ports**: Starting from 2428, increments by 1 for each node
+- **RPC Ports**: Starting from 2528, increments by 1 for each node
+- **Conflict Resolution**: Automatically finds next available ports
+
+### Custom Port Configuration
+
+Specify custom ports for your nodes:
+
+```bash
+# Custom base ports
+merobox run --count 3 --base-port 3000 --base-rpc-port 4000
+
+# Results in:
+# Node 1: P2P=3000, RPC=4000
+# Node 2: P2P=3001, RPC=4001
+# Node 3: P2P=3002, RPC=4002
+```
+
+### Port Conflicts
+
+If ports are already in use:
+
+```bash
+# Check what's using a port
+lsof -ti:2528
+
+# Kill process using port
+lsof -ti:2528 | xargs kill
+
+# Or use different ports
+merobox run --base-rpc-port 3000
+```
+
+## Docker Image Management
+
+### Default Images
+
+Merobox uses these default Docker images:
+
+- **Node Image**: `ghcr.io/calimero-network/merod:edge`
+- **Auth Service**: `ghcr.io/calimero-network/mero-auth:edge`
+
+### Custom Images
+
+Use custom Docker images:
+
+```bash
+# Custom node image
+merobox run --image ghcr.io/calimero-network/merod:latest
+
+# Custom auth image
+merobox run --auth-service --auth-image ghcr.io/calimero-network/mero-auth:latest
+```
+
+### Force Pull Images
+
+Always use the latest images:
+
+```bash
+# Force pull node image
+merobox run --force-pull --image ghcr.io/calimero-network/merod:edge
+
+# Force pull in workflow
+# Set force_pull_image: true in workflow YAML
+```
+
+## Network Configuration
+
+### Docker Networks
+
+Merobox automatically creates and manages Docker networks:
+
+- **Default Network**: `bridge` for basic node communication
+- **Auth Networks**: `calimero_web` and `calimero_internal` when auth service is
+  enabled
+
+### Authentication Service Networks
+
+When `--auth-service` is enabled:
+
+- **calimero_web**: External communication (Traefik ↔ Internet)
+- **calimero_internal**: Secure backend communication (Auth ↔ Nodes)
+
+### Network Troubleshooting
+
+Check network configuration:
+
+```bash
+# List Docker networks
+docker network ls
+
+# Inspect network
+docker network inspect calimero_web
+
+# Check container networking
+docker inspect calimero-node-1
+```
+
+## Best Practices
+
+### Development Workflow
+
+1. **Start Fresh**: Use `merobox nuke` to clean up between development sessions
+2. **Use Prefixes**: Use descriptive prefixes for different test scenarios
+3. **Monitor Health**: Regularly check `merobox health` during development
+4. **View Logs**: Use `merobox logs` to debug issues
+
+### Production-like Testing
+
+1. **Multiple Nodes**: Test with multiple nodes to simulate real scenarios
+2. **Authentication**: Use `--auth-service` for production-like testing
+3. **Custom Images**: Test with specific image versions
+4. **Port Management**: Use custom ports to avoid conflicts
+
+### Resource Management
+
+1. **Clean Up**: Regularly use `merobox nuke` to free disk space
+2. **Monitor Resources**: Use `docker stats` to monitor resource usage
+3. **Stop Unused Nodes**: Stop nodes when not needed to save resources
+
+## Troubleshooting
+
+### Common Issues
+
+#### Node Won't Start
+
+```bash
+# Check Docker is running
+docker ps
+
+# Check port conflicts
+netstat -tulpn | grep :2528
+
+# Clean up and retry
+merobox nuke
+merobox run
+```
+
+#### Health Check Fails
+
+```bash
+# Check node logs
+merobox logs calimero-node-1
+
+# Check specific node health
+merobox health --node calimero-node-1 --verbose
+
+# Restart node
+merobox stop calimero-node-1
+merobox run --count 1
+```
+
+#### Authentication Issues
+
+```bash
+# Check auth service status
+docker ps | grep -E "(proxy|auth)"
+
+# Restart auth service
+merobox stop --auth-service
+merobox run --auth-service
+```
+
+### Debug Commands
+
+```bash
+# Enable debug logging
+LOG_LEVEL=DEBUG merobox run
+
+# Verbose health check
+merobox health --verbose
+
+# Check Docker containers
+docker ps -a | grep calimero
+
+# Check Docker logs
+docker logs calimero-node-1
+```
+
+## Next Steps
+
+Now that you understand node management:
+
+- [Workflow Configuration](./workflows) - Create and run complex workflows
+- [Examples and Tutorials](./examples) - Practical examples and tutorials
+- [Advanced Configuration](./advanced-configuration) - Advanced setup options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions

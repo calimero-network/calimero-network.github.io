@@ -1,0 +1,403 @@
+---
+title: Docker Image Management
+description:
+  Managing Docker images, containers, and multi-architecture support for
+  Merobox.
+sidebar_position: 7.2
+---
+
+# Docker Image Management
+
+This guide covers advanced Docker image management, including custom image
+configuration, pull strategies, and multi-architecture support for Merobox.
+
+## Custom Image Configuration
+
+Configure custom Docker images for different scenarios:
+
+```yaml
+# workflow.yml
+nodes:
+  image: ghcr.io/calimero-network/merod:latest
+  auth_image: ghcr.io/calimero-network/mero-auth:latest
+```
+
+### Image Selection Strategies
+
+Choose the right image for your use case:
+
+```yaml
+# Production - stable release
+nodes:
+  image: ghcr.io/calimero-network/merod:latest
+
+# Development - edge features
+nodes:
+  image: ghcr.io/calimero-network/merod:edge
+
+# Specific version
+nodes:
+  image: ghcr.io/calimero-network/merod:v0.7.0
+
+# Custom build
+nodes:
+  image: my-registry.com/calimero:custom
+```
+
+### Multi-Image Workflows
+
+Use different images for different nodes:
+
+```yaml
+# workflow.yml
+nodes:
+  - name: calimero-node-1
+    image: ghcr.io/calimero-network/merod:latest
+  - name: calimero-node-2
+    image: ghcr.io/calimero-network/merod:edge
+  - name: calimero-node-3
+    image: my-registry.com/calimero:custom
+```
+
+## Image Pull Strategies
+
+Control how Merobox handles Docker images:
+
+### Pull Policies
+
+```yaml
+# Always pull latest images
+force_pull_image: true
+
+# Custom pull behavior per node
+nodes:
+  image: ghcr.io/calimero-network/merod:edge
+  pull_policy: always # always, if-not-present, never
+```
+
+### Pull Configuration Options
+
+```yaml
+# Global pull settings
+image_pull_policy: if-not-present
+image_pull_timeout: 300
+image_pull_retries: 3
+
+# Per-node pull settings
+nodes:
+  - name: calimero-node-1
+    image: ghcr.io/calimero-network/merod:latest
+    pull_policy: always
+    pull_timeout: 600
+  - name: calimero-node-2
+    image: ghcr.io/calimero-network/merod:edge
+    pull_policy: if-not-present
+```
+
+### Registry Authentication
+
+Configure authentication for private registries:
+
+```yaml
+# Registry credentials
+registries:
+  - name: ghcr.io
+    username: ${GITHUB_USERNAME}
+    password: ${GITHUB_TOKEN}
+  - name: my-registry.com
+    username: ${REGISTRY_USERNAME}
+    password: ${REGISTRY_PASSWORD}
+
+# Use authenticated registry
+nodes:
+  image: my-registry.com/calimero:private
+  registry: my-registry.com
+```
+
+## Multi-Architecture Support
+
+Use different images for different architectures:
+
+### Platform-Specific Images
+
+```yaml
+nodes:
+  image: ghcr.io/calimero-network/merod:edge
+  platform: linux/amd64 # linux/arm64, linux/arm/v7
+```
+
+### Multi-Platform Workflows
+
+```yaml
+# Different platforms for different nodes
+nodes:
+  - name: calimero-node-amd64
+    image: ghcr.io/calimero-network/merod:edge
+    platform: linux/amd64
+  - name: calimero-node-arm64
+    image: ghcr.io/calimero-network/merod:edge
+    platform: linux/arm64
+```
+
+### Architecture Detection
+
+```yaml
+# Auto-detect platform
+nodes:
+  image: ghcr.io/calimero-network/merod:edge
+  platform: auto # Automatically detect host architecture
+
+# Conditional platform selection
+nodes:
+  image: ghcr.io/calimero-network/merod:edge
+  platform: "{{platform}}" # Use dynamic platform variable
+```
+
+## Image Building and Customization
+
+### Custom Image Building
+
+Build custom images with your modifications:
+
+```dockerfile
+# Dockerfile.custom
+FROM ghcr.io/calimero-network/merod:edge
+
+# Add custom configurations
+COPY custom-config.yml /calimero/config/
+COPY custom-plugins/ /calimero/plugins/
+
+# Set custom environment
+ENV CALIMERO_CUSTOM_MODE=true
+ENV CALIMERO_PLUGINS_PATH=/calimero/plugins
+
+# Expose additional ports
+EXPOSE 3000 3001
+```
+
+### Build Configuration
+
+```yaml
+# workflow.yml
+build:
+  context: .
+  dockerfile: Dockerfile.custom
+  tags:
+    - my-registry.com/calimero:custom
+    - my-registry.com/calimero:latest
+  args:
+    - BUILD_DATE={{now}}
+    - VERSION={{version}}
+  platforms:
+    - linux/amd64
+    - linux/arm64
+
+nodes:
+  image: my-registry.com/calimero:custom
+```
+
+### Image Optimization
+
+Optimize images for production:
+
+```dockerfile
+# Multi-stage build for optimization
+FROM ghcr.io/calimero-network/merod:edge as base
+
+# Development stage
+FROM base as dev
+RUN apt-get update && apt-get install -y \
+    curl \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Production stage
+FROM base as prod
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Use production stage
+FROM prod
+```
+
+## Image Caching and Performance
+
+### Build Cache Configuration
+
+```yaml
+# Enable build cache
+build:
+  cache: true
+  cache_from:
+    - ghcr.io/calimero-network/merod:edge
+    - my-registry.com/calimero:cache
+  cache_to:
+    - my-registry.com/calimero:cache
+
+# Cache configuration
+cache:
+  enabled: true
+  ttl: 3600 # 1 hour
+  max_size: 10GB
+```
+
+### Image Layer Optimization
+
+```dockerfile
+# Optimize layer caching
+FROM ghcr.io/calimero-network/merod:edge
+
+# Copy package files first (changes less frequently)
+COPY package.json package-lock.json ./
+RUN npm ci --only=production
+
+# Copy source code last (changes more frequently)
+COPY src/ ./src/
+COPY config/ ./config/
+```
+
+## Image Security
+
+### Security Scanning
+
+```yaml
+# Enable security scanning
+security:
+  scan_images: true
+  scan_policy: strict
+  vulnerabilities:
+    - high
+    - critical
+  ignore:
+    - CVE-2023-1234 # Known false positive
+```
+
+### Image Signing
+
+```yaml
+# Sign images for security
+signing:
+  enabled: true
+  key: ${SIGNING_KEY}
+  passphrase: ${SIGNING_PASSPHRASE}
+  registry: my-registry.com
+```
+
+### Base Image Security
+
+```yaml
+# Use minimal base images
+nodes:
+  image: ghcr.io/calimero-network/merod:edge
+  security:
+    user: 1000:1000 # Non-root user
+    read_only: true
+    no_new_privileges: true
+```
+
+## Image Monitoring and Maintenance
+
+### Image Health Checks
+
+```yaml
+# Health check configuration
+nodes:
+  image: ghcr.io/calimero-network/merod:edge
+  healthcheck:
+    test: ['CMD', 'curl', '-f', 'http://localhost:2428/health']
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 40s
+```
+
+### Image Updates
+
+```yaml
+# Automatic image updates
+updates:
+  enabled: true
+  schedule: '0 2 * * *' # Daily at 2 AM
+  strategy: rolling
+  max_unavailable: 1
+  max_surge: 1
+```
+
+### Image Cleanup
+
+```yaml
+# Cleanup old images
+cleanup:
+  enabled: true
+  keep_last: 5
+  older_than: 7d
+  untagged: true
+```
+
+## Troubleshooting Image Issues
+
+### Common Problems
+
+```bash
+# Check image availability
+docker pull ghcr.io/calimero-network/merod:edge
+
+# Inspect image details
+docker inspect ghcr.io/calimero-network/merod:edge
+
+# Check image layers
+docker history ghcr.io/calimero-network/merod:edge
+
+# Test image locally
+docker run --rm ghcr.io/calimero-network/merod:edge --version
+```
+
+### Debug Image Pull Issues
+
+```bash
+# Enable debug logging
+export DOCKER_BUILDKIT=0
+export DOCKER_CLI_EXPERIMENTAL=enabled
+
+# Check registry connectivity
+docker login ghcr.io
+docker pull ghcr.io/calimero-network/merod:edge
+
+# Verify image integrity
+docker run --rm ghcr.io/calimero-network/merod:edge sh -c "echo 'Image is working'"
+```
+
+## Best Practices
+
+### Image Selection
+
+1. **Use specific tags**: Avoid `latest` in production
+2. **Regular updates**: Keep images up to date with security patches
+3. **Minimal images**: Use minimal base images when possible
+4. **Version pinning**: Pin to specific versions for reproducibility
+
+### Performance Optimization
+
+1. **Layer caching**: Optimize Dockerfile for better layer caching
+2. **Multi-stage builds**: Use multi-stage builds to reduce image size
+3. **Registry mirrors**: Use local registry mirrors for faster pulls
+4. **Image compression**: Compress images for storage efficiency
+
+### Security Considerations
+
+1. **Vulnerability scanning**: Regularly scan images for vulnerabilities
+2. **Image signing**: Sign images to ensure authenticity
+3. **Access control**: Control access to image registries
+4. **Regular updates**: Keep base images updated
+
+## Next Steps
+
+Now that you understand Docker image management:
+
+- [Network Configuration](./network-configuration) - Advanced network setup
+- [Authentication Service Integration](./auth-service-integration) - Auth
+  service configuration
+- [Resource Management](./resource-management) - Resource limits and monitoring
+- [Advanced Configuration](./advanced-configuration) - Other advanced features
