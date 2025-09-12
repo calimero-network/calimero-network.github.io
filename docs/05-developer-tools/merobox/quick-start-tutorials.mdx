@@ -1,0 +1,355 @@
+---
+title: Quick Start Tutorials
+description:
+  Step-by-step tutorials to get you started with Merobox quickly.
+sidebar_position: 4.1
+---
+
+# Quick Start Tutorials
+
+These tutorials will help you get up and running with Merobox quickly, from your first workflow to deploying applications.
+
+## Tutorial 1: Your First Merobox Workflow
+
+This tutorial walks you through creating and running your first Merobox workflow.
+
+### Step 1: Install Merobox
+
+```bash
+pip install merobox
+```
+
+### Step 2: Create a Simple Workflow
+
+Create a file called `my-first-workflow.yml`:
+
+```yaml
+description: My first Merobox workflow
+name: First Workflow
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+
+steps:
+  - name: Wait for Node Startup
+    type: wait
+    seconds: 5
+
+  - name: Check Node Health
+    type: script
+    script: |
+      echo "Node is running!"
+      echo "Checking health..."
+
+stop_all_nodes: true
+```
+
+### Step 3: Run the Workflow
+
+```bash
+merobox bootstrap run my-first-workflow.yml
+```
+
+### Step 4: Verify Results
+
+```bash
+# Check if nodes are running
+merobox list
+
+# Check node health
+merobox health
+```
+
+## Tutorial 2: Application Deployment
+
+Deploy a simple WASM application using Merobox.
+
+### Step 1: Prepare Your Application
+
+Create a simple WASM file or use the provided example:
+
+```bash
+# Download example WASM file
+curl -o kv-store.wasm https://example.com/kv-store.wasm
+```
+
+### Step 2: Create Deployment Workflow
+
+Create `deploy-app.yml`:
+
+```yaml
+description: Deploy and test a WASM application
+name: Application Deployment
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: calimero-node-1
+    path: ./kv-store.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: calimero-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Test Application
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: set
+    args:
+      key: hello
+      value: world
+    outputs:
+      set_result: result
+
+  - name: Verify Data
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: get
+    args:
+      key: hello
+    outputs:
+      get_result: result
+
+  - name: Validate Results
+    type: assert
+    statements:
+      - "contains({{get_result}}, 'world')"
+
+stop_all_nodes: true
+```
+
+### Step 3: Run the Deployment
+
+```bash
+merobox bootstrap run deploy-app.yml
+```
+
+## Tutorial 3: Multi-Node Setup
+
+Learn how to set up and work with multiple nodes.
+
+### Step 1: Create Multi-Node Workflow
+
+Create `multi-node.yml`:
+
+```yaml
+description: Multi-node setup tutorial
+name: Multi-Node Tutorial
+
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: tutorial-node
+
+steps:
+  - name: Wait for All Nodes
+    type: wait
+    seconds: 10
+    message: 'Waiting for all nodes to start...'
+
+  - name: Check Node 1 Health
+    type: script
+    script: |
+      echo "Checking node 1 health..."
+      curl -f http://tutorial-node-1:2428/health || echo "Node 1 not ready yet"
+
+  - name: Check Node 2 Health
+    type: script
+    script: |
+      echo "Checking node 2 health..."
+      curl -f http://tutorial-node-2:2428/health || echo "Node 2 not ready yet"
+
+  - name: List All Nodes
+    type: script
+    script: |
+      echo "All nodes are running:"
+      merobox list
+
+stop_all_nodes: true
+```
+
+### Step 2: Run Multi-Node Workflow
+
+```bash
+merobox bootstrap run multi-node.yml
+```
+
+## Tutorial 4: Authentication Service
+
+Set up Merobox with authentication service for production-like testing.
+
+### Step 1: Create Auth Service Workflow
+
+Create `auth-tutorial.yml`:
+
+```yaml
+description: Authentication service tutorial
+name: Auth Service Tutorial
+
+# Enable authentication service
+auth_service: true
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: auth-tutorial
+
+steps:
+  - name: Wait for Auth Service
+    type: wait
+    seconds: 15
+    message: 'Waiting for authentication service to start...'
+
+  - name: Check Auth Service
+    type: script
+    script: |
+      echo "Authentication service is running!"
+      echo "Node URL: http://auth-tutorial-1.127.0.0.1.nip.io"
+      echo "Auth Login: http://auth-tutorial-1.127.0.0.1.nip.io/auth/login"
+      echo "Admin Dashboard: http://auth-tutorial-1.127.0.0.1.nip.io/admin-dashboard"
+
+stop_all_nodes: true
+```
+
+### Step 2: Run Auth Service Tutorial
+
+```bash
+merobox bootstrap run auth-tutorial.yml
+```
+
+## Tutorial 5: Custom Scripts
+
+Learn how to use custom scripts in your workflows.
+
+### Step 1: Create Script Tutorial
+
+Create `script-tutorial.yml`:
+
+```yaml
+description: Custom scripts tutorial
+name: Script Tutorial
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: script-tutorial
+
+steps:
+  - name: Pre-Setup Script
+    type: script
+    script: |
+      echo "Setting up test environment..."
+      mkdir -p /tmp/merobox-tutorial
+      echo "Merobox Tutorial" > /tmp/merobox-tutorial/readme.txt
+      echo "Pre-setup complete"
+
+  - name: Main Script
+    type: script
+    script: |
+      echo "Running main tutorial script..."
+      echo "Current directory: $(pwd)"
+      echo "Available files:"
+      ls -la /tmp/merobox-tutorial/
+      echo "Script execution complete"
+
+  - name: Cleanup Script
+    type: script
+    script: |
+      echo "Cleaning up..."
+      rm -rf /tmp/merobox-tutorial
+      echo "Cleanup complete"
+
+stop_all_nodes: true
+```
+
+### Step 2: Run Script Tutorial
+
+```bash
+merobox bootstrap run script-tutorial.yml
+```
+
+## Common Issues and Solutions
+
+### Issue: Node Not Starting
+
+**Problem**: Node fails to start or takes too long.
+
+**Solution**:
+```yaml
+# Add longer wait times
+steps:
+  - name: Wait for Node
+    type: wait
+    seconds: 30  # Increase wait time
+    message: 'Waiting for node to start...'
+```
+
+### Issue: Application Installation Fails
+
+**Problem**: Application installation fails with errors.
+
+**Solution**:
+```yaml
+# Use dev mode for local development
+steps:
+  - name: Install Application
+    type: install_application
+    node: calimero-node-1
+    path: ./my-app.wasm
+    dev: true  # Enable dev mode
+```
+
+### Issue: Context Creation Fails
+
+**Problem**: Context creation fails or times out.
+
+**Solution**:
+```yaml
+# Add validation and error handling
+steps:
+  - name: Create Context
+    type: create_context
+    node: calimero-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Validate Context
+    type: assert
+    statements:
+      - '{{context_id}} != null'
+      - '{{member_key}} != null'
+```
+
+## Next Steps
+
+Now that you've completed the quick start tutorials:
+
+- [Real-World Examples](./real-world-examples) - Practical examples for common scenarios
+- [Testing Integration Examples](./testing-integration-examples) - Integration with testing frameworks
+- [Advanced Examples](./advanced-examples) - Complex workflows and advanced features
+- [Best Practices](./best-practices) - Guidelines for effective Merobox usage

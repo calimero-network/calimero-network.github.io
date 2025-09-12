@@ -1,0 +1,622 @@
+---
+title: Security Configuration
+description:
+  Security settings, policies, and best practices for Merobox deployments.
+sidebar_position: 7.8
+---
+
+# Security Configuration
+
+This guide covers security configuration for Merobox, including container security, network security, and secrets management.
+
+## Container Security
+
+Configure container security settings to protect your Merobox deployment:
+
+### Basic Security Configuration
+
+```yaml
+nodes:
+  security:
+    user: '1000:1000'
+    read_only: true
+    no_new_privileges: true
+    capabilities:
+      drop: ['ALL']
+      add: ['NET_BIND_SERVICE']
+  environment:
+    RUST_LOG: 'info'
+    CALIMERO_SECURE_MODE: 'true'
+```
+
+### Advanced Security Settings
+
+```yaml
+# Comprehensive security configuration
+nodes:
+  security:
+    # User and group
+    user: '1000:1000'
+    group: '1000'
+    
+    # File system security
+    read_only: true
+    tmpfs:
+      - /tmp: size=100M,noexec,nosuid,nodev
+      - /var/tmp: size=50M,noexec,nosuid,nodev
+    
+    # Process security
+    no_new_privileges: true
+    init: true
+    pid_limit: 100
+    
+    # Capabilities
+    capabilities:
+      drop: ['ALL']
+      add: ['NET_BIND_SERVICE', 'CHOWN', 'SETUID', 'SETGID']
+    
+    # Security options
+    security_opt:
+      - 'no-new-privileges:true'
+      - 'seccomp:unconfined'
+      - 'apparmor:unconfined'
+    
+    # Resource limits
+    ulimits:
+      - name: nofile
+        soft: 65536
+        hard: 65536
+      - name: nproc
+        soft: 32768
+        hard: 32768
+```
+
+### Security Profiles
+
+```yaml
+# Security profiles for different environments
+security_profiles:
+  development:
+    user: '1000:1000'
+    read_only: false
+    capabilities:
+      drop: ['ALL']
+      add: ['NET_BIND_SERVICE']
+  
+  staging:
+    user: '1000:1000'
+    read_only: true
+    capabilities:
+      drop: ['ALL']
+      add: ['NET_BIND_SERVICE']
+    security_opt:
+      - 'no-new-privileges:true'
+  
+  production:
+    user: '1000:1000'
+    read_only: true
+    no_new_privileges: true
+    capabilities:
+      drop: ['ALL']
+      add: ['NET_BIND_SERVICE']
+    security_opt:
+      - 'no-new-privileges:true'
+      - 'seccomp:unconfined'
+      - 'apparmor:unconfined'
+```
+
+## Network Security
+
+Configure network security and isolation:
+
+### Network Isolation
+
+```yaml
+networks:
+  - name: calimero-secure
+    driver: bridge
+    options:
+      com.docker.network.bridge.enable_icc: 'false'
+      com.docker.network.bridge.enable_ip_masquerade: 'true'
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+```
+
+### Firewall Configuration
+
+```yaml
+# Firewall rules
+firewall:
+  enabled: true
+  rules:
+    # Allow internal communication
+    - action: allow
+      source: 172.20.0.0/16
+      destination: 2428
+      protocol: tcp
+    - action: allow
+      source: 172.20.0.0/16
+      destination: 2528
+      protocol: tcp
+    
+    # Block external access to admin ports
+    - action: deny
+      source: 0.0.0.0/0
+      destination: 2628
+      protocol: tcp
+    
+    # Allow HTTPS from specific sources
+    - action: allow
+      source: 192.168.1.0/24
+      destination: 443
+      protocol: tcp
+    
+    # Block all other traffic
+    - action: deny
+      source: 0.0.0.0/0
+      destination: 0.0.0.0/0
+      protocol: all
+```
+
+### Network Policies
+
+```yaml
+# Network access policies
+network_policies:
+  - name: calimero-policy
+    rules:
+      # Allow internal communication
+      - from:
+          - namespace: calimero
+        ports:
+          - protocol: tcp
+            port: 2428
+          - protocol: tcp
+            port: 2528
+      
+      # Allow monitoring access
+      - from:
+          - namespace: monitoring
+        ports:
+          - protocol: tcp
+            port: 8080
+      
+      # Block external access
+      - from: []
+        ports: []
+```
+
+## Secrets Management
+
+Manage sensitive configuration and credentials securely:
+
+### Basic Secrets Configuration
+
+```yaml
+secrets:
+  - name: calimero-secret
+    file: ./secrets/calimero.key
+  - name: auth-token
+    environment: AUTH_TOKEN
+
+nodes:
+  secrets:
+    - calimero-secret
+  environment:
+    AUTH_TOKEN_FILE: /run/secrets/auth-token
+```
+
+### Advanced Secrets Management
+
+```yaml
+# Comprehensive secrets management
+secrets:
+  # File-based secrets
+  - name: calimero-private-key
+    file: ./secrets/private.key
+    mode: 0600
+    owner: 1000
+    group: 1000
+  
+  - name: calimero-certificate
+    file: ./secrets/certificate.pem
+    mode: 0644
+    owner: 1000
+    group: 1000
+  
+  # Environment-based secrets
+  - name: database-password
+    environment: DATABASE_PASSWORD
+    required: true
+  
+  - name: api-key
+    environment: API_KEY
+    required: true
+  
+  # External secret management
+  - name: vault-secret
+    external: true
+    provider: vault
+    path: secret/calimero
+    key: api-key
+
+# Secret injection
+nodes:
+  secrets:
+    - calimero-private-key
+    - calimero-certificate
+    - database-password
+    - api-key
+  
+  environment:
+    PRIVATE_KEY_FILE: /run/secrets/calimero-private-key
+    CERTIFICATE_FILE: /run/secrets/calimero-certificate
+    DATABASE_PASSWORD_FILE: /run/secrets/database-password
+    API_KEY_FILE: /run/secrets/api-key
+```
+
+### HashiCorp Vault Integration
+
+```yaml
+# Vault integration
+vault:
+  enabled: true
+  address: 'https://vault.example.com'
+  token: '${VAULT_TOKEN}'
+  secrets:
+    - name: calimero-secrets
+      path: 'secret/calimero'
+      keys:
+        - api-key
+        - database-password
+        - encryption-key
+  
+  # Auto-renewal
+  renewal:
+    enabled: true
+    interval: 3600  # 1 hour
+    threshold: 300  # 5 minutes
+```
+
+## Authentication and Authorization
+
+### RBAC Configuration
+
+```yaml
+# Role-based access control
+rbac:
+  enabled: true
+  roles:
+    - name: admin
+      permissions:
+        - 'calimero:admin:*'
+        - 'calimero:node:*'
+        - 'calimero:workflow:*'
+    
+    - name: developer
+      permissions:
+        - 'calimero:node:read'
+        - 'calimero:workflow:create'
+        - 'calimero:workflow:read'
+    
+    - name: viewer
+      permissions:
+        - 'calimero:node:read'
+        - 'calimero:workflow:read'
+  
+  # User assignments
+  users:
+    - name: admin-user
+      roles: ['admin']
+    - name: dev-user
+      roles: ['developer']
+    - name: viewer-user
+      roles: ['viewer']
+```
+
+### API Authentication
+
+```yaml
+# API authentication
+api_auth:
+  enabled: true
+  methods:
+    - jwt
+    - api_key
+    - oauth2
+  
+  # JWT configuration
+  jwt:
+    secret: '${JWT_SECRET}'
+    algorithm: 'HS256'
+    expiration: 3600  # 1 hour
+    issuer: 'calimero-api'
+    audience: 'calimero-clients'
+  
+  # API key configuration
+  api_key:
+    header: 'X-API-Key'
+    prefix: 'calimero_'
+    length: 32
+  
+  # OAuth2 configuration
+  oauth2:
+    providers:
+      - name: google
+        client_id: '${GOOGLE_CLIENT_ID}'
+        client_secret: '${GOOGLE_CLIENT_SECRET}'
+        scopes: ['openid', 'email', 'profile']
+```
+
+## Encryption
+
+### Data Encryption
+
+```yaml
+# Data encryption configuration
+encryption:
+  enabled: true
+  
+  # Encryption at rest
+  at_rest:
+    algorithm: 'AES-256-GCM'
+    key: '${ENCRYPTION_KEY}'
+    key_rotation: 86400  # 24 hours
+  
+  # Encryption in transit
+  in_transit:
+    tls:
+      enabled: true
+      version: '1.3'
+      ciphers:
+        - 'TLS_AES_256_GCM_SHA384'
+        - 'TLS_CHACHA20_POLY1305_SHA256'
+      certificates:
+        cert: '/run/secrets/tls.crt'
+        key: '/run/secrets/tls.key'
+  
+  # Database encryption
+  database:
+    enabled: true
+    algorithm: 'AES-256-GCM'
+    key: '${DATABASE_ENCRYPTION_KEY}'
+```
+
+### Key Management
+
+```yaml
+# Key management
+key_management:
+  provider: vault  # vault, aws-kms, azure-keyvault
+  
+  # Vault configuration
+  vault:
+    address: 'https://vault.example.com'
+    token: '${VAULT_TOKEN}'
+    key_path: 'secret/calimero/keys'
+  
+  # Key rotation
+  rotation:
+    enabled: true
+    interval: 86400  # 24 hours
+    threshold: 3600  # 1 hour
+  
+  # Key backup
+  backup:
+    enabled: true
+    location: 's3://calimero-backups/keys'
+    encryption: true
+```
+
+## Audit Logging
+
+### Audit Configuration
+
+```yaml
+# Audit logging
+audit:
+  enabled: true
+  
+  # Audit events
+  events:
+    - authentication
+    - authorization
+    - data_access
+    - configuration_changes
+    - security_events
+  
+  # Audit destinations
+  destinations:
+    - type: file
+      path: '/var/log/calimero/audit.log'
+      format: 'json'
+      rotation:
+        size: '100MB'
+        count: 10
+    
+    - type: syslog
+      address: 'udp://syslog.example.com:514'
+      facility: 'local0'
+      priority: 'info'
+    
+    - type: elasticsearch
+      url: 'https://elasticsearch.example.com:9200'
+      index: 'calimero-audit'
+      username: '${ELASTICSEARCH_USERNAME}'
+      password: '${ELASTICSEARCH_PASSWORD}'
+```
+
+### Security Monitoring
+
+```yaml
+# Security monitoring
+security_monitoring:
+  enabled: true
+  
+  # Monitoring rules
+  rules:
+    - name: failed_login_attempts
+      condition: 'audit.event == "authentication" AND audit.result == "failure"'
+      threshold: 5
+      window: 300  # 5 minutes
+      action: alert
+    
+    - name: privilege_escalation
+      condition: 'audit.event == "authorization" AND audit.action == "escalate"'
+      threshold: 1
+      window: 60
+      action: alert
+    
+    - name: data_access_anomaly
+      condition: 'audit.event == "data_access" AND audit.volume > 1000'
+      threshold: 1
+      window: 300
+      action: alert
+  
+  # Alerting
+  alerts:
+    - name: security_team
+      type: email
+      recipients: ['security@example.com']
+    - name: security_channel
+      type: slack
+      webhook: '${SLACK_WEBHOOK_URL}'
+```
+
+## Compliance
+
+### Security Standards
+
+```yaml
+# Compliance configuration
+compliance:
+  standards:
+    - name: SOC2
+      enabled: true
+      controls:
+        - access_control
+        - data_encryption
+        - audit_logging
+        - incident_response
+    
+    - name: GDPR
+      enabled: true
+      controls:
+        - data_protection
+        - consent_management
+        - data_retention
+        - right_to_erasure
+    
+    - name: HIPAA
+      enabled: true
+      controls:
+        - data_encryption
+        - access_control
+        - audit_logging
+        - data_integrity
+```
+
+### Security Scanning
+
+```yaml
+# Security scanning
+security_scanning:
+  enabled: true
+  
+  # Vulnerability scanning
+  vulnerability_scanning:
+    enabled: true
+    schedule: '0 2 * * *'  # Daily at 2 AM
+    tools:
+      - trivy
+      - snyk
+    severity_threshold: 'high'
+  
+  # Container scanning
+  container_scanning:
+    enabled: true
+    images:
+      - 'ghcr.io/calimero-network/merod:latest'
+      - 'ghcr.io/calimero-network/mero-auth:latest'
+  
+  # Dependency scanning
+  dependency_scanning:
+    enabled: true
+    languages:
+      - rust
+      - python
+      - javascript
+```
+
+## Security Best Practices
+
+### General Security
+
+1. **Principle of Least Privilege**: Grant minimum necessary permissions
+2. **Defense in Depth**: Implement multiple security layers
+3. **Regular Updates**: Keep all components updated
+4. **Monitoring**: Continuously monitor for security events
+
+### Container Security
+
+1. **Non-root Users**: Run containers as non-root users
+2. **Read-only Filesystems**: Use read-only filesystems where possible
+3. **Capability Dropping**: Drop unnecessary capabilities
+4. **Resource Limits**: Set appropriate resource limits
+
+### Network Security
+
+1. **Network Segmentation**: Isolate different network segments
+2. **Firewall Rules**: Implement strict firewall rules
+3. **TLS Encryption**: Use TLS for all communications
+4. **Access Control**: Control network access with policies
+
+### Data Protection
+
+1. **Encryption**: Encrypt data at rest and in transit
+2. **Key Management**: Secure key management practices
+3. **Data Classification**: Classify and protect data appropriately
+4. **Backup Security**: Secure backup data
+
+## Troubleshooting Security Issues
+
+### Common Security Issues
+
+```bash
+# Check container security
+docker inspect calimero-node-1 | jq '.[0].HostConfig.SecurityOpt'
+
+# Check user permissions
+docker exec calimero-node-1 id
+
+# Check file permissions
+docker exec calimero-node-1 ls -la /calimero/
+
+# Check network connectivity
+docker exec calimero-node-1 netstat -tulpn
+```
+
+### Security Debugging
+
+```bash
+# Enable security debugging
+export CALIMERO_SECURITY_DEBUG=true
+export RUST_LOG=debug
+
+# Check security logs
+docker logs calimero-node-1 | grep -i security
+
+# Verify TLS certificates
+openssl x509 -in /run/secrets/tls.crt -text -noout
+
+# Test authentication
+curl -H "Authorization: Bearer <token>" https://calimero.example.com/api/health
+```
+
+## Next Steps
+
+Now that you understand security configuration:
+
+- [Advanced Configuration](./advanced-configuration) - Other advanced features

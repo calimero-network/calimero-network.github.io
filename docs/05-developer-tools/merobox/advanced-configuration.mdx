@@ -2,7 +2,7 @@
 title: Advanced Configuration
 description:
   Advanced features, configuration options, and customization for Merobox.
-sidebar_position: 5
+sidebar_position: 7
 ---
 
 # Advanced Configuration
@@ -10,424 +10,117 @@ sidebar_position: 5
 This guide covers advanced features, configuration options, and customization
 capabilities in Merobox for power users and complex scenarios.
 
-## Environment Variables
+## Overview
 
-Merobox supports several environment variables for configuration:
+Merobox provides extensive advanced configuration options organized into specialized areas:
 
-### Core Configuration
+- **[Environment Variables](./environment-variables)** - Configure Merobox behavior and Docker settings
+- **[Docker Image Management](./docker-image-management)** - Manage Docker images, containers, and multi-architecture support
+- **[Network Configuration](./network-configuration)** - Advanced network setup, Docker networks, and security
+- **[Authentication Service Integration](./auth-service-integration)** - Auth service configuration and integration
+- **[Workflow Advanced Features](./workflow-advanced-features)** - Conditional execution, parallel steps, and custom step types
+- **[Testing Framework Integration](./testing-framework-integration)** - Advanced testing configuration and utilities
+- **[Resource Management](./resource-management)** - Resource limits, monitoring, and optimization
+- **[Security Configuration](./security-configuration)** - Security settings, policies, and best practices
 
-```bash
-# Docker image for Calimero nodes
-export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
+## Quick Reference
 
-# Docker daemon connection
-export DOCKER_HOST="unix:///var/run/docker.sock"
-
-# Logging level
-export LOG_LEVEL="INFO"  # DEBUG, INFO, WARNING, ERROR
-
-# Custom data directory
-export CALIMERO_DATA_DIR="/custom/path/to/data"
-```
-
-### Authentication Service Configuration
-
-```bash
-# Auth service image
-export CALIMERO_AUTH_IMAGE="ghcr.io/calimero-network/mero-auth:edge"
-
-# Auth service configuration
-export CALIMERO_AUTH_CONFIG="/path/to/auth/config.yml"
-```
-
-### Network Configuration
-
-```bash
-# Custom network settings
-export CALIMERO_NETWORK_MODE="bridge"
-export CALIMERO_NETWORK_NAME="custom-calimero-network"
-
-# Port ranges
-export CALIMERO_PORT_RANGE_START="3000"
-export CALIMERO_PORT_RANGE_END="4000"
-```
-
-## Docker Image Management
-
-### Custom Image Configuration
-
-Configure custom Docker images for different scenarios:
+### Common Configuration Patterns
 
 ```yaml
-# workflow.yml
+# Basic advanced configuration
 nodes:
+  count: 3
   image: ghcr.io/calimero-network/merod:latest
-  auth_image: ghcr.io/calimero-network/mero-auth:latest
-```
-
-### Image Pull Strategies
-
-Control how Merobox handles Docker images:
-
-```yaml
-# Force pull all images
-force_pull_image: true
-
-# Custom pull behavior
-nodes:
-  image: ghcr.io/calimero-network/merod:edge
-  pull_policy: always # always, if-not-present, never
-```
-
-### Multi-Architecture Support
-
-Use different images for different architectures:
-
-```yaml
-nodes:
-  image: ghcr.io/calimero-network/merod:edge
-  platform: linux/amd64 # linux/arm64, linux/arm/v7
-```
-
-## Network Configuration
-
-### Custom Docker Networks
-
-Create and use custom Docker networks:
-
-```yaml
-# workflow.yml
-networks:
-  - name: calimero-custom
-    driver: bridge
-    options:
-      com.docker.network.bridge.name: calimero-br0
-      com.docker.network.driver.mtu: 1500
-
-nodes:
-  networks:
-    - calimero-custom
-    - default
-```
-
-### Port Management
-
-Advanced port configuration:
-
-```yaml
-nodes:
-  ports:
-    p2p: 2428
-    rpc: 2528
-    admin: 2628
-  port_mapping:
-    mode: host # host, bridge, none
-  expose_ports:
-    - 2428
-    - 2528
-```
-
-### Network Security
-
-Configure network security and isolation:
-
-```yaml
-networks:
-  - name: calimero-secure
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-    options:
-      com.docker.network.bridge.enable_icc: 'false'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
-```
-
-## Authentication Service Integration
-
-### Advanced Auth Configuration
-
-Configure authentication service with custom settings:
-
-```yaml
-# workflow.yml
-auth_service: true
-auth_config:
-  image: ghcr.io/calimero-network/mero-auth:latest
-  environment:
-    AUTH_SECRET_KEY: 'your-secret-key'
-    AUTH_SESSION_TIMEOUT: '3600'
-  volumes:
-    - ./auth-config:/app/config
-  networks:
-    - calimero-web
-    - calimero-internal
-```
-
-### Custom Auth Middleware
-
-Configure custom authentication middleware:
-
-```yaml
-auth_service:
-  middleware:
-    - name: cors
-      config:
-        origins: ['http://localhost:3000', 'https://myapp.com']
-    - name: rate-limit
-      config:
-        requests_per_minute: 100
-    - name: custom-auth
-      config:
-        auth_endpoint: '/custom/auth'
-```
-
-### Traefik Configuration
-
-Custom Traefik proxy configuration:
-
-```yaml
-traefik:
-  image: traefik:v2.10
-  config:
-    entryPoints:
-      web:
-        address: ':80'
-      websecure:
-        address: ':443'
-    providers:
-      docker:
-        endpoint: 'unix:///var/run/docker.sock'
-        exposedByDefault: false
-```
-
-## Workflow Advanced Features
-
-### Conditional Execution
-
-Execute steps conditionally:
-
-```yaml
-steps:
-  - name: Check Condition
-    type: script
-    script: |
-      if [ "$ENVIRONMENT" = "production" ]; then
-        echo "true" > /tmp/condition
-      else
-        echo "false" > /tmp/condition
-      fi
-    outputs:
-      condition: output
-
-  - name: Production Step
-    type: call
-    node: calimero-node-1
-    condition: "{{condition}} == 'true'"
-    # ... step configuration
-```
-
-### Parallel Step Execution
-
-Execute multiple steps in parallel:
-
-```yaml
-steps:
-  - name: Parallel Operations
-    type: parallel
-    steps:
-      - name: Install App 1
-        type: install_application
-        node: calimero-node-1
-        path: ./app1.wasm
-      - name: Install App 2
-        type: install_application
-        node: calimero-node-2
-        path: ./app2.wasm
-      - name: Create Identity
-        type: create_identity
-        node: calimero-node-3
-```
-
-### Error Handling and Recovery
-
-Implement robust error handling:
-
-```yaml
-steps:
-  - name: Risky Operation
-    type: call
-    node: calimero-node-1
-    method: risky_method
-    retry:
-      attempts: 3
-      delay: 5
-      backoff: exponential
-    on_error:
-      - name: Log Error
-        type: script
-        script: echo "Operation failed: {{error}}"
-      - name: Cleanup
-        type: script
-        script: echo "Cleaning up..."
-```
-
-### Custom Step Types
-
-Define custom step types:
-
-```yaml
-# custom-steps.yml
-step_types:
-  custom_deploy:
-    required_fields: [node, application, environment]
-    optional_fields: [config, timeout]
-    execute: |
-      # Custom deployment logic
-      echo "Deploying {{application}} to {{environment}}"
-```
-
-## Testing Framework Integration
-
-### Advanced Testing Configuration
-
-Configure Merobox for complex testing scenarios:
-
-```python
-# conftest.py
-import pytest
-from merobox.testing import cluster, workflow
-
-@pytest.fixture(scope="session")
-def production_cluster():
-    """Production-like cluster for integration tests."""
-    with cluster(
-        count=3,
-        prefix="prod",
-        image="ghcr.io/calimero-network/merod:latest",
-        chain_id="mainnet-1",
-        wait_for_ready=True
-    ) as env:
-        yield env
-
-@pytest.fixture(scope="function")
-def test_workflow():
-    """Run a complex workflow for each test."""
-    with workflow(
-        "workflows/test-setup.yml",
-        prefix="test",
-        scope="function"
-    ) as env:
-        yield env
-```
-
-### Custom Test Utilities
-
-Create custom testing utilities:
-
-```python
-# test_utils.py
-from merobox.testing import cluster
-from merobox.commands.utils import get_node_rpc_url
-
-class TestEnvironment:
-    def __init__(self, node_count=2):
-        self.node_count = node_count
-        self.cluster = None
-
-    def __enter__(self):
-        self.cluster = cluster(count=self.node_count)
-        return self.cluster.__enter__()
-
-    def __exit__(self, *args):
-        if self.cluster:
-            self.cluster.__exit__(*args)
-
-    def get_node_endpoint(self, node_name):
-        """Get the RPC endpoint for a specific node."""
-        return get_node_rpc_url(node_name, self.cluster["manager"])
-```
-
-### Performance Testing
-
-Configure Merobox for performance testing:
-
-```yaml
-# performance-test.yml
-description: Performance testing configuration
-name: Performance Test
-
-# High-performance node configuration
-nodes:
-  count: 5
-  image: ghcr.io/calimero-network/merod:edge
   resources:
     memory: '2G'
     cpus: '1.0'
   environment:
     RUST_LOG: 'info'
-    CALIMERO_PERF_MODE: 'true'
+    CALIMERO_SECURE_MODE: 'true'
 
-# Performance monitoring
-monitoring:
-  enabled: true
-  metrics:
-    - cpu_usage
-    - memory_usage
-    - network_io
-    - disk_io
-  interval: 5
+# Network configuration
+networks:
+  - name: calimero-web
+    driver: bridge
+    options:
+      com.docker.network.bridge.enable_icc: 'true'
 
-steps:
-  - name: Performance Test
-    type: repeat
-    count: 1000
-    parallel: 10
-    steps:
-      - name: Load Test
-        type: call
-        node: calimero-node-{{iteration % 5 + 1}}
-        method: load_test
-        args:
-          load: '{{iteration}}'
+# Security settings
+security:
+  user: '1000:1000'
+  read_only: true
+  capabilities:
+    drop: ['ALL']
+    add: ['NET_BIND_SERVICE']
 ```
 
-## Resource Management
+### Environment Variables
 
-### Memory and CPU Limits
+```bash
+# Core configuration
+export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
+export LOG_LEVEL="INFO"
+export CALIMERO_DATA_DIR="/custom/path/to/data"
 
-Configure resource limits for nodes:
+# Network settings
+export CALIMERO_NETWORK_MODE="bridge"
+export CALIMERO_PORT_RANGE_START="3000"
+export CALIMERO_PORT_RANGE_END="4000"
+```
+
+## Configuration Best Practices
+
+### 1. Environment-Specific Configuration
+
+Use different configurations for different environments:
 
 ```yaml
-nodes:
-  resources:
-    memory: '1G'
-    memory_swap: '2G'
-    cpus: '0.5'
-    cpu_quota: 50000
-    cpu_period: 100000
+# Development
+development:
+  nodes:
+    count: 2
+    resources:
+      memory: '1G'
+      cpus: '0.5'
+  security:
+    read_only: false
+
+# Production
+production:
+  nodes:
+    count: 5
+    resources:
+      memory: '4G'
+      cpus: '2.0'
+  security:
+    read_only: true
+    no_new_privileges: true
 ```
 
-### Storage Configuration
+### 2. Resource Planning
 
-Configure persistent storage:
+Plan resources based on your workload:
 
-```yaml
-nodes:
-  volumes:
-    - type: bind
-      source: ./data
-      target: /calimero/data
-    - type: volume
-      source: calimero-logs
-      target: /calimero/logs
-  tmpfs:
-    - /tmp: size=100M,noexec,nosuid,nodev
-```
+- **CPU**: 0.5-2.0 cores per node depending on workload
+- **Memory**: 1-4GB per node for typical applications
+- **Storage**: 10-100GB depending on data requirements
+- **Network**: Consider bandwidth and latency requirements
 
-### Resource Monitoring
+### 3. Security Considerations
 
-Monitor resource usage:
+Implement security best practices:
+
+- Use non-root users
+- Enable read-only filesystems
+- Drop unnecessary capabilities
+- Implement network segmentation
+- Use secrets management
+- Enable audit logging
+
+### 4. Monitoring and Observability
+
+Set up comprehensive monitoring:
 
 ```yaml
 monitoring:
@@ -441,125 +134,6 @@ monitoring:
     - metric: memory_usage
       threshold: 80
       action: restart_node
-    - metric: cpu_usage
-      threshold: 90
-      action: scale_up
-```
-
-## Security Configuration
-
-### Container Security
-
-Configure container security settings:
-
-```yaml
-nodes:
-  security:
-    user: '1000:1000'
-    read_only: true
-    no_new_privileges: true
-    capabilities:
-      drop: ['ALL']
-      add: ['NET_BIND_SERVICE']
-  environment:
-    RUST_LOG: 'info'
-    CALIMERO_SECURE_MODE: 'true'
-```
-
-### Network Security
-
-Configure network security:
-
-```yaml
-networks:
-  - name: calimero-secure
-    driver: bridge
-    options:
-      com.docker.network.bridge.enable_icc: 'false'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
-```
-
-### Secrets Management
-
-Manage sensitive configuration:
-
-```yaml
-secrets:
-  - name: calimero-secret
-    file: ./secrets/calimero.key
-  - name: auth-token
-    environment: AUTH_TOKEN
-
-nodes:
-  secrets:
-    - calimero-secret
-  environment:
-    AUTH_TOKEN_FILE: /run/secrets/auth-token
-```
-
-## Customization and Extensions
-
-### Custom Commands
-
-Create custom Merobox commands:
-
-```python
-# custom_commands.py
-import click
-from merobox.commands.manager import CalimeroManager
-
-@click.command()
-@click.option('--custom-option', help='Custom option')
-def custom_command(custom_option):
-    """Custom command for specific use case."""
-    manager = CalimeroManager()
-    # Custom logic here
-    click.echo(f"Custom command executed with option: {custom_option}")
-```
-
-### Custom Step Types
-
-Implement custom step types:
-
-```python
-# custom_steps.py
-from merobox.commands.bootstrap.steps.base import BaseStep
-
-class CustomStep(BaseStep):
-    def _get_required_fields(self):
-        return ['custom_field']
-
-    def _get_exportable_variables(self):
-        return [('result', 'custom_result', 'Custom step result')]
-
-    def execute(self):
-        # Custom step logic
-        custom_field = self.config['custom_field']
-        # Process custom_field...
-        return {'result': 'custom_output'}
-```
-
-### Plugin System
-
-Create Merobox plugins:
-
-```python
-# merobox_plugin.py
-from merobox.plugin import MeroboxPlugin
-
-class MyPlugin(MeroboxPlugin):
-    def register_commands(self, cli):
-        @cli.command()
-        def my_command():
-            """My custom command."""
-            pass
-
-    def register_steps(self, step_registry):
-        step_registry.register('custom_step', CustomStep)
 ```
 
 ## Troubleshooting Advanced Issues
@@ -641,4 +215,5 @@ netstat -tulpn | grep -E "(2428|2528)"
 
 Now that you understand advanced configuration:
 
+- [Python Customization](./python-customization) - Advanced Python customization and extensions
 - [Troubleshooting](./troubleshooting) - Common issues and solutions

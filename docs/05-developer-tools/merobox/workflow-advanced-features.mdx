@@ -1,0 +1,598 @@
+---
+title: Workflow Advanced Features
+description:
+  Advanced workflow features including conditional execution, parallel steps, and custom step types.
+sidebar_position: 7.5
+---
+
+# Workflow Advanced Features
+
+This guide covers advanced workflow features in Merobox, including conditional execution, parallel step execution, error handling, and custom step types.
+
+## Conditional Execution
+
+Execute steps conditionally based on variables, environment, or previous step results:
+
+### Basic Conditional Execution
+
+```yaml
+steps:
+  - name: Check Condition
+    type: script
+    script: |
+      if [ "$ENVIRONMENT" = "production" ]; then
+        echo "true" > /tmp/condition
+      else
+        echo "false" > /tmp/condition
+      fi
+    outputs:
+      condition: output
+
+  - name: Production Step
+    type: call
+    node: calimero-node-1
+    condition: "{{condition}} == 'true'"
+    method: production_method
+    args:
+      - "production_value"
+```
+
+### Advanced Conditional Logic
+
+```yaml
+steps:
+  - name: Environment Check
+    type: script
+    script: |
+      case "$ENVIRONMENT" in
+        "production")
+          echo "prod" > /tmp/env_type
+          echo "true" > /tmp/use_ssl
+          ;;
+        "staging")
+          echo "staging" > /tmp/env_type
+          echo "true" > /tmp/use_ssl
+          ;;
+        "development")
+          echo "dev" > /tmp/env_type
+          echo "false" > /tmp/use_ssl
+          ;;
+        *)
+          echo "unknown" > /tmp/env_type
+          echo "false" > /tmp/use_ssl
+          ;;
+      esac
+    outputs:
+      env_type: output
+      use_ssl: output
+
+  - name: Configure SSL
+    type: script
+    condition: "{{use_ssl}} == 'true'"
+    script: |
+      echo "Configuring SSL for {{env_type}} environment"
+      # SSL configuration logic here
+
+  - name: Configure Development
+    type: script
+    condition: "{{env_type}} == 'dev'"
+    script: |
+      echo "Configuring development settings"
+      # Development configuration logic here
+```
+
+### Complex Conditions
+
+```yaml
+steps:
+  - name: Multi-Condition Check
+    type: script
+    script: |
+      # Check multiple conditions
+      if [ "$ENVIRONMENT" = "production" ] && [ "$FEATURE_FLAG" = "enabled" ]; then
+        echo "true" > /tmp/complex_condition
+      else
+        echo "false" > /tmp/complex_condition
+      fi
+    outputs:
+      complex_condition: output
+
+  - name: Complex Step
+    type: call
+    node: calimero-node-1
+    condition: "{{complex_condition}} == 'true'"
+    method: complex_method
+```
+
+## Parallel Step Execution
+
+Execute multiple steps in parallel for improved performance:
+
+### Basic Parallel Execution
+
+```yaml
+steps:
+  - name: Parallel Operations
+    type: parallel
+    steps:
+      - name: Install App 1
+        type: install_application
+        node: calimero-node-1
+        path: ./app1.wasm
+      - name: Install App 2
+        type: install_application
+        node: calimero-node-2
+        path: ./app2.wasm
+      - name: Create Identity
+        type: create_identity
+        node: calimero-node-3
+```
+
+### Parallel with Dependencies
+
+```yaml
+steps:
+  - name: Setup Phase
+    type: parallel
+    steps:
+      - name: Create Node 1
+        type: create_node
+        name: calimero-node-1
+      - name: Create Node 2
+        type: create_node
+        name: calimero-node-2
+      - name: Create Node 3
+        type: create_node
+        name: calimero-node-3
+
+  - name: Configuration Phase
+    type: parallel
+    depends_on: [Setup Phase]
+    steps:
+      - name: Configure Node 1
+        type: configure_node
+        node: calimero-node-1
+      - name: Configure Node 2
+        type: configure_node
+        node: calimero-node-2
+      - name: Configure Node 3
+        type: configure_node
+        node: calimero-node-3
+```
+
+### Parallel with Limits
+
+```yaml
+steps:
+  - name: Parallel with Limits
+    type: parallel
+    max_concurrent: 3
+    steps:
+      - name: Install App 1
+        type: install_application
+        node: calimero-node-1
+        path: ./app1.wasm
+      - name: Install App 2
+        type: install_application
+        node: calimero-node-2
+        path: ./app2.wasm
+      - name: Install App 3
+        type: install_application
+        node: calimero-node-3
+        path: ./app3.wasm
+      - name: Install App 4
+        type: install_application
+        node: calimero-node-4
+        path: ./app4.wasm
+```
+
+## Error Handling and Recovery
+
+Implement robust error handling and recovery mechanisms:
+
+### Basic Error Handling
+
+```yaml
+steps:
+  - name: Risky Operation
+    type: call
+    node: calimero-node-1
+    method: risky_method
+    retry:
+      attempts: 3
+      delay: 5
+      backoff: exponential
+    on_error:
+      - name: Log Error
+        type: script
+        script: echo "Operation failed: {{error}}"
+      - name: Cleanup
+        type: script
+        script: echo "Cleaning up..."
+```
+
+### Advanced Error Handling
+
+```yaml
+steps:
+  - name: Complex Operation
+    type: call
+    node: calimero-node-1
+    method: complex_method
+    retry:
+      attempts: 5
+      delay: 10
+      backoff: exponential
+      max_delay: 300
+    on_error:
+      - name: Log Error Details
+        type: script
+        script: |
+          echo "Error: {{error}}"
+          echo "Node: {{node}}"
+          echo "Method: {{method}}"
+          echo "Timestamp: $(date)"
+        outputs:
+          error_log: output
+      - name: Notify Admin
+        type: script
+        condition: "{{error_log}} contains 'critical'"
+        script: |
+          echo "Critical error detected, notifying admin"
+          # Send notification
+      - name: Rollback
+        type: script
+        condition: "{{error_log}} contains 'rollback'"
+        script: |
+          echo "Rolling back changes"
+          # Rollback logic
+```
+
+### Error Recovery Strategies
+
+```yaml
+steps:
+  - name: Operation with Recovery
+    type: call
+    node: calimero-node-1
+    method: operation_with_recovery
+    retry:
+      attempts: 3
+      delay: 5
+      backoff: linear
+    on_error:
+      - name: Check Node Health
+        type: script
+        script: |
+          if ! docker exec calimero-node-1 curl -f http://localhost:2428/health; then
+            echo "Node is unhealthy, restarting..."
+            docker restart calimero-node-1
+            sleep 30
+          fi
+        outputs:
+          node_restarted: output
+      - name: Retry Operation
+        type: call
+        condition: "{{node_restarted}} == 'true'"
+        node: calimero-node-1
+        method: operation_with_recovery
+```
+
+## Custom Step Types
+
+Define custom step types for specialized operations:
+
+### Basic Custom Step
+
+```yaml
+# custom-steps.yml
+step_types:
+  custom_deploy:
+    required_fields: [node, application, environment]
+    optional_fields: [config, timeout]
+    execute: |
+      # Custom deployment logic
+      echo "Deploying {{application}} to {{environment}} on {{node}}"
+      
+      # Set timeout if provided
+      if [ -n "{{timeout}}" ]; then
+        timeout {{timeout}} deploy_command
+      else
+        deploy_command
+      fi
+    outputs:
+      deployment_id: "{{deployment_id}}"
+      status: "{{deployment_status}}"
+```
+
+### Advanced Custom Step
+
+```yaml
+# advanced-custom-steps.yml
+step_types:
+  database_migration:
+    required_fields: [node, migration_file, target_database]
+    optional_fields: [rollback_file, backup_before, dry_run]
+    validate:
+      - field: migration_file
+        type: file
+        exists: true
+        extension: [.sql, .migration]
+      - field: target_database
+        type: string
+        pattern: '^[a-zA-Z0-9_-]+$'
+    execute: |
+      # Validate migration file
+      if [ ! -f "{{migration_file}}" ]; then
+        echo "Migration file not found: {{migration_file}}"
+        exit 1
+      fi
+      
+      # Create backup if requested
+      if [ "{{backup_before}}" = "true" ]; then
+        echo "Creating backup of {{target_database}}"
+        backup_command --database {{target_database}}
+      fi
+      
+      # Run migration
+      if [ "{{dry_run}}" = "true" ]; then
+        echo "Dry run: Would execute {{migration_file}}"
+        echo "migration_id=dry_run_{{timestamp}}"
+        echo "status=dry_run"
+      else
+        echo "Executing migration: {{migration_file}}"
+        migration_result=$(migrate_command --file {{migration_file}} --database {{target_database}})
+        echo "migration_id={{migration_result.id}}"
+        echo "status={{migration_result.status}}"
+      fi
+    outputs:
+      migration_id: "{{migration_id}}"
+      status: "{{status}}"
+      backup_file: "{{backup_file}}"
+```
+
+### Custom Step with Dependencies
+
+```yaml
+# custom-step-with-deps.yml
+step_types:
+  conditional_deploy:
+    required_fields: [node, application]
+    optional_fields: [condition, environment, config]
+    dependencies: [check_condition, validate_environment]
+    execute: |
+      # Check if condition is met
+      if [ "{{condition}}" != "true" ]; then
+        echo "Condition not met, skipping deployment"
+        echo "status=skipped"
+        exit 0
+      fi
+      
+      # Validate environment
+      if [ -n "{{environment}}" ]; then
+        if [ "{{environment}}" != "production" ] && [ "{{environment}}" != "staging" ]; then
+          echo "Invalid environment: {{environment}}"
+          exit 1
+        fi
+      fi
+      
+      # Deploy application
+      echo "Deploying {{application}} to {{node}}"
+      deploy_result=$(deploy_command --app {{application}} --node {{node}} --env {{environment}})
+      echo "deployment_id={{deploy_result.id}}"
+      echo "status={{deploy_result.status}}"
+    outputs:
+      deployment_id: "{{deployment_id}}"
+      status: "{{status}}"
+```
+
+## Dynamic Variables and Templating
+
+### Variable Substitution
+
+```yaml
+steps:
+  - name: Generate Dynamic Values
+    type: script
+    script: |
+      # Generate timestamp
+      echo "$(date +%s)" > /tmp/timestamp
+      
+      # Generate random ID
+      echo "$(uuidgen)" > /tmp/random_id
+      
+      # Generate environment-specific values
+      case "$ENVIRONMENT" in
+        "production")
+          echo "prod" > /tmp/env_prefix
+          echo "1000" > /tmp/timeout
+          ;;
+        "staging")
+          echo "staging" > /tmp/env_prefix
+          echo "500" > /tmp/timeout
+          ;;
+        *)
+          echo "dev" > /tmp/env_prefix
+          echo "100" > /tmp/timeout
+          ;;
+      esac
+    outputs:
+      timestamp: output
+      random_id: output
+      env_prefix: output
+      timeout: output
+
+  - name: Use Dynamic Values
+    type: call
+    node: calimero-node-1
+    method: dynamic_method
+    args:
+      - "{{env_prefix}}_{{random_id}}"
+      - "{{timestamp}}"
+      - "{{timeout}}"
+```
+
+### Template Processing
+
+```yaml
+steps:
+  - name: Process Template
+    type: script
+    script: |
+      # Process configuration template
+      envsubst < config.template > config.yml
+      
+      # Replace placeholders
+      sed -i "s/{{NODE_NAME}}/calimero-node-1/g" config.yml
+      sed -i "s/{{ENVIRONMENT}}/$ENVIRONMENT/g" config.yml
+      sed -i "s/{{TIMESTAMP}}/$(date +%s)/g" config.yml
+    outputs:
+      config_file: "config.yml"
+```
+
+## Workflow Composition
+
+### Sub-workflows
+
+```yaml
+# main-workflow.yml
+steps:
+  - name: Setup Infrastructure
+    type: workflow
+    file: workflows/setup-infrastructure.yml
+    inputs:
+      node_count: 3
+      environment: "{{ENVIRONMENT}}"
+    outputs:
+      node_endpoints: output
+
+  - name: Deploy Applications
+    type: workflow
+    file: workflows/deploy-applications.yml
+    depends_on: [Setup Infrastructure]
+    inputs:
+      node_endpoints: "{{node_endpoints}}"
+      applications: ["app1", "app2", "app3"]
+    outputs:
+      deployment_status: output
+
+  - name: Run Tests
+    type: workflow
+    file: workflows/run-tests.yml
+    depends_on: [Deploy Applications]
+    inputs:
+      node_endpoints: "{{node_endpoints}}"
+      test_suite: "integration"
+```
+
+### Workflow Inheritance
+
+```yaml
+# base-workflow.yml
+name: Base Workflow
+description: Common workflow steps
+
+steps:
+  - name: Common Setup
+    type: script
+    script: echo "Common setup logic"
+
+  - name: Common Cleanup
+    type: script
+    script: echo "Common cleanup logic"
+
+# specialized-workflow.yml
+name: Specialized Workflow
+extends: base-workflow.yml
+
+steps:
+  - name: Specialized Step
+    type: call
+    node: calimero-node-1
+    method: specialized_method
+    # Inserted between Common Setup and Common Cleanup
+```
+
+## Performance Optimization
+
+### Workflow Optimization
+
+```yaml
+# Optimized workflow
+steps:
+  - name: Parallel Setup
+    type: parallel
+    max_concurrent: 4
+    steps:
+      - name: Setup Node 1
+        type: create_node
+        name: calimero-node-1
+      - name: Setup Node 2
+        type: create_node
+        name: calimero-node-2
+      - name: Setup Node 3
+        type: create_node
+        name: calimero-node-3
+      - name: Setup Node 4
+        type: create_node
+        name: calimero-node-4
+
+  - name: Optimized Deployment
+    type: parallel
+    max_concurrent: 2
+    steps:
+      - name: Deploy to Nodes 1-2
+        type: parallel
+        steps:
+          - name: Deploy App 1
+            type: install_application
+            node: calimero-node-1
+            path: ./app1.wasm
+          - name: Deploy App 2
+            type: install_application
+            node: calimero-node-2
+            path: ./app2.wasm
+      - name: Deploy to Nodes 3-4
+        type: parallel
+        steps:
+          - name: Deploy App 3
+            type: install_application
+            node: calimero-node-3
+            path: ./app3.wasm
+          - name: Deploy App 4
+            type: install_application
+            node: calimero-node-4
+            path: ./app4.wasm
+```
+
+## Best Practices
+
+### Workflow Design
+
+1. **Modularity**: Break complex workflows into smaller, reusable components
+2. **Error Handling**: Implement comprehensive error handling and recovery
+3. **Performance**: Use parallel execution where possible
+4. **Testing**: Test workflows thoroughly before production use
+
+### Step Organization
+
+1. **Logical Grouping**: Group related steps together
+2. **Dependencies**: Clearly define step dependencies
+3. **Outputs**: Use meaningful output names and descriptions
+4. **Documentation**: Document complex custom steps
+
+### Error Recovery
+
+1. **Retry Logic**: Implement appropriate retry mechanisms
+2. **Rollback**: Plan for rollback scenarios
+3. **Monitoring**: Monitor workflow execution and failures
+4. **Alerting**: Set up alerts for critical failures
+
+## Next Steps
+
+Now that you understand workflow advanced features:
+
+- [Testing Framework Integration](./testing-framework-integration) - Testing with Merobox
+- [Resource Management](./resource-management) - Resource limits and monitoring
+- [Security Configuration](./security-configuration) - Security settings and policies
+- [Advanced Configuration](./advanced-configuration) - Other advanced features

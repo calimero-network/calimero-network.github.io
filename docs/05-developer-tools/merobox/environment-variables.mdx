@@ -1,0 +1,272 @@
+---
+title: Environment Variables
+description:
+  Environment variables for configuring Merobox behavior and Docker settings.
+sidebar_position: 7.1
+---
+
+# Environment Variables
+
+Merobox supports several environment variables for configuration, allowing you to customize Docker images, logging, networking, and other aspects of the system.
+
+## Core Configuration
+
+Essential environment variables for basic Merobox operation:
+
+```bash
+# Docker image for Calimero nodes
+export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
+
+# Docker daemon connection
+export DOCKER_HOST="unix:///var/run/docker.sock"
+
+# Logging level
+export LOG_LEVEL="INFO"  # DEBUG, INFO, WARNING, ERROR
+
+# Custom data directory
+export CALIMERO_DATA_DIR="/custom/path/to/data"
+```
+
+### Logging Configuration
+
+Control logging behavior across Merobox:
+
+```bash
+# Set log level
+export LOG_LEVEL="DEBUG"  # Most verbose
+export LOG_LEVEL="INFO"   # Default
+export LOG_LEVEL="WARNING" # Warnings and errors only
+export LOG_LEVEL="ERROR"  # Errors only
+
+# Custom log format
+export LOG_FORMAT="json"  # json, text
+export LOG_OUTPUT="stdout"  # stdout, stderr, file
+```
+
+### Docker Configuration
+
+Customize Docker behavior:
+
+```bash
+# Docker daemon settings
+export DOCKER_HOST="unix:///var/run/docker.sock"
+export DOCKER_TLS_VERIFY="1"
+export DOCKER_CERT_PATH="/path/to/certs"
+
+# Docker build settings
+export DOCKER_BUILDKIT="1"  # Enable BuildKit
+export DOCKER_CLI_EXPERIMENTAL="enabled"  # Enable experimental features
+```
+
+## Authentication Service Configuration
+
+Configure the authentication service:
+
+```bash
+# Auth service image
+export CALIMERO_AUTH_IMAGE="ghcr.io/calimero-network/mero-auth:edge"
+
+# Auth service configuration
+export CALIMERO_AUTH_CONFIG="/path/to/auth/config.yml"
+
+# Auth service environment
+export AUTH_SECRET_KEY="your-secret-key"
+export AUTH_SESSION_TIMEOUT="3600"
+export AUTH_DATABASE_URL="postgresql://user:pass@localhost/auth"
+```
+
+### Auth Service Customization
+
+```bash
+# Custom auth endpoints
+export AUTH_LOGIN_ENDPOINT="/custom/login"
+export AUTH_LOGOUT_ENDPOINT="/custom/logout"
+export AUTH_VERIFY_ENDPOINT="/custom/verify"
+
+# Session management
+export AUTH_SESSION_COOKIE_NAME="calimero_session"
+export AUTH_SESSION_DOMAIN=".calimero.local"
+export AUTH_SESSION_SECURE="true"
+```
+
+## Network Configuration
+
+Customize network settings:
+
+```bash
+# Custom network settings
+export CALIMERO_NETWORK_MODE="bridge"
+export CALIMERO_NETWORK_NAME="custom-calimero-network"
+
+# Port ranges
+export CALIMERO_PORT_RANGE_START="3000"
+export CALIMERO_PORT_RANGE_END="4000"
+
+# Network security
+export CALIMERO_NETWORK_ISOLATION="true"
+export CALIMERO_NETWORK_ENCRYPTION="true"
+```
+
+### Advanced Network Settings
+
+```bash
+# Custom subnet configuration
+export CALIMERO_SUBNET="172.20.0.0/16"
+export CALIMERO_GATEWAY="172.20.0.1"
+
+# DNS configuration
+export CALIMERO_DNS_SERVERS="8.8.8.8,8.8.4.4"
+export CALIMERO_DNS_SEARCH="calimero.local"
+
+# Network performance
+export CALIMERO_MTU="1500"
+export CALIMERO_BANDWIDTH="1000M"
+```
+
+## Development Configuration
+
+Settings for development environments:
+
+```bash
+# Development mode
+export CALIMERO_DEV_MODE="true"
+export CALIMERO_DEBUG="true"
+
+# Hot reloading
+export CALIMERO_WATCH="true"
+export CALIMERO_WATCH_INTERVAL="5"
+
+# Development tools
+export CALIMERO_PROFILING="true"
+export CALIMERO_METRICS="true"
+```
+
+### Testing Configuration
+
+```bash
+# Test environment
+export CALIMERO_TEST_MODE="true"
+export CALIMERO_TEST_DATA_DIR="/tmp/calimero-test"
+
+# Test isolation
+export CALIMERO_TEST_ISOLATION="true"
+export CALIMERO_TEST_CLEANUP="true"
+
+# Test reporting
+export CALIMERO_TEST_REPORT="junit"
+export CALIMERO_TEST_COVERAGE="true"
+```
+
+## Production Configuration
+
+Settings for production deployments:
+
+```bash
+# Production mode
+export CALIMERO_PROD_MODE="true"
+export CALIMERO_SECURE="true"
+
+# Performance tuning
+export CALIMERO_WORKERS="4"
+export CALIMERO_THREADS="8"
+export CALIMERO_MEMORY_LIMIT="2G"
+
+# Monitoring
+export CALIMERO_METRICS_ENDPOINT="/metrics"
+export CALIMERO_HEALTH_ENDPOINT="/health"
+```
+
+### Security Settings
+
+```bash
+# Security configuration
+export CALIMERO_SECURE_MODE="true"
+export CALIMERO_TLS_ENABLED="true"
+export CALIMERO_TLS_CERT="/path/to/cert.pem"
+export CALIMERO_TLS_KEY="/path/to/key.pem"
+
+# Access control
+export CALIMERO_AUTH_REQUIRED="true"
+export CALIMERO_RATE_LIMIT="1000"
+export CALIMERO_CORS_ORIGINS="https://myapp.com"
+```
+
+## Environment-Specific Configuration
+
+### Local Development
+
+```bash
+# .env.local
+CALIMERO_IMAGE="ghcr.io/calimero-network/merod:dev"
+LOG_LEVEL="DEBUG"
+CALIMERO_DEV_MODE="true"
+CALIMERO_WATCH="true"
+```
+
+### Staging Environment
+
+```bash
+# .env.staging
+CALIMERO_IMAGE="ghcr.io/calimero-network/merod:staging"
+LOG_LEVEL="INFO"
+CALIMERO_TEST_MODE="true"
+CALIMERO_METRICS="true"
+```
+
+### Production Environment
+
+```bash
+# .env.production
+CALIMERO_IMAGE="ghcr.io/calimero-network/merod:latest"
+LOG_LEVEL="WARNING"
+CALIMERO_PROD_MODE="true"
+CALIMERO_SECURE="true"
+CALIMERO_MONITORING="true"
+```
+
+## Configuration Validation
+
+Validate your environment configuration:
+
+```bash
+# Check configuration
+merobox config validate
+
+# List current settings
+merobox config list
+
+# Test configuration
+merobox config test
+```
+
+## Best Practices
+
+### Environment Management
+
+1. **Use .env files**: Store environment-specific settings in `.env` files
+2. **Version control**: Track `.env.example` files, not actual `.env` files
+3. **Validation**: Always validate configuration before deployment
+4. **Documentation**: Document all custom environment variables
+
+### Security Considerations
+
+1. **Secrets**: Never store secrets in environment variables in version control
+2. **Access control**: Limit access to production environment variables
+3. **Rotation**: Regularly rotate sensitive configuration values
+4. **Auditing**: Log configuration changes for audit purposes
+
+### Performance Optimization
+
+1. **Resource limits**: Set appropriate resource limits for your environment
+2. **Caching**: Enable caching where appropriate
+3. **Monitoring**: Use monitoring to identify performance bottlenecks
+4. **Scaling**: Configure for horizontal scaling when needed
+
+## Next Steps
+
+Now that you understand environment variables:
+
+- [Docker Image Management](./docker-image-management) - Managing Docker images and containers
+- [Network Configuration](./network-configuration) - Advanced network setup
+- [Authentication Service Integration](./auth-service-integration) - Auth service configuration
+- [Advanced Configuration](./advanced-configuration) - Other advanced features

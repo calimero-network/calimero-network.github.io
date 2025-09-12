@@ -1,0 +1,570 @@
+---
+title: Testing Integration Examples
+description:
+  Examples of integrating Merobox with testing frameworks and CI/CD pipelines.
+sidebar_position: 4.3
+---
+
+# Testing Integration Examples
+
+These examples show how to integrate Merobox with popular testing frameworks and CI/CD pipelines for automated testing.
+
+## Example 1: Python Testing with Merobox
+
+Use Merobox in your Python test suite.
+
+### Basic Test Setup
+
+```python
+# test_my_app.py
+import pytest
+from merobox.testing import cluster, workflow
+from my_app.client import MyAppClient
+
+@pytest.fixture(scope="function")
+def test_cluster():
+    """Create a test cluster for each test."""
+    with cluster(count=2, prefix="test") as env:
+        yield env
+
+def test_basic_functionality(test_cluster):
+    """Test basic application functionality."""
+    # Get node endpoints
+    node1_endpoint = test_cluster["endpoints"]["test-1"]
+    node2_endpoint = test_cluster["endpoints"]["test-2"]
+
+    # Create clients
+    client1 = MyAppClient(node1_endpoint)
+    client2 = MyAppClient(node2_endpoint)
+
+    # Test functionality
+    result = client1.health_check()
+    assert result is not None
+
+    # Test cross-node communication
+    client1.set_data("key", "value")
+    value = client2.get_data("key")
+    assert value == "value"
+
+@pytest.fixture(scope="session")
+def app_workflow():
+    """Run a complex workflow for session-scoped tests."""
+    with workflow("workflows/app-setup.yml", prefix="session") as env:
+        yield env
+
+def test_complex_scenario(app_workflow):
+    """Test complex application scenario."""
+    # Use pre-configured workflow environment
+    nodes = app_workflow["nodes"]
+    context_id = app_workflow["dynamic_values"]["context_id"]
+
+    # Test with pre-configured environment
+    assert context_id is not None
+    assert len(nodes) > 0
+```
+
+### Advanced Test Configuration
+
+```python
+# conftest.py
+import pytest
+from merobox.testing import cluster, workflow
+
+@pytest.fixture(scope="session")
+def production_cluster():
+    """Production-like cluster for integration tests."""
+    with cluster(
+        count=3,
+        prefix="prod",
+        image="ghcr.io/calimero-network/merod:latest",
+        chain_id="mainnet-1",
+        wait_for_ready=True
+    ) as test_env:
+        yield test_env
+
+@pytest.fixture(scope="function")
+def test_workflow():
+    """Run a complex workflow for each test."""
+    with workflow(
+        "workflows/test-setup.yml",
+        prefix="test",
+        scope="function"
+    ) as env:
+        yield env
+
+@pytest.fixture
+def test_data():
+    """Provide test data for tests."""
+    return {
+        "test_app": "test-application.wasm",
+        "test_config": {"setting": "value"},
+        "test_params": ["param1", "param2"]
+    }
+```
+
+### Performance Testing
+
+```python
+# test_performance.py
+import pytest
+import time
+from merobox.testing import cluster
+
+@pytest.fixture
+def performance_cluster():
+    """High-performance cluster for performance tests."""
+    with cluster(
+        count=5,
+        prefix="perf",
+        image="ghcr.io/calimero-network/merod:edge",
+        resources={"memory": "2G", "cpus": "1.0"}
+    ) as env:
+        yield env
+
+def test_performance_under_load(performance_cluster):
+    """Test application performance under load."""
+    endpoints = performance_cluster["endpoints"]
+    
+    # Create multiple clients
+    clients = []
+    for i in range(5):
+        endpoint = endpoints[f"perf-{i+1}"]
+        clients.append(MyAppClient(endpoint))
+    
+    # Run performance test
+    start_time = time.time()
+    
+    # Simulate load
+    for i in range(100):
+        client = clients[i % len(clients)]
+        result = client.process_data(f"load_test_{i}")
+        assert result is not None
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    
+    # Assert performance requirements
+    assert duration < 10.0  # Should complete within 10 seconds
+    print(f"Performance test completed in {duration:.2f} seconds")
+```
+
+## Example 2: Workflow-based Test Setup
+
+Use workflows to set up complex test environments.
+
+### Test Setup Workflow
+
+```yaml
+# workflows/test-setup.yml
+description: Test environment setup
+name: Test Setup
+
+nodes:
+  chain_id: testnet-1
+  count: 3
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: test-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: test-node-1
+    path: ./test-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: test-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Setup Test Data
+    type: call
+    node: test-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: setup_test_data
+    args:
+      test_cases: 100
+
+  - name: Create Test Identities
+    type: create_identity
+    node: test-node-2
+    outputs:
+      test_user1: publicKey
+
+  - name: Create Another Identity
+    type: create_identity
+    node: test-node-3
+    outputs:
+      test_user2: publicKey
+
+stop_all_nodes: false # Keep nodes running for tests
+```
+
+### Using Test Setup in Tests
+
+```python
+# test_with_workflow.py
+import pytest
+from merobox.testing import workflow
+
+@pytest.fixture(scope="session")
+def test_environment():
+    """Set up test environment using workflow."""
+    with workflow("workflows/test-setup.yml", prefix="test") as env:
+        yield env
+
+def test_application_functionality(test_environment):
+    """Test application with pre-configured environment."""
+    # Get configuration from workflow
+    context_id = test_environment["dynamic_values"]["context_id"]
+    member_key = test_environment["dynamic_values"]["member_key"]
+    test_user1 = test_environment["dynamic_values"]["test_user1"]
+    test_user2 = test_environment["dynamic_values"]["test_user2"]
+    
+    # Test application functionality
+    assert context_id is not None
+    assert member_key is not None
+    assert test_user1 is not None
+    assert test_user2 is not None
+    
+    # Add your test logic here
+    print(f"Testing with context: {context_id}")
+```
+
+## Example 3: CI/CD Integration
+
+Integrate Merobox with CI/CD pipelines.
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/test.yml
+name: Test with Merobox
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install merobox
+    
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=my_app
+    
+    - name: Run integration tests
+      run: |
+        pytest tests/integration/ -v
+    
+    - name: Run performance tests
+      run: |
+        pytest tests/performance/ -v -m performance
+```
+
+### GitLab CI
+
+```yaml
+# .gitlab-ci.yml
+stages:
+  - test
+  - integration
+  - performance
+
+test:
+  stage: test
+  image: python:3.9
+  script:
+    - pip install -r requirements.txt
+    - pip install merobox
+    - pytest tests/ -v
+
+integration:
+  stage: integration
+  image: python:3.9
+  script:
+    - pip install -r requirements.txt
+    - pip install merobox
+    - pytest tests/integration/ -v
+
+performance:
+  stage: performance
+  image: python:3.9
+  script:
+    - pip install -r requirements.txt
+    - pip install merobox
+    - pytest tests/performance/ -v
+```
+
+### Jenkins Pipeline
+
+```groovy
+// Jenkinsfile
+pipeline {
+    agent any
+    
+    stages {
+        stage('Test') {
+            steps {
+                sh 'pip install -r requirements.txt'
+                sh 'pip install merobox'
+                sh 'pytest tests/ -v'
+            }
+        }
+        
+        stage('Integration Test') {
+            steps {
+                sh 'pytest tests/integration/ -v'
+            }
+        }
+        
+        stage('Performance Test') {
+            steps {
+                sh 'pytest tests/performance/ -v'
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+```
+
+## Example 4: Parallel Test Execution
+
+Run tests in parallel for faster execution.
+
+### Parallel Test Configuration
+
+```python
+# conftest.py
+import pytest
+from merobox.testing import cluster
+
+@pytest.fixture(scope="session")
+def shared_cluster():
+    """Shared cluster for parallel tests."""
+    with cluster(count=5, prefix="shared") as env:
+        yield env
+
+# Mark tests for parallel execution
+pytestmark = pytest.mark.parallel
+
+def test_parallel_1(shared_cluster):
+    """First parallel test."""
+    # Test logic here
+    pass
+
+def test_parallel_2(shared_cluster):
+    """Second parallel test."""
+    # Test logic here
+    pass
+
+def test_parallel_3(shared_cluster):
+    """Third parallel test."""
+    # Test logic here
+    pass
+```
+
+### Running Parallel Tests
+
+```bash
+# Run tests in parallel
+pytest -n 4 tests/  # Use 4 workers
+
+# Run specific parallel tests
+pytest -n 4 -m parallel tests/
+
+# Run with specific cluster configuration
+pytest -n 4 --cluster-count=3 tests/
+```
+
+## Example 5: Test Data Management
+
+Manage test data effectively across tests.
+
+### Test Data Fixtures
+
+```python
+# test_data.py
+import pytest
+from merobox.testing import cluster
+
+@pytest.fixture
+def test_data():
+    """Provide test data for tests."""
+    return {
+        "users": [
+            {"id": 1, "name": "Alice", "role": "admin"},
+            {"id": 2, "name": "Bob", "role": "user"},
+            {"id": 3, "name": "Charlie", "role": "user"}
+        ],
+        "config": {
+            "timeout": 30,
+            "retries": 3,
+            "debug": True
+        },
+        "test_cases": [
+            {"input": "test1", "expected": "result1"},
+            {"input": "test2", "expected": "result2"},
+            {"input": "test3", "expected": "result3"}
+        ]
+    }
+
+@pytest.fixture
+def test_cluster_with_data(test_data):
+    """Cluster with pre-loaded test data."""
+    with cluster(count=2, prefix="data") as env:
+        # Load test data into cluster
+        for user in test_data["users"]:
+            # Load user data
+            pass
+        yield env
+```
+
+### Dynamic Test Data Generation
+
+```python
+# test_dynamic_data.py
+import pytest
+import random
+from merobox.testing import cluster
+
+@pytest.fixture
+def random_test_data():
+    """Generate random test data."""
+    return {
+        "random_string": f"test_{random.randint(1000, 9999)}",
+        "random_number": random.randint(1, 100),
+        "random_list": [random.randint(1, 10) for _ in range(5)]
+    }
+
+def test_with_random_data(random_test_data):
+    """Test with randomly generated data."""
+    assert random_test_data["random_string"].startswith("test_")
+    assert 1 <= random_test_data["random_number"] <= 100
+    assert len(random_test_data["random_list"]) == 5
+```
+
+## Example 6: Test Reporting and Coverage
+
+Generate comprehensive test reports and coverage.
+
+### Coverage Configuration
+
+```python
+# pytest.ini
+[tool:pytest]
+addopts = --cov=my_app --cov-report=html --cov-report=xml
+markers =
+    slow: marks tests as slow
+    integration: marks tests as integration tests
+    performance: marks tests as performance tests
+```
+
+### Test Reporting
+
+```python
+# test_reporting.py
+import pytest
+from merobox.testing import cluster
+
+@pytest.fixture(autouse=True)
+def test_reporting():
+    """Generate test reports."""
+    yield
+    # Generate custom reports
+    print("Test completed - generating reports...")
+
+def test_with_reporting():
+    """Test that generates reports."""
+    with cluster(count=2, prefix="report") as env:
+        # Test logic here
+        pass
+```
+
+## Best Practices for Testing Integration
+
+### 1. Test Isolation
+
+```python
+# Use separate prefixes for different tests
+@pytest.fixture
+def isolated_test():
+    with cluster(count=1, prefix="isolated") as env:
+        yield env
+```
+
+### 2. Resource Cleanup
+
+```python
+# Always clean up resources
+@pytest.fixture
+def clean_test():
+    with cluster(count=2, prefix="clean") as env:
+        try:
+            yield env
+        finally:
+            # Cleanup logic
+            pass
+```
+
+### 3. Error Handling
+
+```python
+# Handle test failures gracefully
+def test_with_error_handling():
+    try:
+        with cluster(count=1, prefix="error") as env:
+            # Test logic
+            pass
+    except Exception as e:
+        pytest.fail(f"Test failed: {e}")
+```
+
+### 4. Performance Monitoring
+
+```python
+# Monitor test performance
+import time
+
+def test_with_performance_monitoring():
+    start_time = time.time()
+    
+    with cluster(count=2, prefix="perf") as env:
+        # Test logic
+        pass
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    
+    # Assert performance requirements
+    assert duration < 30.0  # Should complete within 30 seconds
+```
+
+## Next Steps
+
+Now that you understand testing integration:
+
+- [Advanced Examples](./advanced-examples) - Complex workflows and advanced features
+- [Best Practices](./best-practices) - Guidelines for effective Merobox usage
