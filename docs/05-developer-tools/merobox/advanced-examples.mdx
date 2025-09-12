@@ -1,13 +1,35 @@
 ---
 title: Advanced Examples
-description:
-  Complex workflows and advanced features for power users.
+description: Complex workflows and advanced features for power users.
 sidebar_position: 4.4
 ---
 
 # Advanced Examples
 
-These examples demonstrate complex workflows and advanced features for power users who need sophisticated Merobox capabilities.
+These examples demonstrate complex workflows and advanced features for power
+users who need sophisticated Merobox capabilities.
+
+:::info Available Step Types For a complete reference of all available step
+types and their configuration options, see the
+[Workflow System documentation](./workflows#step-types). The following step
+types are supported:
+
+- **`install_application`** - Install WASM applications on nodes
+- **`create_context`** - Create blockchain contexts for applications
+- **`create_identity`** - Generate cryptographic identities
+- **`invite_identity`** - Invite identities to join contexts
+- **`join_context`** - Join contexts using invitations
+- **`call`** - Execute smart contract functions
+- **`wait`** - Add delays between steps
+- **`repeat`** - Execute steps multiple times
+- **`script`** - Execute custom scripts
+- **`assert`** - Validate conditions and outputs
+- **`json_assert`** - Validate JSON data structures
+- **`parallel`** - Execute multiple steps in parallel
+
+Each step type has specific configuration parameters and output options. Refer
+to the [Workflow System documentation](./workflows#step-types) for detailed
+examples and configuration options. :::
 
 ## Example 1: Custom Script Integration
 
@@ -271,7 +293,7 @@ steps:
         executor_public_key: '{{member_key_1}}'
         method: test_functionality
         args:
-          test_data: "app1_test"
+          test_data: 'app1_test'
 
       - name: Test App 2
         type: call
@@ -280,7 +302,7 @@ steps:
         executor_public_key: '{{member_key_2}}'
         method: test_functionality
         args:
-          test_data: "app2_test"
+          test_data: 'app2_test'
 
       - name: Test App 3
         type: call
@@ -289,7 +311,7 @@ steps:
         executor_public_key: '{{member_key_3}}'
         method: test_functionality
         args:
-          test_data: "app3_test"
+          test_data: 'app3_test'
 
 stop_all_nodes: true
 ```
@@ -314,7 +336,7 @@ steps:
     script: |
       # Generate dynamic configuration
       echo "Generating workflow configuration..."
-      
+
       # Create configuration file
       cat > /tmp/workflow_config.json << EOF
       {
@@ -330,10 +352,10 @@ steps:
         ]
       }
       EOF
-      
+
       echo "Configuration generated"
     outputs:
-      config_file: "/tmp/workflow_config.json"
+      config_file: '/tmp/workflow_config.json'
 
   - name: Install Applications Dynamically
     type: repeat
@@ -376,7 +398,7 @@ steps:
         executor_public_key: '{{member_key}}'
         method: test_method{{iteration}}
         args:
-          test_data: "test_{{iteration}}"
+          test_data: 'test_{{iteration}}'
 
 stop_all_nodes: true
 ```
@@ -396,7 +418,7 @@ step_types:
     optional_fields: [config, timeout]
     execute: |
       echo "Deploying {{application}} to {{environment}} on {{node}}"
-      
+
       # Set timeout if provided
       if [ -n "{{timeout}}" ]; then
         timeout {{timeout}} deploy_command
@@ -404,15 +426,15 @@ step_types:
         deploy_command
       fi
     outputs:
-      deployment_id: "{{deployment_id}}"
-      status: "{{deployment_status}}"
+      deployment_id: '{{deployment_id}}'
+      status: '{{deployment_status}}'
 
   custom_validate:
     required_fields: [node, data]
     optional_fields: [rules]
     execute: |
       echo "Validating data on {{node}}"
-      
+
       # Validate data
       if [ -n "{{rules}}" ]; then
         validate_with_rules "{{data}}" "{{rules}}"
@@ -420,8 +442,8 @@ step_types:
         validate_default "{{data}}"
       fi
     outputs:
-      validation_result: "{{validation_result}}"
-      is_valid: "{{is_valid}}"
+      validation_result: '{{validation_result}}'
+      is_valid: '{{is_valid}}'
 
 nodes:
   chain_id: testnet-1
@@ -441,10 +463,10 @@ steps:
   - name: Custom Deployment
     type: custom_deploy
     node: custom-node-1
-    application: "{{app_id}}"
-    environment: "test"
-    config: "test_config"
-    timeout: "300"
+    application: '{{app_id}}'
+    environment: 'test'
+    config: 'test_config'
+    timeout: '300'
     outputs:
       deployment_id: deployment_id
       status: status
@@ -452,8 +474,8 @@ steps:
   - name: Custom Validation
     type: custom_validate
     node: custom-node-1
-    data: "{{deployment_id}}"
-    rules: "deployment_rules"
+    data: '{{deployment_id}}'
+    rules: 'deployment_rules'
     outputs:
       validation_result: validation_result
       is_valid: is_valid
@@ -618,7 +640,7 @@ steps:
         executor_public_key: '{{member_key}}'
         method: process_data
         args:
-          data: "load_test_{{iteration}}"
+          data: 'load_test_{{iteration}}'
 
   - name: Check Metrics
     type: script
@@ -686,7 +708,7 @@ nodes:
   resources:
     memory: '2G'
     cpus: '1.0'
-  count: 3  # Scale based on needs
+  count: 3 # Scale based on needs
 ```
 
 ### 4. Monitoring and Validation

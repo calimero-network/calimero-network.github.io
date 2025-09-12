@@ -7,11 +7,13 @@ sidebar_position: 7.7
 
 # Resource Management
 
-This guide covers resource management for Merobox, including memory and CPU limits, storage configuration, and resource monitoring.
+This guide covers resource management for Merobox, including memory and CPU
+limits, storage configuration, and resource monitoring.
 
 ## Memory and CPU Limits
 
-Configure resource limits for nodes to ensure optimal performance and prevent resource exhaustion:
+Configure resource limits for nodes to ensure optimal performance and prevent
+resource exhaustion:
 
 ### Basic Resource Configuration
 
@@ -36,13 +38,13 @@ nodes:
     memory_swap: '4G'
     memory_reservation: '1G'
     memory_swappiness: 10
-    
+
     # CPU settings
     cpus: '1.5'
     cpu_quota: 75000
     cpu_period: 100000
     cpu_shares: 1024
-    
+
     # I/O settings
     blkio_weight: 300
     blkio_weight_device:
@@ -105,7 +107,7 @@ nodes:
       source: ./config
       target: /calimero/config
       read_only: true
-    
+
     # Named volume for data
     - type: volume
       source: calimero-data
@@ -115,13 +117,13 @@ nodes:
         type: none
         o: bind
         device: /mnt/calimero-data
-    
+
     # External volume for logs
     - type: volume
       source: calimero-logs
       target: /calimero/logs
       external: true
-    
+
     # Tmpfs for temporary files
     - type: tmpfs
       target: /tmp
@@ -147,7 +149,7 @@ storage:
       - nodiratime
       - data=writeback
       - commit=60
-    
+
   # Database storage optimization
   database:
     type: postgresql
@@ -190,24 +192,24 @@ monitoring:
     - disk_usage
     - network_io
     - load_average
-    
+
     # Application metrics
     - request_count
     - response_time
     - error_rate
     - active_connections
-    
+
     # Custom metrics
     - blockchain_height
     - consensus_participation
     - transaction_throughput
-  
+
   # Monitoring intervals
   intervals:
     system: 5s
     application: 10s
     custom: 30s
-  
+
   # Alerting configuration
   alerts:
     - metric: memory_usage
@@ -237,15 +239,15 @@ monitoring:
       - calimero-node-1:8080
       - calimero-node-2:8080
       - calimero-node-3:8080
-    
+
     # Custom metrics
     custom_metrics:
       - name: calimero_block_height
         type: gauge
-        help: "Current blockchain height"
+        help: 'Current blockchain height'
       - name: calimero_consensus_rounds
         type: counter
-        help: "Number of consensus rounds completed"
+        help: 'Number of consensus rounds completed'
 ```
 
 ## Resource Optimization
@@ -257,19 +259,19 @@ monitoring:
 cpu_optimization:
   # CPU affinity
   cpu_affinity:
-    - 0,1  # Use cores 0 and 1
-    - 2,3  # Use cores 2 and 3
-  
+    - 0,1 # Use cores 0 and 1
+    - 2,3 # Use cores 2 and 3
+
   # CPU governor
   cpu_governor: performance
-  
+
   # CPU frequency scaling
   cpu_scaling:
     min_freq: 2.0GHz
     max_freq: 3.5GHz
-  
+
   # Process priority
-  process_priority: -10  # High priority
+  process_priority: -10 # High priority
 ```
 
 ### Memory Optimization
@@ -279,7 +281,7 @@ cpu_optimization:
 memory_optimization:
   # Memory allocation strategy
   allocation_strategy: jemalloc
-  
+
   # Memory pools
   memory_pools:
     - name: small_objects
@@ -288,7 +290,7 @@ memory_optimization:
     - name: large_objects
       size: 256MB
       alignment: 64
-  
+
   # Garbage collection
   gc:
     enabled: true
@@ -304,16 +306,16 @@ memory_optimization:
 io_optimization:
   # I/O scheduler
   io_scheduler: mq-deadline
-  
+
   # Read-ahead
   read_ahead: 1024
-  
+
   # Write caching
   write_cache:
     enabled: true
     size: 256MB
     sync_interval: 5s
-  
+
   # Disk I/O limits
   disk_limits:
     read_iops: 1000
@@ -332,7 +334,7 @@ autoscaling:
   enabled: true
   min_nodes: 2
   max_nodes: 10
-  
+
   # Scaling triggers
   triggers:
     - metric: cpu_usage
@@ -347,7 +349,7 @@ autoscaling:
       threshold: 1000
       scale_up: true
       scale_down: false
-  
+
   # Scaling policies
   policies:
     scale_up:
@@ -364,7 +366,7 @@ autoscaling:
 # Vertical scaling
 vertical_scaling:
   enabled: true
-  
+
   # Resource scaling
   resources:
     memory:
@@ -375,7 +377,7 @@ vertical_scaling:
       min: '0.5'
       max: '4.0'
       step: '0.5'
-  
+
   # Scaling triggers
   triggers:
     - metric: memory_usage
@@ -394,14 +396,14 @@ vertical_scaling:
 # Resource quotas
 quotas:
   namespace: calimero
-  
+
   # Resource limits
   limits:
     cpu: '10'
     memory: '20Gi'
     pods: '20'
     persistentvolumeclaims: '10'
-  
+
   # Resource requests
   requests:
     cpu: '5'
@@ -422,7 +424,7 @@ node_quotas:
     requests:
       cpu: '1'
       memory: '2Gi'
-  
+
   - name: calimero-node-2
     limits:
       cpu: '1'
@@ -499,5 +501,6 @@ iotop
 
 Now that you understand resource management:
 
-- [Security Configuration](./security-configuration) - Security settings and policies
+- [Security Configuration](./security-configuration) - Security settings and
+  policies
 - [Advanced Configuration](./advanced-configuration) - Other advanced features

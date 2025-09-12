@@ -7,7 +7,8 @@ sidebar_position: 4.3
 
 # Testing Integration Examples
 
-These examples show how to integrate Merobox with popular testing frameworks and CI/CD pipelines for automated testing.
+These examples show how to integrate Merobox with popular testing frameworks and
+CI/CD pipelines for automated testing.
 
 ## Example 1: Python Testing with Merobox
 
@@ -124,25 +125,25 @@ def performance_cluster():
 def test_performance_under_load(performance_cluster):
     """Test application performance under load."""
     endpoints = performance_cluster["endpoints"]
-    
+
     # Create multiple clients
     clients = []
     for i in range(5):
         endpoint = endpoints[f"perf-{i+1}"]
         clients.append(MyAppClient(endpoint))
-    
+
     # Run performance test
     start_time = time.time()
-    
+
     # Simulate load
     for i in range(100):
         client = clients[i % len(clients)]
         result = client.process_data(f"load_test_{i}")
         assert result is not None
-    
+
     end_time = time.time()
     duration = end_time - start_time
-    
+
     # Assert performance requirements
     assert duration < 10.0  # Should complete within 10 seconds
     print(f"Performance test completed in {duration:.2f} seconds")
@@ -226,13 +227,13 @@ def test_application_functionality(test_environment):
     member_key = test_environment["dynamic_values"]["member_key"]
     test_user1 = test_environment["dynamic_values"]["test_user1"]
     test_user2 = test_environment["dynamic_values"]["test_user2"]
-    
+
     # Test application functionality
     assert context_id is not None
     assert member_key is not None
     assert test_user1 is not None
     assert test_user2 is not None
-    
+
     # Add your test logic here
     print(f"Testing with context: {context_id}")
 ```
@@ -252,31 +253,31 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install merobox
-    
-    - name: Run tests
-      run: |
-        pytest tests/ -v --cov=my_app
-    
-    - name: Run integration tests
-      run: |
-        pytest tests/integration/ -v
-    
-    - name: Run performance tests
-      run: |
-        pytest tests/performance/ -v -m performance
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install merobox
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=my_app
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ -v
+
+      - name: Run performance tests
+        run: |
+          pytest tests/performance/ -v -m performance
 ```
 
 ### GitLab CI
@@ -319,7 +320,7 @@ performance:
 // Jenkinsfile
 pipeline {
     agent any
-    
+
     stages {
         stage('Test') {
             steps {
@@ -328,20 +329,20 @@ pipeline {
                 sh 'pytest tests/ -v'
             }
         }
-        
+
         stage('Integration Test') {
             steps {
                 sh 'pytest tests/integration/ -v'
             }
         }
-        
+
         stage('Performance Test') {
             steps {
                 sh 'pytest tests/performance/ -v'
             }
         }
     }
-    
+
     post {
         always {
             cleanWs()
@@ -550,14 +551,14 @@ import time
 
 def test_with_performance_monitoring():
     start_time = time.time()
-    
+
     with cluster(count=2, prefix="perf") as env:
         # Test logic
         pass
-    
+
     end_time = time.time()
     duration = end_time - start_time
-    
+
     # Assert performance requirements
     assert duration < 30.0  # Should complete within 30 seconds
 ```
@@ -566,5 +567,6 @@ def test_with_performance_monitoring():
 
 Now that you understand testing integration:
 
-- [Advanced Examples](./advanced-examples) - Complex workflows and advanced features
+- [Advanced Examples](./advanced-examples) - Complex workflows and advanced
+  features
 - [Best Practices](./best-practices) - Guidelines for effective Merobox usage

@@ -7,7 +7,8 @@ sidebar_position: 7.4
 
 # Authentication Service Integration
 
-This guide covers advanced authentication service configuration, custom middleware, and integration patterns for Merobox.
+This guide covers advanced authentication service configuration, custom
+middleware, and integration patterns for Merobox.
 
 ## Advanced Auth Configuration
 
@@ -39,12 +40,12 @@ auth_service:
     AUTH_SECRET_KEY: 'your-secret-key'
     AUTH_SESSION_TIMEOUT: '3600'
     AUTH_DATABASE_URL: 'postgresql://user:pass@localhost/auth'
-    
+
     # Security settings
     AUTH_ENCRYPTION_KEY: 'your-encryption-key'
     AUTH_JWT_SECRET: 'your-jwt-secret'
     AUTH_BCRYPT_ROUNDS: '12'
-    
+
     # Session management
     AUTH_SESSION_COOKIE_NAME: 'calimero_session'
     AUTH_SESSION_DOMAIN: '.calimero.local'
@@ -110,15 +111,15 @@ auth_service:
         headers: ['Content-Type', 'Authorization', 'X-Requested-With']
         credentials: true
         max_age: 86400
-    
+
     # Rate limiting
     - name: rate-limit
       config:
         requests_per_minute: 1000
         burst_size: 2000
         window_size: 60
-        key_by: 'ip'  # ip, user, custom
-    
+        key_by: 'ip' # ip, user, custom
+
     # Authentication
     - name: auth
       config:
@@ -126,14 +127,14 @@ auth_service:
         token_type: 'bearer'
         token_header: 'Authorization'
         refresh_token_header: 'X-Refresh-Token'
-    
+
     # Logging
     - name: logging
       config:
         level: 'info'
         format: 'json'
         fields: ['method', 'path', 'status', 'duration']
-    
+
     # Metrics
     - name: metrics
       config:
@@ -173,7 +174,7 @@ traefik:
       insecure: false
       auth:
         basic:
-          admin: '$2y$10$...'  # bcrypt hash
+          admin: '$2y$10$...' # bcrypt hash
     certificatesResolvers:
       letsencrypt:
         acme:
@@ -193,13 +194,13 @@ traefik:
       options:
         default:
           sslProtocols:
-            - "TLSv1.2"
-            - "TLSv1.3"
+            - 'TLSv1.2'
+            - 'TLSv1.3'
           cipherSuites:
-            - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
-            - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
-          minVersion: "VersionTLS12"
-          maxVersion: "VersionTLS13"
+            - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+            - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
+          minVersion: 'VersionTLS12'
+          maxVersion: 'VersionTLS13'
 ```
 
 ## OAuth Integration
@@ -247,7 +248,7 @@ auth_service:
       refresh_token:
         enabled: true
         rotation: true
-        lifetime: 86400  # 24 hours
+        lifetime: 86400 # 24 hours
 ```
 
 ## JWT Configuration
@@ -259,13 +260,13 @@ auth_service:
 auth_service:
   jwt:
     secret: '${JWT_SECRET}'
-    algorithm: 'HS256'  # HS256, HS384, HS512, RS256, RS384, RS512
+    algorithm: 'HS256' # HS256, HS384, HS512, RS256, RS384, RS512
     access_token:
-      lifetime: 3600  # 1 hour
+      lifetime: 3600 # 1 hour
       issuer: 'calimero-auth'
       audience: 'calimero-api'
     refresh_token:
-      lifetime: 86400  # 24 hours
+      lifetime: 86400 # 24 hours
       issuer: 'calimero-auth'
       audience: 'calimero-api'
     claims:
@@ -288,15 +289,15 @@ auth_service:
 auth_service:
   jwt:
     validation:
-      clock_skew: 30  # seconds
+      clock_skew: 30 # seconds
       require_exp: true
       require_iat: true
       require_nbf: false
-      leeway: 60  # seconds
+      leeway: 60 # seconds
     blacklist:
       enabled: true
       storage: redis
-      ttl: 86400  # 24 hours
+      ttl: 86400 # 24 hours
 ```
 
 ## Session Management
@@ -307,7 +308,7 @@ auth_service:
 # Session management
 auth_service:
   session:
-    store: redis  # memory, redis, postgresql
+    store: redis # memory, redis, postgresql
     config:
       redis:
         host: redis
@@ -353,7 +354,7 @@ auth_service:
   multi_tenant:
     enabled: true
     tenant_resolution:
-      strategy: 'subdomain'  # subdomain, path, header
+      strategy: 'subdomain' # subdomain, path, header
       header_name: 'X-Tenant-ID'
       default_tenant: 'default'
     tenant_isolation:
@@ -507,7 +508,9 @@ auth_service:
 
 Now that you understand authentication service integration:
 
-- [Workflow Advanced Features](./workflow-advanced-features) - Advanced workflow capabilities
-- [Testing Framework Integration](./testing-framework-integration) - Testing with Merobox
+- [Workflow Advanced Features](./workflow-advanced-features) - Advanced workflow
+  capabilities
+- [Testing Framework Integration](./testing-framework-integration) - Testing
+  with Merobox
 - [Resource Management](./resource-management) - Resource limits and monitoring
 - [Advanced Configuration](./advanced-configuration) - Other advanced features

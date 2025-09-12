@@ -1,13 +1,13 @@
 ---
 title: Best Practices
-description:
-  Guidelines and best practices for effective Merobox usage.
+description: Guidelines and best practices for effective Merobox usage.
 sidebar_position: 4.5
 ---
 
 # Best Practices
 
-This guide provides comprehensive best practices for using Merobox effectively, from workflow design to testing integration and performance optimization.
+This guide provides comprehensive best practices for using Merobox effectively,
+from workflow design to testing integration and performance optimization.
 
 ## Workflow Design
 
@@ -315,7 +315,7 @@ steps:
 ```yaml
 nodes:
   security:
-    user: '1000:1000'  # Non-root user
+    user: '1000:1000' # Non-root user
     read_only: true
     no_new_privileges: true
 ```
@@ -327,7 +327,7 @@ nodes:
   security:
     capabilities:
       drop: ['ALL']
-      add: ['NET_BIND_SERVICE']  # Only add what's needed
+      add: ['NET_BIND_SERVICE'] # Only add what's needed
 ```
 
 ### 3. Use Secrets Management
@@ -508,7 +508,6 @@ description: |
   Calimero cluster with authentication service integration.
   It includes error handling, monitoring, and cleanup.
 name: Multi-Node Auth Setup
-
 # ... workflow steps
 ```
 
@@ -521,14 +520,14 @@ Document configuration options:
 nodes:
   # Number of nodes to create
   count: 3
-  
+
   # Docker image to use
   image: ghcr.io/calimero-network/merod:edge
-  
+
   # Resource limits
   resources:
-    memory: '2G'  # Memory limit per node
-    cpus: '1.0'  # CPU limit per node
+    memory: '2G' # Memory limit per node
+    cpus: '1.0' # CPU limit per node
 ```
 
 ### 3. Document Dependencies
@@ -606,6 +605,9 @@ steps:
 Now that you understand best practices:
 
 - [Quick Start Tutorials](./quick-start-tutorials) - Get started with Merobox
-- [Real-World Examples](./real-world-examples) - Practical examples for common scenarios
-- [Testing Integration Examples](./testing-integration-examples) - Integration with testing frameworks
-- [Advanced Examples](./advanced-examples) - Complex workflows and advanced features
+- [Real-World Examples](./real-world-examples) - Practical examples for common
+  scenarios
+- [Testing Integration Examples](./testing-integration-examples) - Integration
+  with testing frameworks
+- [Advanced Examples](./advanced-examples) - Complex workflows and advanced
+  features

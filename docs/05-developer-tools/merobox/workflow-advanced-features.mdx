@@ -1,17 +1,20 @@
 ---
 title: Workflow Advanced Features
 description:
-  Advanced workflow features including conditional execution, parallel steps, and custom step types.
+  Advanced workflow features including conditional execution, parallel steps,
+  and custom step types.
 sidebar_position: 7.5
 ---
 
 # Workflow Advanced Features
 
-This guide covers advanced workflow features in Merobox, including conditional execution, parallel step execution, error handling, and custom step types.
+This guide covers advanced workflow features in Merobox, including conditional
+execution, parallel step execution, error handling, and custom step types.
 
 ## Conditional Execution
 
-Execute steps conditionally based on variables, environment, or previous step results:
+Execute steps conditionally based on variables, environment, or previous step
+results:
 
 ### Basic Conditional Execution
 
@@ -34,7 +37,7 @@ steps:
     condition: "{{condition}} == 'true'"
     method: production_method
     args:
-      - "production_value"
+      - 'production_value'
 ```
 
 ### Advanced Conditional Logic
@@ -293,7 +296,7 @@ step_types:
     execute: |
       # Custom deployment logic
       echo "Deploying {{application}} to {{environment}} on {{node}}"
-      
+
       # Set timeout if provided
       if [ -n "{{timeout}}" ]; then
         timeout {{timeout}} deploy_command
@@ -301,8 +304,8 @@ step_types:
         deploy_command
       fi
     outputs:
-      deployment_id: "{{deployment_id}}"
-      status: "{{deployment_status}}"
+      deployment_id: '{{deployment_id}}'
+      status: '{{deployment_status}}'
 ```
 
 ### Advanced Custom Step
@@ -327,13 +330,13 @@ step_types:
         echo "Migration file not found: {{migration_file}}"
         exit 1
       fi
-      
+
       # Create backup if requested
       if [ "{{backup_before}}" = "true" ]; then
         echo "Creating backup of {{target_database}}"
         backup_command --database {{target_database}}
       fi
-      
+
       # Run migration
       if [ "{{dry_run}}" = "true" ]; then
         echo "Dry run: Would execute {{migration_file}}"
@@ -346,9 +349,9 @@ step_types:
         echo "status={{migration_result.status}}"
       fi
     outputs:
-      migration_id: "{{migration_id}}"
-      status: "{{status}}"
-      backup_file: "{{backup_file}}"
+      migration_id: '{{migration_id}}'
+      status: '{{status}}'
+      backup_file: '{{backup_file}}'
 ```
 
 ### Custom Step with Dependencies
@@ -367,7 +370,7 @@ step_types:
         echo "status=skipped"
         exit 0
       fi
-      
+
       # Validate environment
       if [ -n "{{environment}}" ]; then
         if [ "{{environment}}" != "production" ] && [ "{{environment}}" != "staging" ]; then
@@ -375,15 +378,15 @@ step_types:
           exit 1
         fi
       fi
-      
+
       # Deploy application
       echo "Deploying {{application}} to {{node}}"
       deploy_result=$(deploy_command --app {{application}} --node {{node}} --env {{environment}})
       echo "deployment_id={{deploy_result.id}}"
       echo "status={{deploy_result.status}}"
     outputs:
-      deployment_id: "{{deployment_id}}"
-      status: "{{status}}"
+      deployment_id: '{{deployment_id}}'
+      status: '{{status}}'
 ```
 
 ## Dynamic Variables and Templating
@@ -397,10 +400,10 @@ steps:
     script: |
       # Generate timestamp
       echo "$(date +%s)" > /tmp/timestamp
-      
+
       # Generate random ID
       echo "$(uuidgen)" > /tmp/random_id
-      
+
       # Generate environment-specific values
       case "$ENVIRONMENT" in
         "production")
@@ -427,9 +430,9 @@ steps:
     node: calimero-node-1
     method: dynamic_method
     args:
-      - "{{env_prefix}}_{{random_id}}"
-      - "{{timestamp}}"
-      - "{{timeout}}"
+      - '{{env_prefix}}_{{random_id}}'
+      - '{{timestamp}}'
+      - '{{timeout}}'
 ```
 
 ### Template Processing
@@ -441,13 +444,13 @@ steps:
     script: |
       # Process configuration template
       envsubst < config.template > config.yml
-      
+
       # Replace placeholders
       sed -i "s/{{NODE_NAME}}/calimero-node-1/g" config.yml
       sed -i "s/{{ENVIRONMENT}}/$ENVIRONMENT/g" config.yml
       sed -i "s/{{TIMESTAMP}}/$(date +%s)/g" config.yml
     outputs:
-      config_file: "config.yml"
+      config_file: 'config.yml'
 ```
 
 ## Workflow Composition
@@ -462,7 +465,7 @@ steps:
     file: workflows/setup-infrastructure.yml
     inputs:
       node_count: 3
-      environment: "{{ENVIRONMENT}}"
+      environment: '{{ENVIRONMENT}}'
     outputs:
       node_endpoints: output
 
@@ -471,8 +474,8 @@ steps:
     file: workflows/deploy-applications.yml
     depends_on: [Setup Infrastructure]
     inputs:
-      node_endpoints: "{{node_endpoints}}"
-      applications: ["app1", "app2", "app3"]
+      node_endpoints: '{{node_endpoints}}'
+      applications: ['app1', 'app2', 'app3']
     outputs:
       deployment_status: output
 
@@ -481,8 +484,8 @@ steps:
     file: workflows/run-tests.yml
     depends_on: [Deploy Applications]
     inputs:
-      node_endpoints: "{{node_endpoints}}"
-      test_suite: "integration"
+      node_endpoints: '{{node_endpoints}}'
+      test_suite: 'integration'
 ```
 
 ### Workflow Inheritance
@@ -592,7 +595,9 @@ steps:
 
 Now that you understand workflow advanced features:
 
-- [Testing Framework Integration](./testing-framework-integration) - Testing with Merobox
+- [Testing Framework Integration](./testing-framework-integration) - Testing
+  with Merobox
 - [Resource Management](./resource-management) - Resource limits and monitoring
-- [Security Configuration](./security-configuration) - Security settings and policies
+- [Security Configuration](./security-configuration) - Security settings and
+  policies
 - [Advanced Configuration](./advanced-configuration) - Other advanced features

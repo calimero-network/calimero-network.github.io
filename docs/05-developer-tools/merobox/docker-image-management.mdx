@@ -1,13 +1,15 @@
 ---
 title: Docker Image Management
 description:
-  Managing Docker images, containers, and multi-architecture support for Merobox.
+  Managing Docker images, containers, and multi-architecture support for
+  Merobox.
 sidebar_position: 7.2
 ---
 
 # Docker Image Management
 
-This guide covers advanced Docker image management, including custom image configuration, pull strategies, and multi-architecture support for Merobox.
+This guide covers advanced Docker image management, including custom image
+configuration, pull strategies, and multi-architecture support for Merobox.
 
 ## Custom Image Configuration
 
@@ -237,7 +239,7 @@ build:
 # Cache configuration
 cache:
   enabled: true
-  ttl: 3600  # 1 hour
+  ttl: 3600 # 1 hour
   max_size: 10GB
 ```
 
@@ -269,7 +271,7 @@ security:
     - high
     - critical
   ignore:
-    - CVE-2023-1234  # Known false positive
+    - CVE-2023-1234 # Known false positive
 ```
 
 ### Image Signing
@@ -290,7 +292,7 @@ signing:
 nodes:
   image: ghcr.io/calimero-network/merod:edge
   security:
-    user: 1000:1000  # Non-root user
+    user: 1000:1000 # Non-root user
     read_only: true
     no_new_privileges: true
 ```
@@ -304,7 +306,7 @@ nodes:
 nodes:
   image: ghcr.io/calimero-network/merod:edge
   healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:2428/health"]
+    test: ['CMD', 'curl', '-f', 'http://localhost:2428/health']
     interval: 30s
     timeout: 10s
     retries: 3
@@ -317,7 +319,7 @@ nodes:
 # Automatic image updates
 updates:
   enabled: true
-  schedule: "0 2 * * *"  # Daily at 2 AM
+  schedule: '0 2 * * *' # Daily at 2 AM
   strategy: rolling
   max_unavailable: 1
   max_surge: 1
@@ -395,6 +397,7 @@ docker run --rm ghcr.io/calimero-network/merod:edge sh -c "echo 'Image is workin
 Now that you understand Docker image management:
 
 - [Network Configuration](./network-configuration) - Advanced network setup
-- [Authentication Service Integration](./auth-service-integration) - Auth service configuration
+- [Authentication Service Integration](./auth-service-integration) - Auth
+  service configuration
 - [Resource Management](./resource-management) - Resource limits and monitoring
 - [Advanced Configuration](./advanced-configuration) - Other advanced features

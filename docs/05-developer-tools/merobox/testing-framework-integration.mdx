@@ -1,13 +1,16 @@
 ---
 title: Testing Framework Integration
 description:
-  Advanced testing configuration, custom utilities, and performance testing with Merobox.
+  Advanced testing configuration, custom utilities, and performance testing with
+  Merobox.
 sidebar_position: 7.6
 ---
 
 # Testing Framework Integration
 
-This guide covers advanced testing configuration for Merobox, including custom testing utilities, performance testing, and integration with popular testing frameworks.
+This guide covers advanced testing configuration for Merobox, including custom
+testing utilities, performance testing, and integration with popular testing
+frameworks.
 
 ## Advanced Testing Configuration
 
@@ -96,7 +99,7 @@ def environment_cluster(request):
             "resources": {"memory": "4G", "cpus": "2.0"}
         }
     }
-    
+
     config = env_config[request.param]
     with cluster(
         count=config["count"],
@@ -143,7 +146,7 @@ class TestEnvironment:
         """Wait for a node to be ready."""
         endpoint = self.get_node_endpoint(node_name)
         start_time = time.time()
-        
+
         while time.time() - start_time < timeout:
             try:
                 response = requests.get(f"{endpoint}/health", timeout=5)
@@ -152,7 +155,7 @@ class TestEnvironment:
             except requests.RequestException:
                 pass
             time.sleep(1)
-        
+
         raise TimeoutError(f"Node {node_name} not ready after {timeout} seconds")
 
     def get_all_endpoints(self):
@@ -184,7 +187,7 @@ class AsyncTestEnvironment:
     async def __aenter__(self):
         self.cluster = cluster(count=self.node_count)
         self.cluster.__enter__()
-        
+
         # Create async HTTP session
         self.session = aiohttp.ClientSession()
         return self
@@ -203,21 +206,21 @@ class AsyncTestEnvironment:
         """Call a method on a specific node."""
         endpoint = await self.get_node_endpoint(node_name)
         url = f"{endpoint}/rpc"
-        
+
         payload = {
             "jsonrpc": "2.0",
             "method": method,
             "params": params or [],
             "id": 1
         }
-        
+
         async with self.session.post(url, json=payload) as response:
             return await response.json()
 
     async def wait_for_consensus(self, timeout=60):
         """Wait for all nodes to reach consensus."""
         start_time = asyncio.get_event_loop().time()
-        
+
         while asyncio.get_event_loop().time() - start_time < timeout:
             try:
                 # Check consensus on all nodes
@@ -226,18 +229,18 @@ class AsyncTestEnvironment:
                     node_name = f"calimero-node-{i}"
                     task = self.call_node_method(node_name, "get_consensus_status")
                     tasks.append(task)
-                
+
                 results = await asyncio.gather(*tasks, return_exceptions=True)
-                
+
                 # Check if all nodes have consensus
                 if all(not isinstance(result, Exception) and result.get("result", {}).get("consensus") for result in results):
                     return True
-                    
+
             except Exception as e:
                 logging.warning(f"Error checking consensus: {e}")
-            
+
             await asyncio.sleep(1)
-        
+
         raise TimeoutError(f"Consensus not reached after {timeout} seconds")
 
     async def get_cluster_health(self):
@@ -248,7 +251,7 @@ class AsyncTestEnvironment:
             endpoint = await self.get_node_endpoint(node_name)
             task = self.session.get(f"{endpoint}/health")
             tasks.append((node_name, task))
-        
+
         health_status = {}
         for node_name, task in tasks:
             try:
@@ -256,7 +259,7 @@ class AsyncTestEnvironment:
                 health_status[node_name] = await response.json()
             except Exception as e:
                 health_status[node_name] = {"error": str(e)}
-        
+
         return health_status
 ```
 
@@ -285,15 +288,15 @@ class TestDataManager:
                 "created_at": "2024-01-01T00:00:00Z"
             }
         }
-        
+
         app_file = Path(self.base_dir) / f"{name}.wasm"
         app_file.write_bytes(b"fake wasm content")
-        
+
         self.test_data[name] = {
             "file": str(app_file),
             "data": app_data
         }
-        
+
         return str(app_file)
 
     def create_test_workflow(self, name, steps):
@@ -303,10 +306,10 @@ class TestDataManager:
             "description": f"Test workflow for {name}",
             "steps": steps
         }
-        
+
         workflow_file = Path(self.base_dir) / f"{name}_workflow.yml"
         workflow_file.write_text(json.dumps(workflow_data, indent=2))
-        
+
         return str(workflow_file)
 
     def cleanup(self):
@@ -381,7 +384,7 @@ class PerformanceTest:
     async def run_load_test(self, cluster_env):
         """Run load test against cluster."""
         session = aiohttp.ClientSession()
-        
+
         try:
             # Get all node endpoints
             endpoints = []
@@ -389,31 +392,31 @@ class PerformanceTest:
                 node_name = f"calimero-node-{i}"
                 endpoint = get_node_rpc_url(node_name, cluster_env["manager"])
                 endpoints.append(endpoint)
-            
+
             # Run load test
             start_time = time.time()
             tasks = []
-            
+
             while time.time() - start_time < self.test_duration:
                 # Create load test tasks
                 for endpoint in endpoints:
                     task = self._make_request(session, endpoint)
                     tasks.append(task)
-                
+
                 # Wait for batch to complete
                 batch_results = await asyncio.gather(*tasks, return_exceptions=True)
                 self.results.extend([r for r in batch_results if not isinstance(r, Exception)])
-                
+
                 tasks = []
                 await asyncio.sleep(0.1)  # Small delay between batches
-            
+
         finally:
             await session.close()
 
     async def _make_request(self, session, endpoint):
         """Make a single request to test performance."""
         start_time = time.time()
-        
+
         try:
             async with session.post(f"{endpoint}/rpc", json={
                 "jsonrpc": "2.0",
@@ -430,9 +433,9 @@ class PerformanceTest:
         """Analyze performance test results."""
         if not self.results:
             return {"error": "No results to analyze"}
-        
+
         response_times = [r for r in self.results if r is not None]
-        
+
         return {
             "total_requests": len(self.results),
             "successful_requests": len(response_times),
@@ -476,24 +479,24 @@ class StressTest:
     async def run_stress_test(self, cluster_env):
         """Run stress test with increasing load."""
         tasks = []
-        
+
         # Gradually increase load
         for load_level in range(10, self.max_concurrent + 1, 10):
             print(f"Testing with {load_level} concurrent requests...")
-            
+
             # Create tasks for this load level
             level_tasks = []
             for _ in range(load_level):
                 task = self._stress_request(cluster_env)
                 level_tasks.append(task)
-            
+
             # Run tasks concurrently
             results = await asyncio.gather(*level_tasks, return_exceptions=True)
-            
+
             # Analyze results
             success_count = sum(1 for r in results if not isinstance(r, Exception))
             print(f"Load level {load_level}: {success_count}/{load_level} successful")
-            
+
             # Wait before next load level
             await asyncio.sleep(5)
 
@@ -503,10 +506,10 @@ class StressTest:
             # Randomly select a node
             node_id = random.randint(1, self.node_count)
             node_name = f"calimero-node-{node_id}"
-            
+
             # Make request with random delay
             await asyncio.sleep(random.uniform(0, 0.1))
-            
+
             # Simulate request
             try:
                 # Your actual request logic here
@@ -557,7 +560,7 @@ class TestCalimeroIntegration:
         """Test basic cluster operations."""
         endpoints = merobox_cluster["endpoints"]
         assert len(endpoints) == 3
-        
+
         # Test each node
         for node_name, endpoint in endpoints.items():
             assert endpoint is not None
@@ -567,7 +570,7 @@ class TestCalimeroIntegration:
         """Test workflow execution."""
         workflow_result = merobox_workflow["workflow_result"]
         assert workflow_result is True
-        
+
         # Check workflow outputs
         assert "node_endpoints" in merobox_workflow
         assert len(merobox_workflow["node_endpoints"]) > 0
@@ -601,27 +604,27 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install merobox
-    
-    - name: Run tests
-      run: |
-        pytest tests/ -v --cov=merobox
-    
-    - name: Run performance tests
-      run: |
-        pytest tests/performance/ -v -m performance
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install merobox
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=merobox
+
+      - name: Run performance tests
+        run: |
+          pytest tests/performance/ -v -m performance
 ```
 
 ## Best Practices
@@ -652,5 +655,6 @@ jobs:
 Now that you understand testing framework integration:
 
 - [Resource Management](./resource-management) - Resource limits and monitoring
-- [Security Configuration](./security-configuration) - Security settings and policies
+- [Security Configuration](./security-configuration) - Security settings and
+  policies
 - [Advanced Configuration](./advanced-configuration) - Other advanced features

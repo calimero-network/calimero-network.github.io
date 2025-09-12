@@ -1,17 +1,18 @@
 ---
 title: Quick Start Tutorials
-description:
-  Step-by-step tutorials to get you started with Merobox quickly.
+description: Step-by-step tutorials to get you started with Merobox quickly.
 sidebar_position: 4.1
 ---
 
 # Quick Start Tutorials
 
-These tutorials will help you get up and running with Merobox quickly, from your first workflow to deploying applications.
+These tutorials will help you get up and running with Merobox quickly, from your
+first workflow to deploying applications.
 
 ## Tutorial 1: Your First Merobox Workflow
 
-This tutorial walks you through creating and running your first Merobox workflow.
+This tutorial walks you through creating and running your first Merobox
+workflow.
 
 ### Step 1: Install Merobox
 
@@ -298,12 +299,13 @@ merobox bootstrap run script-tutorial.yml
 **Problem**: Node fails to start or takes too long.
 
 **Solution**:
+
 ```yaml
 # Add longer wait times
 steps:
   - name: Wait for Node
     type: wait
-    seconds: 30  # Increase wait time
+    seconds: 30 # Increase wait time
     message: 'Waiting for node to start...'
 ```
 
@@ -312,6 +314,7 @@ steps:
 **Problem**: Application installation fails with errors.
 
 **Solution**:
+
 ```yaml
 # Use dev mode for local development
 steps:
@@ -319,7 +322,7 @@ steps:
     type: install_application
     node: calimero-node-1
     path: ./my-app.wasm
-    dev: true  # Enable dev mode
+    dev: true # Enable dev mode
 ```
 
 ### Issue: Context Creation Fails
@@ -327,6 +330,7 @@ steps:
 **Problem**: Context creation fails or times out.
 
 **Solution**:
+
 ```yaml
 # Add validation and error handling
 steps:
@@ -349,7 +353,10 @@ steps:
 
 Now that you've completed the quick start tutorials:
 
-- [Real-World Examples](./real-world-examples) - Practical examples for common scenarios
-- [Testing Integration Examples](./testing-integration-examples) - Integration with testing frameworks
-- [Advanced Examples](./advanced-examples) - Complex workflows and advanced features
+- [Real-World Examples](./real-world-examples) - Practical examples for common
+  scenarios
+- [Testing Integration Examples](./testing-integration-examples) - Integration
+  with testing frameworks
+- [Advanced Examples](./advanced-examples) - Complex workflows and advanced
+  features
 - [Best Practices](./best-practices) - Guidelines for effective Merobox usage

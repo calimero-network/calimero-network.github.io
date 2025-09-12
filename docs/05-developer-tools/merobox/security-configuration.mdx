@@ -7,7 +7,8 @@ sidebar_position: 7.8
 
 # Security Configuration
 
-This guide covers security configuration for Merobox, including container security, network security, and secrets management.
+This guide covers security configuration for Merobox, including container
+security, network security, and secrets management.
 
 ## Container Security
 
@@ -38,29 +39,29 @@ nodes:
     # User and group
     user: '1000:1000'
     group: '1000'
-    
+
     # File system security
     read_only: true
     tmpfs:
       - /tmp: size=100M,noexec,nosuid,nodev
       - /var/tmp: size=50M,noexec,nosuid,nodev
-    
+
     # Process security
     no_new_privileges: true
     init: true
     pid_limit: 100
-    
+
     # Capabilities
     capabilities:
       drop: ['ALL']
       add: ['NET_BIND_SERVICE', 'CHOWN', 'SETUID', 'SETGID']
-    
+
     # Security options
     security_opt:
       - 'no-new-privileges:true'
       - 'seccomp:unconfined'
       - 'apparmor:unconfined'
-    
+
     # Resource limits
     ulimits:
       - name: nofile
@@ -82,7 +83,7 @@ security_profiles:
     capabilities:
       drop: ['ALL']
       add: ['NET_BIND_SERVICE']
-  
+
   staging:
     user: '1000:1000'
     read_only: true
@@ -91,7 +92,7 @@ security_profiles:
       add: ['NET_BIND_SERVICE']
     security_opt:
       - 'no-new-privileges:true'
-  
+
   production:
     user: '1000:1000'
     read_only: true
@@ -140,19 +141,19 @@ firewall:
       source: 172.20.0.0/16
       destination: 2528
       protocol: tcp
-    
+
     # Block external access to admin ports
     - action: deny
       source: 0.0.0.0/0
       destination: 2628
       protocol: tcp
-    
+
     # Allow HTTPS from specific sources
     - action: allow
       source: 192.168.1.0/24
       destination: 443
       protocol: tcp
-    
+
     # Block all other traffic
     - action: deny
       source: 0.0.0.0/0
@@ -175,14 +176,14 @@ network_policies:
             port: 2428
           - protocol: tcp
             port: 2528
-      
+
       # Allow monitoring access
       - from:
           - namespace: monitoring
         ports:
           - protocol: tcp
             port: 8080
-      
+
       # Block external access
       - from: []
         ports: []
@@ -219,22 +220,22 @@ secrets:
     mode: 0600
     owner: 1000
     group: 1000
-  
+
   - name: calimero-certificate
     file: ./secrets/certificate.pem
     mode: 0644
     owner: 1000
     group: 1000
-  
+
   # Environment-based secrets
   - name: database-password
     environment: DATABASE_PASSWORD
     required: true
-  
+
   - name: api-key
     environment: API_KEY
     required: true
-  
+
   # External secret management
   - name: vault-secret
     external: true
@@ -249,7 +250,7 @@ nodes:
     - calimero-certificate
     - database-password
     - api-key
-  
+
   environment:
     PRIVATE_KEY_FILE: /run/secrets/calimero-private-key
     CERTIFICATE_FILE: /run/secrets/calimero-certificate
@@ -272,12 +273,12 @@ vault:
         - api-key
         - database-password
         - encryption-key
-  
+
   # Auto-renewal
   renewal:
     enabled: true
-    interval: 3600  # 1 hour
-    threshold: 300  # 5 minutes
+    interval: 3600 # 1 hour
+    threshold: 300 # 5 minutes
 ```
 
 ## Authentication and Authorization
@@ -294,18 +295,18 @@ rbac:
         - 'calimero:admin:*'
         - 'calimero:node:*'
         - 'calimero:workflow:*'
-    
+
     - name: developer
       permissions:
         - 'calimero:node:read'
         - 'calimero:workflow:create'
         - 'calimero:workflow:read'
-    
+
     - name: viewer
       permissions:
         - 'calimero:node:read'
         - 'calimero:workflow:read'
-  
+
   # User assignments
   users:
     - name: admin-user
@@ -326,21 +327,21 @@ api_auth:
     - jwt
     - api_key
     - oauth2
-  
+
   # JWT configuration
   jwt:
     secret: '${JWT_SECRET}'
     algorithm: 'HS256'
-    expiration: 3600  # 1 hour
+    expiration: 3600 # 1 hour
     issuer: 'calimero-api'
     audience: 'calimero-clients'
-  
+
   # API key configuration
   api_key:
     header: 'X-API-Key'
     prefix: 'calimero_'
     length: 32
-  
+
   # OAuth2 configuration
   oauth2:
     providers:
@@ -358,13 +359,13 @@ api_auth:
 # Data encryption configuration
 encryption:
   enabled: true
-  
+
   # Encryption at rest
   at_rest:
     algorithm: 'AES-256-GCM'
     key: '${ENCRYPTION_KEY}'
-    key_rotation: 86400  # 24 hours
-  
+    key_rotation: 86400 # 24 hours
+
   # Encryption in transit
   in_transit:
     tls:
@@ -376,7 +377,7 @@ encryption:
       certificates:
         cert: '/run/secrets/tls.crt'
         key: '/run/secrets/tls.key'
-  
+
   # Database encryption
   database:
     enabled: true
@@ -389,20 +390,20 @@ encryption:
 ```yaml
 # Key management
 key_management:
-  provider: vault  # vault, aws-kms, azure-keyvault
-  
+  provider: vault # vault, aws-kms, azure-keyvault
+
   # Vault configuration
   vault:
     address: 'https://vault.example.com'
     token: '${VAULT_TOKEN}'
     key_path: 'secret/calimero/keys'
-  
+
   # Key rotation
   rotation:
     enabled: true
-    interval: 86400  # 24 hours
-    threshold: 3600  # 1 hour
-  
+    interval: 86400 # 24 hours
+    threshold: 3600 # 1 hour
+
   # Key backup
   backup:
     enabled: true
@@ -418,7 +419,7 @@ key_management:
 # Audit logging
 audit:
   enabled: true
-  
+
   # Audit events
   events:
     - authentication
@@ -426,7 +427,7 @@ audit:
     - data_access
     - configuration_changes
     - security_events
-  
+
   # Audit destinations
   destinations:
     - type: file
@@ -435,12 +436,12 @@ audit:
       rotation:
         size: '100MB'
         count: 10
-    
+
     - type: syslog
       address: 'udp://syslog.example.com:514'
       facility: 'local0'
       priority: 'info'
-    
+
     - type: elasticsearch
       url: 'https://elasticsearch.example.com:9200'
       index: 'calimero-audit'
@@ -454,27 +455,27 @@ audit:
 # Security monitoring
 security_monitoring:
   enabled: true
-  
+
   # Monitoring rules
   rules:
     - name: failed_login_attempts
       condition: 'audit.event == "authentication" AND audit.result == "failure"'
       threshold: 5
-      window: 300  # 5 minutes
+      window: 300 # 5 minutes
       action: alert
-    
+
     - name: privilege_escalation
       condition: 'audit.event == "authorization" AND audit.action == "escalate"'
       threshold: 1
       window: 60
       action: alert
-    
+
     - name: data_access_anomaly
       condition: 'audit.event == "data_access" AND audit.volume > 1000'
       threshold: 1
       window: 300
       action: alert
-  
+
   # Alerting
   alerts:
     - name: security_team
@@ -500,7 +501,7 @@ compliance:
         - data_encryption
         - audit_logging
         - incident_response
-    
+
     - name: GDPR
       enabled: true
       controls:
@@ -508,7 +509,7 @@ compliance:
         - consent_management
         - data_retention
         - right_to_erasure
-    
+
     - name: HIPAA
       enabled: true
       controls:
@@ -524,23 +525,23 @@ compliance:
 # Security scanning
 security_scanning:
   enabled: true
-  
+
   # Vulnerability scanning
   vulnerability_scanning:
     enabled: true
-    schedule: '0 2 * * *'  # Daily at 2 AM
+    schedule: '0 2 * * *' # Daily at 2 AM
     tools:
       - trivy
       - snyk
     severity_threshold: 'high'
-  
+
   # Container scanning
   container_scanning:
     enabled: true
     images:
       - 'ghcr.io/calimero-network/merod:latest'
       - 'ghcr.io/calimero-network/mero-auth:latest'
-  
+
   # Dependency scanning
   dependency_scanning:
     enabled: true

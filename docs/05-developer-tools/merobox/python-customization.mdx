@@ -7,7 +7,8 @@ sidebar_position: 6
 
 # Python Customization
 
-This guide covers advanced Python customization and extension capabilities for Merobox CLI, including custom commands, step types, and plugin development.
+This guide covers advanced Python customization and extension capabilities for
+Merobox CLI, including custom commands, step types, and plugin development.
 
 ## Overview
 
@@ -63,7 +64,7 @@ if __name__ == '__main__':
 def db_manage(backup, restore):
     """Manage Calimero node databases."""
     manager = CalimeroManager()
-    
+
     if backup:
         # Create backup
         manager.backup_database()
@@ -82,15 +83,15 @@ def db_manage(backup, restore):
 def health_check(detailed):
     """Enhanced health check with custom metrics."""
     manager = CalimeroManager()
-    
+
     # Basic health check
     health = manager.check_health()
-    
+
     if detailed:
         # Custom detailed health metrics
         metrics = manager.get_custom_metrics()
         click.echo(f"Custom metrics: {metrics}")
-    
+
     click.echo(f"Health status: {health['status']}")
 ```
 
@@ -145,10 +146,10 @@ class DatabaseMigrationStep(BaseStep):
     def execute(self):
         migration_file = self.config['migration_file']
         target_node = self.config['target_node']
-        
+
         # Execute database migration
         migration_id = self.run_migration(migration_file, target_node)
-        
+
         return {'migration_id': migration_id}
 ```
 
@@ -165,13 +166,13 @@ class ValidationStep(BaseStep):
     def execute(self):
         rules = self.config['validation_rules']
         data_source = self.config['data_source']
-        
+
         # Perform custom validation
         is_valid = self.validate_data(rules, data_source)
-        
+
         if not is_valid:
             raise ValueError("Validation failed")
-        
+
         return {'is_valid': is_valid}
 ```
 
@@ -256,7 +257,7 @@ def test_my_application():
         # Get node endpoints
         node1_endpoint = test_env["endpoints"]["test-1"]
         node2_endpoint = test_env["endpoints"]["test-2"]
-        
+
         # Test your application
         result = my_app_function(node1_endpoint)
         assert result is not None
@@ -272,7 +273,7 @@ def test_complex_workflow():
     with workflow("my-workflow.yml", prefix="test") as env:
         # Verify workflow results
         assert env["workflow_result"] is True
-        
+
         # Test application functionality
         endpoints = env["endpoints"]
         result = test_my_app(endpoints)
@@ -309,12 +310,12 @@ class CustomCalimeroManager(CalimeroManager):
     def __init__(self):
         super().__init__()
         self.custom_config = {}
-    
+
     def setup_custom_environment(self, config):
         """Setup custom environment configuration."""
         self.custom_config = config
         # Custom setup logic
-    
+
     def get_custom_metrics(self):
         """Get custom performance metrics."""
         # Custom metrics collection
@@ -336,11 +337,11 @@ class CustomEventHandler(EventHandler):
     def on_workflow_start(self, event: WorkflowEvent):
         """Called when workflow starts."""
         print(f"Workflow {event.workflow_id} started")
-    
+
     def on_step_complete(self, event: WorkflowEvent):
         """Called when a step completes."""
         print(f"Step {event.step_name} completed")
-    
+
     def on_workflow_complete(self, event: WorkflowEvent):
         """Called when workflow completes."""
         print(f"Workflow {event.workflow_id} completed")
@@ -360,14 +361,14 @@ class CustomConfigManager(ConfigManager):
         """Load custom configuration from file."""
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
-        
+
         # Process custom configuration
         self.merge_config(config)
-    
+
     def validate_custom_config(self, config):
         """Validate custom configuration."""
         required_fields = ['custom_field1', 'custom_field2']
-        
+
         for field in required_fields:
             if field not in config:
                 raise ValueError(f"Missing required field: {field}")
