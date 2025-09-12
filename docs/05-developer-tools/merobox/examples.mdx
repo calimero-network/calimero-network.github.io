@@ -1,0 +1,659 @@
+---
+title: Examples and Tutorials
+description:
+  Practical examples and step-by-step tutorials for using Merobox effectively.
+sidebar_position: 4
+---
+
+# Examples and Tutorials
+
+This section provides practical examples and step-by-step tutorials to help you
+get started with Merobox and understand its capabilities.
+
+## Quick Start Tutorial
+
+### Tutorial 1: Your First Merobox Workflow
+
+This tutorial walks you through creating and running your first Merobox
+workflow.
+
+#### Step 1: Install Merobox
+
+```bash
+pip install merobox
+```
+
+#### Step 2: Create a Simple Workflow
+
+Create a file called `my-first-workflow.yml`:
+
+```yaml
+description: My first Merobox workflow
+name: First Workflow
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+
+steps:
+  - name: Wait for Node Startup
+    type: wait
+    seconds: 5
+
+  - name: Check Node Health
+    type: script
+    script: |
+      echo "Node is running!"
+      echo "Checking health..."
+
+stop_all_nodes: true
+```
+
+#### Step 3: Run the Workflow
+
+```bash
+merobox bootstrap run my-first-workflow.yml
+```
+
+#### Step 4: Verify Results
+
+```bash
+# Check if nodes are running
+merobox list
+
+# Check node health
+merobox health
+```
+
+### Tutorial 2: Application Deployment
+
+Deploy a simple WASM application using Merobox.
+
+#### Step 1: Prepare Your Application
+
+Create a simple WASM file or use the provided example:
+
+```bash
+# Download example WASM file
+curl -o kv-store.wasm https://example.com/kv-store.wasm
+```
+
+#### Step 2: Create Deployment Workflow
+
+Create `deploy-app.yml`:
+
+```yaml
+description: Deploy and test a WASM application
+name: Application Deployment
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: calimero-node-1
+    path: ./kv-store.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: calimero-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Test Application
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: set
+    args:
+      key: hello
+      value: world
+    outputs:
+      set_result: result
+
+  - name: Verify Data
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: get
+    args:
+      key: hello
+    outputs:
+      get_result: result
+
+  - name: Validate Results
+    type: assert
+    statements:
+      - "contains({{get_result}}, 'world')"
+
+stop_all_nodes: true
+```
+
+#### Step 3: Run the Deployment
+
+```bash
+merobox bootstrap run deploy-app.yml
+```
+
+## Real-World Examples
+
+### Example 1: Multi-Node Testing
+
+Test your application across multiple nodes to simulate real-world scenarios.
+
+```yaml
+description: Multi-node application testing
+name: Multi-Node Test
+
+nodes:
+  chain_id: testnet-1
+  count: 3
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: test-node
+
+steps:
+  # Install application on first node
+  - name: Install Application
+    type: install_application
+    node: test-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  # Create context on first node
+  - name: Create Context
+    type: create_context
+    node: test-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  # Create identities on other nodes
+  - name: Create Identity on Node 2
+    type: create_identity
+    node: test-node-2
+    outputs:
+      node2_key: publicKey
+
+  - name: Create Identity on Node 3
+    type: create_identity
+    node: test-node-3
+    outputs:
+      node3_key: publicKey
+
+  # Invite nodes to context
+  - name: Invite Node 2
+    type: invite_identity
+    node: test-node-1
+    context_id: '{{context_id}}'
+    grantee_id: '{{node2_key}}'
+    granter_id: '{{member_key}}'
+    capability: member
+    outputs:
+      invite2: invitation
+
+  - name: Invite Node 3
+    type: invite_identity
+    node: test-node-1
+    context_id: '{{context_id}}'
+    grantee_id: '{{node3_key}}'
+    granter_id: '{{member_key}}'
+    capability: member
+    outputs:
+      invite3: invitation
+
+  # Join contexts
+  - name: Join from Node 2
+    type: join_context
+    node: test-node-2
+    context_id: '{{context_id}}'
+    invitee_id: '{{node2_key}}'
+    invitation: '{{invite2}}'
+
+  - name: Join from Node 3
+    type: join_context
+    node: test-node-3
+    context_id: '{{context_id}}'
+    invitee_id: '{{node3_key}}'
+    invitation: '{{invite3}}'
+
+  # Test cross-node communication
+  - name: Set Data from Node 1
+    type: call
+    node: test-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: set
+    args:
+      key: shared_data
+      value: 'set from node 1'
+
+  - name: Read from Node 2
+    type: call
+    node: test-node-2
+    context_id: '{{context_id}}'
+    executor_public_key: '{{node2_key}}'
+    method: get
+    args:
+      key: shared_data
+    outputs:
+      result2: result
+
+  - name: Read from Node 3
+    type: call
+    node: test-node-3
+    context_id: '{{context_id}}'
+    executor_public_key: '{{node3_key}}'
+    method: get
+    args:
+      key: shared_data
+    outputs:
+      result3: result
+
+  # Validate cross-node consistency
+  - name: Validate Cross-Node Data
+    type: assert
+    statements:
+      - "contains({{result2}}, 'set from node 1')"
+      - "contains({{result3}}, 'set from node 1')"
+      - '{{result2}} == {{result3}}'
+
+stop_all_nodes: true
+```
+
+### Example 2: Authentication Service Integration
+
+Use Merobox with authentication services for production-like testing.
+
+```yaml
+description: Workflow with authentication service
+name: Auth Service Example
+
+# Enable authentication service
+auth_service: true
+
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: auth-node
+
+steps:
+  - name: Wait for Auth Service
+    type: wait
+    seconds: 10
+    message: 'Waiting for authentication service to start...'
+
+  - name: Install Application
+    type: install_application
+    node: auth-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: auth-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Test with Auth Service
+    type: script
+    script: |
+      echo "Testing with authentication service..."
+      echo "Node 1 URL: http://auth-node-1.127.0.0.1.nip.io"
+      echo "Node 2 URL: http://auth-node-2.127.0.0.1.nip.io"
+      echo "Auth Login: http://auth-node-1.127.0.0.1.nip.io/auth/login"
+      echo "Admin Dashboard: http://auth-node-1.127.0.0.1.nip.io/admin-dashboard"
+
+stop_all_nodes: true
+```
+
+### Example 3: Performance Testing
+
+Test your application's performance with repeated operations.
+
+```yaml
+description: Performance testing workflow
+name: Performance Test
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: perf-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: perf-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: perf-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Performance Test
+    type: repeat
+    count: 100
+    outputs:
+      iteration: iteration
+    steps:
+      - name: Set Data
+        type: call
+        node: perf-node-1
+        context_id: '{{context_id}}'
+        executor_public_key: '{{member_key}}'
+        method: set
+        args:
+          key: 'perf_key_{{iteration}}'
+          value: 'perf_value_{{iteration}}'
+
+      - name: Get Data
+        type: call
+        node: perf-node-1
+        context_id: '{{context_id}}'
+        executor_public_key: '{{member_key}}'
+        method: get
+        args:
+          key: 'perf_key_{{iteration}}'
+        outputs:
+          result: result
+
+      - name: Validate Performance
+        type: assert
+        statements:
+          - "contains({{result}}, 'perf_value_{{iteration}}')"
+
+  - name: Performance Summary
+    type: script
+    script: |
+      echo "Performance test completed!"
+      echo "Executed 100 set/get operations successfully"
+
+stop_all_nodes: true
+```
+
+## Testing Integration Examples
+
+### Example 1: Python Testing with Merobox
+
+Use Merobox in your Python test suite.
+
+```python
+# test_my_app.py
+import pytest
+from merobox.testing import cluster, workflow
+from my_app.client import MyAppClient
+
+@pytest.fixture(scope="function")
+def test_cluster():
+    """Create a test cluster for each test."""
+    with cluster(count=2, prefix="test") as env:
+        yield env
+
+def test_basic_functionality(test_cluster):
+    """Test basic application functionality."""
+    # Get node endpoints
+    node1_endpoint = test_cluster["endpoints"]["test-1"]
+    node2_endpoint = test_cluster["endpoints"]["test-2"]
+
+    # Create clients
+    client1 = MyAppClient(node1_endpoint)
+    client2 = MyAppClient(node2_endpoint)
+
+    # Test functionality
+    result = client1.health_check()
+    assert result is not None
+
+    # Test cross-node communication
+    client1.set_data("key", "value")
+    value = client2.get_data("key")
+    assert value == "value"
+
+@pytest.fixture(scope="session")
+def app_workflow():
+    """Run a complex workflow for session-scoped tests."""
+    with workflow("workflows/app-setup.yml", prefix="session") as env:
+        yield env
+
+def test_complex_scenario(app_workflow):
+    """Test complex application scenario."""
+    # Use pre-configured workflow environment
+    nodes = app_workflow["nodes"]
+    context_id = app_workflow["dynamic_values"]["context_id"]
+
+    # Test with pre-configured environment
+    assert context_id is not None
+    assert len(nodes) > 0
+```
+
+### Example 2: Workflow-based Test Setup
+
+Use workflows to set up complex test environments.
+
+```yaml
+# workflows/test-setup.yml
+description: Test environment setup
+name: Test Setup
+
+nodes:
+  chain_id: testnet-1
+  count: 3
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: test-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: test-node-1
+    path: ./test-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: test-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Setup Test Data
+    type: call
+    node: test-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: setup_test_data
+    args:
+      test_cases: 100
+
+  - name: Create Test Identities
+    type: create_identity
+    node: test-node-2
+    outputs:
+      test_user1: publicKey
+
+  - name: Create Another Identity
+    type: create_identity
+    node: test-node-3
+    outputs:
+      test_user2: publicKey
+
+stop_all_nodes: false # Keep nodes running for tests
+```
+
+## Advanced Examples
+
+### Example 1: Custom Script Integration
+
+Use custom scripts for complex setup and validation.
+
+```yaml
+description: Custom script integration example
+name: Script Integration
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: script-node
+
+steps:
+  - name: Pre-Setup Script
+    type: script
+    script: |
+      echo "Setting up test environment..."
+      mkdir -p /tmp/test-data
+      echo "test_data" > /tmp/test-data/sample.txt
+      echo "Pre-setup complete"
+
+  - name: Install Application
+    type: install_application
+    node: script-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Post-Installation Script
+    type: script
+    script: |
+      echo "Application installed: {{app_id}}"
+      echo "Verifying installation..."
+      # Add custom verification logic here
+      echo "Installation verified"
+
+  - name: Custom Validation
+    type: script
+    script: |
+      echo "Running custom validation..."
+      # Add custom validation logic here
+      echo "Validation complete"
+
+stop_all_nodes: true
+```
+
+### Example 2: Error Handling and Recovery
+
+Implement robust error handling in your workflows.
+
+```yaml
+description: Error handling example
+name: Error Handling
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: error-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: error-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: error-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Test Error Handling
+    type: call
+    node: error-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: test_error_handling
+    args:
+      should_fail: true
+    outputs:
+      error_result: result
+
+  - name: Validate Error Response
+    type: assert
+    statements:
+      - "contains({{error_result}}, 'error')"
+
+  - name: Recovery Test
+    type: call
+    node: error-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: test_recovery
+    args:
+      should_succeed: true
+    outputs:
+      recovery_result: result
+
+  - name: Validate Recovery
+    type: assert
+    statements:
+      - "contains({{recovery_result}}, 'success')"
+
+stop_all_nodes: true
+```
+
+## Best Practices
+
+### Workflow Design
+
+1. **Start Simple**: Begin with basic workflows and gradually add complexity
+2. **Modular Steps**: Break complex operations into smaller, focused steps
+3. **Clear Naming**: Use descriptive names for steps and variables
+4. **Error Handling**: Include validation and error checking steps
+
+### Testing Integration
+
+1. **Isolated Tests**: Use separate node prefixes for different test suites
+2. **Resource Cleanup**: Always clean up resources after tests
+3. **Parallel Testing**: Use different prefixes for parallel test execution
+4. **Environment Setup**: Use workflows for complex test environment setup
+
+### Performance Considerations
+
+1. **Minimal Waits**: Use appropriate wait times, not excessive delays
+2. **Resource Management**: Stop nodes when not needed
+3. **Efficient Operations**: Design workflows to minimize sequential
+   dependencies
+4. **Monitoring**: Include health checks and monitoring in long-running
+   workflows
+
+## Next Steps
+
+Now that you've seen practical examples:
+
+- [Advanced Configuration](./advanced-configuration) - Advanced setup options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
