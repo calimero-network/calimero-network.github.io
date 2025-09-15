@@ -1,0 +1,229 @@
+---
+title: Advanced Configuration
+description:
+  Advanced features, configuration options, and customization for Merobox.
+sidebar_position: 7
+---
+
+# Advanced Configuration
+
+This guide covers advanced features, configuration options, and customization
+capabilities in Merobox for power users and complex scenarios.
+
+## Overview
+
+Merobox provides extensive advanced configuration options organized into
+specialized areas:
+
+- **[Environment Variables](./environment-variables)** - Configure Merobox
+  behavior and Docker settings
+- **[Docker Image Management](./docker-image-management)** - Manage Docker
+  images, containers, and multi-architecture support
+- **[Network Configuration](./network-configuration)** - Advanced network setup,
+  Docker networks, and security
+- **[Authentication Service Integration](./auth-service-integration)** - Auth
+  service configuration and integration
+- **[Workflow Advanced Features](./workflow-advanced-features)** - Conditional
+  execution, parallel steps, and custom step types
+- **[Testing Framework Integration](./testing-framework-integration)** -
+  Advanced testing configuration and utilities
+- **[Resource Management](./resource-management)** - Resource limits,
+  monitoring, and optimization
+- **[Security Configuration](./security-configuration)** - Security settings,
+  policies, and best practices
+
+## Quick Reference
+
+### Common Configuration Patterns
+
+```yaml
+# Basic advanced configuration
+nodes:
+  count: 3
+  image: ghcr.io/calimero-network/merod:latest
+  resources:
+    memory: '2G'
+    cpus: '1.0'
+  environment:
+    RUST_LOG: 'info'
+    CALIMERO_SECURE_MODE: 'true'
+
+# Network configuration
+networks:
+  - name: calimero-web
+    driver: bridge
+    options:
+      com.docker.network.bridge.enable_icc: 'true'
+
+# Security settings
+security:
+  user: '1000:1000'
+  read_only: true
+  capabilities:
+    drop: ['ALL']
+    add: ['NET_BIND_SERVICE']
+```
+
+### Environment Variables
+
+```bash
+# Core configuration
+export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
+export LOG_LEVEL="INFO"
+export CALIMERO_DATA_DIR="/custom/path/to/data"
+
+# Network settings
+export CALIMERO_NETWORK_MODE="bridge"
+export CALIMERO_PORT_RANGE_START="3000"
+export CALIMERO_PORT_RANGE_END="4000"
+```
+
+## Configuration Best Practices
+
+### 1. Environment-Specific Configuration
+
+Use different configurations for different environments:
+
+```yaml
+# Development
+development:
+  nodes:
+    count: 2
+    resources:
+      memory: '1G'
+      cpus: '0.5'
+  security:
+    read_only: false
+
+# Production
+production:
+  nodes:
+    count: 5
+    resources:
+      memory: '4G'
+      cpus: '2.0'
+  security:
+    read_only: true
+    no_new_privileges: true
+```
+
+### 2. Resource Planning
+
+Plan resources based on your workload:
+
+- **CPU**: 0.5-2.0 cores per node depending on workload
+- **Memory**: 1-4GB per node for typical applications
+- **Storage**: 10-100GB depending on data requirements
+- **Network**: Consider bandwidth and latency requirements
+
+### 3. Security Considerations
+
+Implement security best practices:
+
+- Use non-root users
+- Enable read-only filesystems
+- Drop unnecessary capabilities
+- Implement network segmentation
+- Use secrets management
+- Enable audit logging
+
+### 4. Monitoring and Observability
+
+Set up comprehensive monitoring:
+
+```yaml
+monitoring:
+  enabled: true
+  metrics:
+    - cpu_usage
+    - memory_usage
+    - disk_usage
+    - network_io
+  alerts:
+    - metric: memory_usage
+      threshold: 80
+      action: restart_node
+```
+
+## Troubleshooting Advanced Issues
+
+### Debug Mode
+
+Enable comprehensive debugging:
+
+```bash
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+
+# Run with verbose output
+merobox bootstrap run workflow.yml --verbose
+
+# Enable Docker debug
+export DOCKER_BUILDKIT=0
+export DOCKER_CLI_EXPERIMENTAL=enabled
+```
+
+### Performance Profiling
+
+Profile Merobox performance:
+
+```bash
+# Profile workflow execution
+merobox bootstrap run workflow.yml --profile
+
+# Monitor resource usage
+docker stats $(docker ps -q --filter "name=calimero-")
+
+# Analyze logs
+merobox logs calimero-node-1 | grep -E "(ERROR|WARN|PERF)"
+```
+
+### Network Diagnostics
+
+Diagnose network issues:
+
+```bash
+# Check Docker networks
+docker network ls
+docker network inspect calimero-web
+
+# Test connectivity
+docker exec calimero-node-1 ping calimero-node-2
+
+# Check port binding
+netstat -tulpn | grep -E "(2428|2528)"
+```
+
+## Best Practices for Advanced Usage
+
+### Production Deployment
+
+1. **Resource Planning**: Allocate appropriate resources for your workload
+2. **Security**: Implement proper security measures and access controls
+3. **Monitoring**: Set up comprehensive monitoring and alerting
+4. **Backup**: Implement regular backup and recovery procedures
+5. **Documentation**: Maintain detailed documentation of your configuration
+
+### Development Workflow
+
+1. **Environment Isolation**: Use separate environments for different stages
+2. **Version Control**: Track configuration changes in version control
+3. **Testing**: Implement comprehensive testing at all levels
+4. **CI/CD Integration**: Integrate Merobox into your CI/CD pipeline
+5. **Code Review**: Review configuration changes before deployment
+
+### Performance Optimization
+
+1. **Resource Tuning**: Optimize resource allocation based on usage patterns
+2. **Caching**: Implement appropriate caching strategies
+3. **Parallelization**: Use parallel execution where possible
+4. **Monitoring**: Continuously monitor and optimize performance
+5. **Scaling**: Implement auto-scaling based on demand
+
+## Next Steps
+
+Now that you understand advanced configuration:
+
+- [Python Customization](./python-customization) - Advanced Python customization
+  and extensions
+- [Troubleshooting](./troubleshooting) - Common issues and solutions

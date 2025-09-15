@@ -1,0 +1,530 @@
+---
+title: Troubleshooting and Best Practices
+description:
+  Common issues, solutions, and best practices for using Merobox effectively.
+sidebar_position: 8
+---
+
+# Troubleshooting and Best Practices
+
+This guide helps you resolve common issues and provides best practices for using
+Merobox effectively in different scenarios.
+
+## Common Issues
+
+### Installation Problems
+
+#### Python Not Found
+
+```bash
+# Error: python3: command not found
+```
+
+**Solutions:**
+
+- Install Python 3.8+ from [python.org](https://python.org)
+- On Ubuntu/Debian: `sudo apt install python3 python3-pip`
+- On macOS: `brew install python3`
+- On Windows: Download from Microsoft Store or python.org
+
+#### Permission Denied
+
+```bash
+# Error: Permission denied while trying to connect to Docker daemon
+```
+
+**Solutions:**
+
+- Add user to docker group: `sudo usermod -aG docker $USER`
+- Log out and log back in
+- Or run: `newgrp docker`
+- On Windows/macOS: Ensure Docker Desktop is running
+
+#### Module Not Found
+
+```bash
+# Error: ModuleNotFoundError: No module named 'merobox'
+```
+
+**Solutions:**
+
+- Install Merobox: `pip install merobox`
+- Use virtual environment: `python3 -m venv venv && source venv/bin/activate`
+- Check Python path: `which python3` and `pip3 list | grep merobox`
+
+### Docker Issues
+
+#### Docker Not Running
+
+```bash
+# Error: Cannot connect to the Docker daemon
+```
+
+**Solutions:**
+
+- Start Docker service: `sudo systemctl start docker` (Linux)
+- Start Docker Desktop (macOS/Windows)
+- Check Docker status: `docker info`
+- Restart Docker: `sudo systemctl restart docker` (Linux)
+
+#### Container Creation Fails
+
+```bash
+# Error: Failed to create container
+```
+
+**Solutions:**
+
+- Check Docker daemon: `docker info`
+- Verify image exists: `docker images | grep calimero`
+- Check disk space: `df -h`
+- Check Docker logs: `journalctl -u docker.service` (Linux)
+
+#### Port Conflicts
+
+```bash
+# Error: Port 2528 already in use
+```
+
+**Solutions:**
+
+- Find process using port: `lsof -ti:2528`
+- Kill process: `lsof -ti:2528 | xargs kill`
+- Use different ports: `merobox run --base-rpc-port 3000`
+- Check all ports: `netstat -tulpn | grep -E "(2428|2528)"`
+
+### Node Management Issues
+
+#### Node Won't Start
+
+```bash
+# Error: Failed to start Calimero node
+```
+
+**Solutions:**
+
+- Check Docker is running: `docker ps`
+- Verify port availability: `netstat -tulpn | grep :2528`
+- Check Docker permissions: `docker run hello-world`
+- Clean up existing containers: `merobox nuke`
+- Check node logs: `merobox logs calimero-node-1`
+
+#### Node Health Check Fails
+
+```bash
+# Error: Health check failed
+```
+
+**Solutions:**
+
+- Check node logs: `merobox logs calimero-node-1`
+- Verify node is ready: `merobox health --verbose`
+- Restart node: `merobox stop calimero-node-1 && merobox run --count 1`
+- Check network connectivity: `docker exec calimero-node-1 ping 8.8.8.8`
+
+#### Memory Issues
+
+```bash
+# Error: Container killed due to memory limit
+```
+
+**Solutions:**
+
+- Increase memory limit: `docker run --memory=2g ...`
+- Check system memory: `free -h`
+- Monitor memory usage: `docker stats`
+- Optimize application memory usage
+
+### Workflow Issues
+
+#### Variable Resolution Errors
+
+```yaml
+# Error: Variable '{{missing_var}}' not found
+```
+
+**Solutions:**
+
+- Check variable names for typos
+- Ensure previous steps export the required variables
+- Use `merobox bootstrap validate workflow.yml`
+- Check variable naming consistency
+- Verify step outputs are properly configured
+
+#### Step Validation Failures
+
+```yaml
+# Error: Required field 'node' missing
+```
+
+**Solutions:**
+
+- Validate workflow: `merobox bootstrap validate workflow.yml`
+- Check step configuration and required fields
+- Verify field types and values
+- Review step documentation for required fields
+
+#### API Call Failures
+
+```yaml
+# Error: API request failed
+```
+
+**Solutions:**
+
+- Check node health: `merobox health`
+- Verify nodes are ready before making API calls
+- Check network connectivity and port availability
+- Review API endpoint configuration
+- Check authentication if using auth service
+
+### Authentication Service Issues
+
+#### Cannot Access Node via nip.io URL
+
+```bash
+# Error: ERR_CONNECTION_TIMED_OUT at http://node1.127.0.0.1.nip.io
+```
+
+**Solutions:**
+
+- Check if auth services are running: `docker ps | grep -E "(proxy|auth)"`
+- Verify DNS resolution: `nslookup node1.127.0.0.1.nip.io`
+- Check Traefik dashboard: `http://localhost:8080/dashboard/`
+- Restart auth services:
+  `merobox stop --auth-service && merobox run --auth-service`
+
+#### 404 Errors on Auth URLs
+
+```bash
+# Error: 404 Not Found at http://node1.127.0.0.1.nip.io/auth/login
+```
+
+**Solutions:**
+
+- Verify auth container is running: `docker logs auth`
+- Check Traefik routing: `curl http://localhost:8080/api/http/routers`
+- Restart the node: `merobox stop node-name && merobox run --auth-service`
+- Check auth service configuration
+
+#### Network Connection Problems
+
+```bash
+# Error: Could not connect to auth networks
+```
+
+**Solutions:**
+
+- Check Docker networks: `docker network ls | grep calimero`
+- Recreate networks: `merobox stop --all && merobox run --auth-service`
+- Check Docker daemon: `docker system info`
+- Restart Docker networking
+
+## Debugging Techniques
+
+### Enable Debug Logging
+
+```bash
+# Set debug log level
+export LOG_LEVEL=DEBUG
+
+# Run with verbose output
+merobox bootstrap run workflow.yml --verbose
+
+# Check specific command
+merobox health --verbose
+```
+
+### Docker Debugging
+
+```bash
+# Check Docker system info
+docker system info
+
+# Check Docker networks
+docker network ls
+docker network inspect calimero-web
+
+# Check container logs
+docker logs calimero-node-1
+docker logs auth
+docker logs proxy
+
+# Inspect containers
+docker inspect calimero-node-1
+docker exec -it calimero-node-1 /bin/sh
+```
+
+### Network Diagnostics
+
+```bash
+# Check port binding
+netstat -tulpn | grep -E "(2428|2528)"
+
+# Test connectivity
+docker exec calimero-node-1 ping calimero-node-2
+docker exec calimero-node-1 curl http://localhost:2528/admin-api/health
+
+# Check DNS resolution
+nslookup node1.127.0.0.1.nip.io
+dig node1.127.0.0.1.nip.io
+```
+
+### Workflow Debugging
+
+```bash
+# Validate workflow before running
+merobox bootstrap validate workflow.yml
+
+# Run with step-by-step output
+merobox bootstrap run workflow.yml --verbose
+
+# Check specific step
+merobox bootstrap run workflow.yml --step "Install Application"
+```
+
+## Performance Issues
+
+### Slow Workflow Execution
+
+**Symptoms:**
+
+- Workflows taking longer than expected
+- Timeouts on API calls
+- High resource usage
+
+**Solutions:**
+
+- Check node resources: `docker stats`
+- Monitor system resources: `htop`, `iotop`
+- Optimize workflow steps
+- Use appropriate wait times
+- Check network latency
+- Review Docker resource limits
+
+### High Memory Usage
+
+**Symptoms:**
+
+- Container using excessive memory
+- System running out of memory
+- OOM (Out of Memory) errors
+
+**Solutions:**
+
+- Check memory limits: `docker stats`
+- Monitor memory usage: `free -h`
+- Restart nodes if needed
+- Check for memory leaks
+- Optimize application memory usage
+- Increase system memory if needed
+
+### Network Performance
+
+**Symptoms:**
+
+- Slow API responses
+- Timeout errors
+- Connection failures
+
+**Solutions:**
+
+- Check network latency: `ping`
+- Monitor network usage: `iftop`, `nethogs`
+- Check Docker network configuration
+- Review firewall settings
+- Optimize network topology
+
+## Best Practices
+
+### Development Workflow
+
+1. **Start Simple**: Begin with basic workflows and gradually add complexity
+2. **Use Version Control**: Track workflow files and configuration changes
+3. **Test Incrementally**: Test each step before adding the next
+4. **Clean Up**: Use `merobox nuke` to clean up between development sessions
+5. **Monitor Resources**: Keep an eye on Docker resource usage
+
+### Production Deployment
+
+1. **Resource Planning**: Allocate appropriate resources for your workload
+2. **Security**: Implement proper security measures and access controls
+3. **Monitoring**: Set up comprehensive monitoring and alerting
+4. **Backup**: Implement regular backup and recovery procedures
+5. **Documentation**: Maintain detailed documentation of your configuration
+
+### Testing Strategy
+
+1. **Isolated Tests**: Use separate node prefixes for different test suites
+2. **Resource Cleanup**: Always clean up resources after tests
+3. **Parallel Testing**: Use different prefixes for parallel test execution
+4. **Environment Setup**: Use workflows for complex test environment setup
+5. **Assertions**: Include comprehensive assertions in your workflows
+
+### Workflow Design
+
+1. **Modular Steps**: Break complex operations into smaller, focused steps
+2. **Clear Naming**: Use descriptive names for steps and variables
+3. **Error Handling**: Include validation and error checking steps
+4. **Documentation**: Add descriptions to explain workflow purpose
+5. **Reusability**: Design workflows to be reusable across different scenarios
+
+### Resource Management
+
+1. **Clean Up**: Regularly use `merobox nuke` to free disk space
+2. **Monitor Resources**: Use `docker stats` to monitor resource usage
+3. **Stop Unused Nodes**: Stop nodes when not needed to save resources
+4. **Optimize Images**: Use appropriate Docker images for your use case
+5. **Scale Appropriately**: Use the right number of nodes for your workload
+
+## Performance Optimization
+
+### Workflow Optimization
+
+1. **Minimal Waits**: Use appropriate wait times, not excessive delays
+2. **Parallel Operations**: Design workflows to minimize sequential dependencies
+3. **Efficient Steps**: Use the most efficient step types for your use case
+4. **Resource Reuse**: Reuse nodes and contexts where possible
+5. **Batch Operations**: Group related operations together
+
+### Docker Optimization
+
+1. **Image Management**: Use appropriate base images and layers
+2. **Resource Limits**: Set appropriate resource limits for containers
+3. **Network Optimization**: Use efficient network configurations
+4. **Storage Optimization**: Use appropriate storage drivers and volumes
+5. **Cleanup**: Regularly clean up unused images and containers
+
+### System Optimization
+
+1. **Resource Allocation**: Allocate appropriate system resources
+2. **Network Configuration**: Optimize network settings for your use case
+3. **Storage Performance**: Use fast storage for Docker data
+4. **Memory Management**: Optimize memory usage and swap configuration
+5. **CPU Optimization**: Use appropriate CPU allocation and scheduling
+
+## Monitoring and Alerting
+
+### Health Monitoring
+
+```bash
+# Regular health checks
+merobox health --verbose
+
+# Monitor resource usage
+docker stats
+
+# Check system resources
+htop
+iotop
+```
+
+### Log Monitoring
+
+```bash
+# Monitor node logs
+merobox logs calimero-node-1 --follow
+
+# Check Docker logs
+docker logs calimero-node-1
+
+# Monitor system logs
+journalctl -u docker.service -f
+```
+
+### Alerting Setup
+
+```yaml
+# monitoring.yml
+monitoring:
+  enabled: true
+  metrics:
+    - cpu_usage
+    - memory_usage
+    - disk_usage
+    - network_io
+  alerts:
+    - metric: memory_usage
+      threshold: 80
+      action: restart_node
+    - metric: cpu_usage
+      threshold: 90
+      action: scale_up
+```
+
+## Getting Help
+
+### Self-Help Resources
+
+1. **Documentation**: Review relevant sections of this documentation
+2. **Command Help**: Use `merobox --help` or `merobox <command> --help`
+3. **Validate Workflows**: Use `merobox bootstrap validate` to check
+   configuration
+4. **Check Logs**: Review node and application logs for error messages
+5. **Community Resources**: Check GitHub issues and discussions
+
+### Community Support
+
+1. **GitHub Issues**:
+   [Report issues on GitHub](https://github.com/calimero-network/merobox/issues)
+2. **Discussions**: Use GitHub Discussions for questions and ideas
+3. **Documentation**: Contribute to documentation improvements
+4. **Examples**: Share your workflow examples with the community
+
+### Professional Support
+
+1. **Enterprise Support**: Contact Calimero for enterprise support
+2. **Consulting**: Get professional help with complex deployments
+3. **Training**: Attend Merobox training sessions
+4. **Custom Development**: Request custom features or integrations
+
+## Common Solutions
+
+### Quick Fixes
+
+```bash
+# Restart everything
+merobox stop --all
+merobox nuke
+merobox run --count 1
+
+# Check Docker
+docker system prune -f
+docker volume prune -f
+
+# Restart Docker
+sudo systemctl restart docker
+
+# Check permissions
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### Reset Environment
+
+```bash
+# Complete reset
+merobox stop --all
+merobox nuke
+docker system prune -af
+docker volume prune -f
+merobox run --count 1
+```
+
+### Debug Mode
+
+```bash
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+merobox bootstrap run workflow.yml --verbose
+
+# Check specific issues
+merobox health --verbose
+merobox logs calimero-node-1
+```
+
+## Next Steps
+
+Now that you understand troubleshooting:
+
+- [Advanced Configuration](./advanced-configuration) - Advanced setup options

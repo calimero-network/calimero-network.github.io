@@ -1,0 +1,686 @@
+---
+title: Workflow System
+description:
+  Complete guide to creating and managing Merobox workflows with YAML
+  configuration.
+sidebar_position: 3
+---
+
+# Workflow System
+
+Merobox's workflow system allows you to define complex, multi-step operations
+using YAML configuration files. Workflows can orchestrate node management,
+application deployment, context creation, identity management, and contract
+execution in a declarative way.
+
+## Overview
+
+Workflows in Merobox provide:
+
+- **Declarative Configuration**: Define complex operations in simple YAML files
+- **Dynamic Value Management**: Capture and reuse values between steps
+- **Step Orchestration**: Chain multiple operations together
+- **Error Handling**: Built-in validation and error reporting
+- **Testing Integration**: Perfect for automated testing scenarios
+
+## Workflow Structure
+
+### Basic Workflow Format
+
+```yaml
+description: 'Workflow description'
+name: 'Workflow Name'
+
+# Node configuration
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+
+# Workflow steps
+steps:
+  - name: 'Step Name'
+    type: step_type
+    # Step-specific parameters
+    outputs:
+      variable_name: field_name
+
+# Global configuration
+stop_all_nodes: false
+restart: false
+wait_timeout: 60
+```
+
+### Node Configuration
+
+Define the Calimero nodes for your workflow:
+
+```yaml
+nodes:
+  chain_id: testnet-1 # Blockchain chain ID
+  count: 2 # Number of nodes to create
+  image: ghcr.io/calimero-network/merod:edge # Docker image
+  prefix: calimero-node # Node name prefix
+  base_port: 2428 # Base P2P port (optional)
+  base_rpc_port: 2528 # Base RPC port (optional)
+```
+
+### Global Configuration
+
+Control workflow behavior:
+
+```yaml
+# Force pull Docker images even if they exist locally
+force_pull_image: true
+
+# Enable authentication service with Traefik proxy
+auth_service: true
+auth_image: ghcr.io/calimero-network/mero-auth:edge
+
+# Stop all nodes at the end of workflow
+stop_all_nodes: false
+
+# Restart nodes at the beginning of workflow
+restart: false
+
+# Timeout for waiting operations
+wait_timeout: 60
+```
+
+## Step Types
+
+Merobox supports various step types for different operations:
+
+### Application Management
+
+#### `install_application`
+
+Install WASM applications on Calimero nodes.
+
+```yaml
+- name: Install Application
+  type: install_application
+  node: calimero-node-1
+  path: ./my-app.wasm # Local file path
+  # OR
+  url: https://example.com/app.wasm # Remote URL
+  dev: true # Development mode
+  outputs:
+    app_id: applicationId # Export application ID
+```
+
+#### `create_context`
+
+Create blockchain contexts for applications.
+
+```yaml
+- name: Create Context
+  type: create_context
+  node: calimero-node-1
+  application_id: '{{app_id}}' # Use captured value
+  params: # Optional context parameters
+    param1: value1
+  outputs:
+    context_id: contextId
+    member_public_key: memberPublicKey
+```
+
+### Identity Management
+
+#### `create_identity`
+
+Generate cryptographic identities.
+
+```yaml
+- name: Create Identity
+  type: create_identity
+  node: calimero-node-2
+  outputs:
+    public_key: publicKey
+```
+
+#### `invite_identity`
+
+Invite identities to join contexts.
+
+```yaml
+- name: Invite Identity
+  type: invite_identity
+  node: calimero-node-1
+  context_id: '{{context_id}}'
+  grantee_id: '{{public_key}}'
+  granter_id: '{{member_public_key}}'
+  capability: member
+  outputs:
+    invitation: invitation
+```
+
+#### `join_context`
+
+Join contexts using invitations.
+
+```yaml
+- name: Join Context
+  type: join_context
+  node: calimero-node-2
+  context_id: '{{context_id}}'
+  invitee_id: '{{public_key}}'
+  invitation: '{{invitation}}'
+```
+
+### Contract Execution
+
+#### `call`
+
+Execute smart contract functions.
+
+```yaml
+- name: Execute Contract Call
+  type: call
+  node: calimero-node-1
+  context_id: '{{context_id}}'
+  executor_public_key: '{{member_public_key}}'
+  method: set # Contract method name
+  args: # Method arguments
+    key: hello
+    value: world
+  outputs:
+    result: result
+```
+
+### Control Flow
+
+#### `wait`
+
+Add delays between steps.
+
+```yaml
+- name: Wait for Propagation
+  type: wait
+  seconds: 5
+```
+
+#### `repeat`
+
+Execute steps multiple times.
+
+```yaml
+- name: Repeat Operations
+  type: repeat
+  count: 3
+  outputs:
+    current_iteration: iteration
+  steps:
+    - name: Set Value
+      type: call
+      node: calimero-node-1
+      context_id: '{{context_id}}'
+      method: set
+      args:
+        key: 'key_{{current_iteration}}'
+        value: 'value_{{current_iteration}}'
+```
+
+#### `script`
+
+Execute custom scripts.
+
+```yaml
+- name: Run Custom Script
+  type: script
+  script: |
+    echo "Hello from script"
+    echo "Context ID: {{context_id}}"
+  outputs:
+    script_output: output
+```
+
+### Validation and Testing
+
+#### `assert`
+
+Validate conditions and outputs.
+
+```yaml
+- name: Validate Results
+  type: assert
+  statements:
+    - 'is_set({{context_id}})'
+    - "contains({{result}}, 'expected_value')"
+    - '{{count}} >= 1'
+    - 'regex({{public_key}}, ^[1-9A-HJ-NP-Za-km-z]+$)'
+```
+
+#### `json_assert`
+
+Validate JSON data structures.
+
+```yaml
+- name: Validate JSON
+  type: json_assert
+  statements:
+    - 'json_equal({{result}}, {"output": "expected"})'
+    - 'json_subset({{result}}, {"output": "expected"})'
+```
+
+## Dynamic Value Management
+
+### Variable Capture
+
+Capture values from step outputs for use in subsequent steps:
+
+```yaml
+steps:
+  - name: Install App
+    type: install_application
+    node: calimero-node-1
+    path: ./app.wasm
+    outputs:
+      app_id: applicationId # Capture 'applicationId' as 'app_id'
+
+  - name: Create Context
+    type: create_context
+    node: calimero-node-1
+    application_id: '{{app_id}}' # Use captured value
+    outputs:
+      context_id: contextId
+```
+
+### Variable Resolution
+
+Variables are resolved using `{{variable_name}}` syntax:
+
+```yaml
+args:
+  key: 'user_{{user_id}}_data_{{iteration}}'
+  message: 'Processing {{context_id}} with {{public_key}}'
+```
+
+### Available Variables
+
+- **Step Outputs**: Variables exported by previous steps
+- **Workflow Context**: Global workflow variables
+- **Environment Variables**: System environment variables
+- **Repeat Iteration**: Current iteration number in repeat steps
+
+## Workflow Execution
+
+### Running Workflows
+
+Execute workflows using the bootstrap command:
+
+```bash
+# Run a workflow
+merobox bootstrap run workflow.yml
+
+# Run with authentication service
+merobox bootstrap run workflow.yml --auth-service
+
+# Run with custom auth image
+merobox bootstrap run workflow.yml --auth-service --auth-image ghcr.io/calimero-network/mero-auth:latest
+
+# Run with verbose output
+merobox bootstrap run workflow.yml --verbose
+```
+
+### Validating Workflows
+
+Validate workflow configuration before execution:
+
+```bash
+# Validate workflow syntax
+merobox bootstrap validate workflow.yml
+
+# Create sample workflow
+merobox bootstrap create-sample
+```
+
+### Command Reference
+
+#### `merobox bootstrap run`
+
+Execute a workflow from a YAML file.
+
+**Syntax:**
+
+```bash
+merobox bootstrap run CONFIG_FILE [OPTIONS]
+```
+
+**Arguments:**
+
+- `CONFIG_FILE`: Path to the workflow YAML file
+
+**Options:**
+
+| Option              | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| `--auth-service`    | Enable authentication service with Traefik proxy |
+| `--auth-image TEXT` | Custom Docker image for the auth service         |
+| `--verbose, -v`     | Enable verbose output                            |
+| `--help`            | Show help message                                |
+
+#### `merobox bootstrap validate`
+
+Validate workflow configuration.
+
+**Syntax:**
+
+```bash
+merobox bootstrap validate CONFIG_FILE
+```
+
+#### `merobox bootstrap create-sample`
+
+Create a sample workflow file.
+
+**Syntax:**
+
+```bash
+merobox bootstrap create-sample
+```
+
+## Example Workflows
+
+### Basic Application Deployment
+
+```yaml
+description: Deploy and test a simple application
+name: Basic App Deployment
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: calimero-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: calimero-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Test Application
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: test
+    args:
+      input: 'test_data'
+
+stop_all_nodes: true
+```
+
+### Multi-Node Context Sharing
+
+```yaml
+description: Create context on one node and join from another
+name: Multi-Node Context Sharing
+
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+
+steps:
+  # Install application on first node
+  - name: Install Application
+    type: install_application
+    node: calimero-node-1
+    path: ./shared-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  # Create context on first node
+  - name: Create Context
+    type: create_context
+    node: calimero-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  # Create identity on second node
+  - name: Create Identity
+    type: create_identity
+    node: calimero-node-2
+    outputs:
+      public_key: publicKey
+
+  # Invite second node to context
+  - name: Invite Node
+    type: invite_identity
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    grantee_id: '{{public_key}}'
+    granter_id: '{{member_key}}'
+    capability: member
+    outputs:
+      invitation: invitation
+
+  # Join context from second node
+  - name: Join Context
+    type: join_context
+    node: calimero-node-2
+    context_id: '{{context_id}}'
+    invitee_id: '{{public_key}}'
+    invitation: '{{invitation}}'
+
+  # Test cross-node communication
+  - name: Set Value from Node 1
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: set
+    args:
+      key: shared_data
+      value: 'set from node 1'
+
+  - name: Get Value from Node 2
+    type: call
+    node: calimero-node-2
+    context_id: '{{context_id}}'
+    executor_public_key: '{{public_key}}'
+    method: get
+    args:
+      key: shared_data
+    outputs:
+      result: result
+
+  - name: Validate Cross-Node Communication
+    type: assert
+    statements:
+      - "contains({{result}}, 'set from node 1')"
+
+stop_all_nodes: true
+```
+
+### Testing with Assertions
+
+```yaml
+description: Comprehensive testing workflow with assertions
+name: Testing with Assertions
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: calimero-node-1
+    path: ./test-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: calimero-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Set Test Data
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: set
+    args:
+      key: test_key
+      value: test_value
+    outputs:
+      set_result: result
+
+  - name: Get Test Data
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: get
+    args:
+      key: test_key
+    outputs:
+      get_result: result
+
+  # Basic assertions
+  - name: Validate Basic Conditions
+    type: assert
+    statements:
+      - 'is_set({{context_id}})'
+      - 'is_set({{member_key}})'
+      - "{{context_id}} != ''"
+      - "contains({{get_result}}, 'test_value')"
+
+  # JSON assertions
+  - name: Validate JSON Response
+    type: json_assert
+    statements:
+      - 'json_equal({{get_result}}, {"output": "test_value"})'
+      - 'json_subset({{get_result}}, {"output": "test_value"})'
+
+  # String operations
+  - name: Validate String Operations
+    type: assert
+    statements:
+      - 'regex({{member_key}}, ^[1-9A-HJ-NP-Za-km-z]+$)'
+      - "not_contains({{member_key}}, 'invalid')"
+
+stop_all_nodes: true
+```
+
+## Best Practices
+
+### Workflow Design
+
+1. **Modular Steps**: Break complex operations into smaller, focused steps
+2. **Clear Naming**: Use descriptive names for steps and variables
+3. **Error Handling**: Include validation steps to catch issues early
+4. **Documentation**: Add descriptions to explain workflow purpose
+
+### Variable Management
+
+1. **Consistent Naming**: Use consistent naming conventions for variables
+2. **Minimal Scope**: Only capture variables you actually need
+3. **Clear Mapping**: Use descriptive names in outputs sections
+4. **Validation**: Validate captured values before using them
+
+### Testing Integration
+
+1. **Assertions**: Include assertions to validate expected outcomes
+2. **Edge Cases**: Test both success and failure scenarios
+3. **Cleanup**: Use `stop_all_nodes: true` for test workflows
+4. **Isolation**: Use unique prefixes for parallel test runs
+
+### Performance
+
+1. **Minimal Waits**: Use appropriate wait times, not excessive delays
+2. **Resource Management**: Stop nodes when not needed
+3. **Image Management**: Use `force_pull_image: true` sparingly
+4. **Parallel Operations**: Design workflows to minimize sequential dependencies
+
+## Troubleshooting
+
+### Common Issues
+
+#### Variable Resolution Errors
+
+```yaml
+# Error: Variable '{{missing_var}}' not found
+```
+
+**Solutions:**
+
+- Check variable names for typos
+- Ensure previous steps export the required variables
+- Use `merobox bootstrap validate` to check configuration
+
+#### Step Validation Failures
+
+```yaml
+# Error: Required field 'node' missing
+```
+
+**Solutions:**
+
+- Validate workflow: `merobox bootstrap validate workflow.yml`
+- Check step configuration and required fields
+- Verify field types and values
+
+#### API Call Failures
+
+```yaml
+# Error: API request failed
+```
+
+**Solutions:**
+
+- Check node health: `merobox health`
+- Verify nodes are ready before making API calls
+- Check network connectivity and port availability
+
+### Debug Commands
+
+```bash
+# Validate workflow before running
+merobox bootstrap validate workflow.yml
+
+# Run with verbose output
+merobox bootstrap run workflow.yml --verbose
+
+# Check node status
+merobox health --verbose
+
+# View node logs
+merobox logs calimero-node-1
+```
+
+## Next Steps
+
+Now that you understand workflows:
+
+- [Examples and Tutorials](./examples) - Practical examples and tutorials
+- [Advanced Configuration](./advanced-configuration) - Advanced setup options
+- [Python Customization](./python-customization) - Advanced Python customization
+  and extensions
+- [Troubleshooting](./troubleshooting) - Common issues and solutions

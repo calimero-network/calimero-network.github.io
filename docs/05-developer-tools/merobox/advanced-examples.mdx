@@ -1,0 +1,730 @@
+---
+title: Advanced Examples
+description: Complex workflows and advanced features for power users.
+sidebar_position: 4.4
+---
+
+# Advanced Examples
+
+These examples demonstrate complex workflows and advanced features for power
+users who need sophisticated Merobox capabilities.
+
+:::info Available Step Types For a complete reference of all available step
+types and their configuration options, see the
+[Workflow System documentation](./workflows#step-types). The following step
+types are supported:
+
+- **`install_application`** - Install WASM applications on nodes
+- **`create_context`** - Create blockchain contexts for applications
+- **`create_identity`** - Generate cryptographic identities
+- **`invite_identity`** - Invite identities to join contexts
+- **`join_context`** - Join contexts using invitations
+- **`call`** - Execute smart contract functions
+- **`wait`** - Add delays between steps
+- **`repeat`** - Execute steps multiple times
+- **`script`** - Execute custom scripts
+- **`assert`** - Validate conditions and outputs
+- **`json_assert`** - Validate JSON data structures
+- **`parallel`** - Execute multiple steps in parallel
+
+Each step type has specific configuration parameters and output options. Refer
+to the [Workflow System documentation](./workflows#step-types) for detailed
+examples and configuration options. :::
+
+## Example 1: Custom Script Integration
+
+Use custom scripts for complex setup and validation.
+
+```yaml
+description: Custom script integration example
+name: Script Integration
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: script-node
+
+steps:
+  - name: Pre-Setup Script
+    type: script
+    script: |
+      echo "Setting up test environment..."
+      mkdir -p /tmp/test-data
+      echo "test_data" > /tmp/test-data/sample.txt
+      echo "Pre-setup complete"
+
+  - name: Install Application
+    type: install_application
+    node: script-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Post-Installation Script
+    type: script
+    script: |
+      echo "Application installed: {{app_id}}"
+      echo "Verifying installation..."
+      # Add custom verification logic here
+      echo "Installation verified"
+
+  - name: Custom Validation
+    type: script
+    script: |
+      echo "Running custom validation..."
+      # Add custom validation logic here
+      echo "Validation complete"
+
+stop_all_nodes: true
+```
+
+## Example 2: Error Handling and Recovery
+
+Implement robust error handling in your workflows.
+
+```yaml
+description: Error handling example
+name: Error Handling
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: error-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: error-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: error-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Test Error Handling
+    type: call
+    node: error-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: test_error_handling
+    args:
+      should_fail: true
+    outputs:
+      error_result: result
+
+  - name: Validate Error Response
+    type: assert
+    statements:
+      - "contains({{error_result}}, 'error')"
+
+  - name: Recovery Test
+    type: call
+    node: error-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: test_recovery
+    args:
+      should_succeed: true
+    outputs:
+      recovery_result: result
+
+  - name: Validate Recovery
+    type: assert
+    statements:
+      - "contains({{recovery_result}}, 'success')"
+
+stop_all_nodes: true
+```
+
+## Example 3: Conditional Workflow Execution
+
+Execute different workflow paths based on conditions.
+
+```yaml
+description: Conditional workflow execution
+name: Conditional Workflow
+
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: conditional-node
+
+steps:
+  - name: Check Environment
+    type: script
+    script: |
+      if [ "$ENVIRONMENT" = "production" ]; then
+        echo "production" > /tmp/env_type
+        echo "true" > /tmp/use_ssl
+      elif [ "$ENVIRONMENT" = "staging" ]; then
+        echo "staging" > /tmp/env_type
+        echo "true" > /tmp/use_ssl
+      else
+        echo "development" > /tmp/env_type
+        echo "false" > /tmp/use_ssl
+      fi
+    outputs:
+      env_type: output
+      use_ssl: output
+
+  - name: Production Setup
+    type: script
+    condition: "{{env_type}} == 'production'"
+    script: |
+      echo "Setting up production environment..."
+      # Production-specific setup
+      echo "Production setup complete"
+
+  - name: Staging Setup
+    type: script
+    condition: "{{env_type}} == 'staging'"
+    script: |
+      echo "Setting up staging environment..."
+      # Staging-specific setup
+      echo "Staging setup complete"
+
+  - name: Development Setup
+    type: script
+    condition: "{{env_type}} == 'development'"
+    script: |
+      echo "Setting up development environment..."
+      # Development-specific setup
+      echo "Development setup complete"
+
+  - name: SSL Configuration
+    type: script
+    condition: "{{use_ssl}} == 'true'"
+    script: |
+      echo "Configuring SSL for {{env_type}} environment..."
+      # SSL configuration logic
+      echo "SSL configuration complete"
+
+stop_all_nodes: true
+```
+
+## Example 4: Parallel Processing
+
+Execute multiple operations in parallel for improved performance.
+
+```yaml
+description: Parallel processing example
+name: Parallel Processing
+
+nodes:
+  chain_id: testnet-1
+  count: 5
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: parallel-node
+
+steps:
+  - name: Install Applications in Parallel
+    type: parallel
+    max_concurrent: 3
+    steps:
+      - name: Install App 1
+        type: install_application
+        node: parallel-node-1
+        path: ./app1.wasm
+        dev: true
+        outputs:
+          app_id_1: applicationId
+
+      - name: Install App 2
+        type: install_application
+        node: parallel-node-2
+        path: ./app2.wasm
+        dev: true
+        outputs:
+          app_id_2: applicationId
+
+      - name: Install App 3
+        type: install_application
+        node: parallel-node-3
+        path: ./app3.wasm
+        dev: true
+        outputs:
+          app_id_3: applicationId
+
+  - name: Create Contexts in Parallel
+    type: parallel
+    steps:
+      - name: Create Context 1
+        type: create_context
+        node: parallel-node-1
+        application_id: '{{app_id_1}}'
+        outputs:
+          context_id_1: contextId
+          member_key_1: memberPublicKey
+
+      - name: Create Context 2
+        type: create_context
+        node: parallel-node-2
+        application_id: '{{app_id_2}}'
+        outputs:
+          context_id_2: contextId
+          member_key_2: memberPublicKey
+
+      - name: Create Context 3
+        type: create_context
+        node: parallel-node-3
+        application_id: '{{app_id_3}}'
+        outputs:
+          context_id_3: contextId
+          member_key_3: memberPublicKey
+
+  - name: Test All Applications
+    type: parallel
+    steps:
+      - name: Test App 1
+        type: call
+        node: parallel-node-1
+        context_id: '{{context_id_1}}'
+        executor_public_key: '{{member_key_1}}'
+        method: test_functionality
+        args:
+          test_data: 'app1_test'
+
+      - name: Test App 2
+        type: call
+        node: parallel-node-2
+        context_id: '{{context_id_2}}'
+        executor_public_key: '{{member_key_2}}'
+        method: test_functionality
+        args:
+          test_data: 'app2_test'
+
+      - name: Test App 3
+        type: call
+        node: parallel-node-3
+        context_id: '{{context_id_3}}'
+        executor_public_key: '{{member_key_3}}'
+        method: test_functionality
+        args:
+          test_data: 'app3_test'
+
+stop_all_nodes: true
+```
+
+## Example 5: Dynamic Workflow Generation
+
+Generate workflows dynamically based on configuration.
+
+```yaml
+description: Dynamic workflow generation
+name: Dynamic Workflow
+
+nodes:
+  chain_id: testnet-1
+  count: 3
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: dynamic-node
+
+steps:
+  - name: Generate Workflow Configuration
+    type: script
+    script: |
+      # Generate dynamic configuration
+      echo "Generating workflow configuration..."
+
+      # Create configuration file
+      cat > /tmp/workflow_config.json << EOF
+      {
+        "applications": [
+          {"name": "app1", "path": "./app1.wasm"},
+          {"name": "app2", "path": "./app2.wasm"},
+          {"name": "app3", "path": "./app3.wasm"}
+        ],
+        "test_cases": [
+          {"name": "test1", "method": "test_method1"},
+          {"name": "test2", "method": "test_method2"},
+          {"name": "test3", "method": "test_method3"}
+        ]
+      }
+      EOF
+
+      echo "Configuration generated"
+    outputs:
+      config_file: '/tmp/workflow_config.json'
+
+  - name: Install Applications Dynamically
+    type: repeat
+    count: 3
+    outputs:
+      iteration: iteration
+    steps:
+      - name: Install Application {{iteration}}
+        type: install_application
+        node: dynamic-node-{{iteration}}
+        path: ./app{{iteration}}.wasm
+        dev: true
+        outputs:
+          app_id: applicationId
+
+  - name: Create Contexts Dynamically
+    type: repeat
+    count: 3
+    outputs:
+      iteration: iteration
+    steps:
+      - name: Create Context {{iteration}}
+        type: create_context
+        node: dynamic-node-{{iteration}}
+        application_id: '{{app_id}}'
+        outputs:
+          context_id: contextId
+          member_key: memberPublicKey
+
+  - name: Run Tests Dynamically
+    type: repeat
+    count: 3
+    outputs:
+      iteration: iteration
+    steps:
+      - name: Run Test {{iteration}}
+        type: call
+        node: dynamic-node-{{iteration}}
+        context_id: '{{context_id}}'
+        executor_public_key: '{{member_key}}'
+        method: test_method{{iteration}}
+        args:
+          test_data: 'test_{{iteration}}'
+
+stop_all_nodes: true
+```
+
+## Example 6: Custom Step Types
+
+Define and use custom step types for specialized operations.
+
+```yaml
+description: Custom step types example
+name: Custom Step Types
+
+# Define custom step types
+step_types:
+  custom_deploy:
+    required_fields: [node, application, environment]
+    optional_fields: [config, timeout]
+    execute: |
+      echo "Deploying {{application}} to {{environment}} on {{node}}"
+
+      # Set timeout if provided
+      if [ -n "{{timeout}}" ]; then
+        timeout {{timeout}} deploy_command
+      else
+        deploy_command
+      fi
+    outputs:
+      deployment_id: '{{deployment_id}}'
+      status: '{{deployment_status}}'
+
+  custom_validate:
+    required_fields: [node, data]
+    optional_fields: [rules]
+    execute: |
+      echo "Validating data on {{node}}"
+
+      # Validate data
+      if [ -n "{{rules}}" ]; then
+        validate_with_rules "{{data}}" "{{rules}}"
+      else
+        validate_default "{{data}}"
+      fi
+    outputs:
+      validation_result: '{{validation_result}}'
+      is_valid: '{{is_valid}}'
+
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: custom-node
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: custom-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Custom Deployment
+    type: custom_deploy
+    node: custom-node-1
+    application: '{{app_id}}'
+    environment: 'test'
+    config: 'test_config'
+    timeout: '300'
+    outputs:
+      deployment_id: deployment_id
+      status: status
+
+  - name: Custom Validation
+    type: custom_validate
+    node: custom-node-1
+    data: '{{deployment_id}}'
+    rules: 'deployment_rules'
+    outputs:
+      validation_result: validation_result
+      is_valid: is_valid
+
+  - name: Validate Results
+    type: assert
+    statements:
+      - "{{status}} == 'success'"
+      - "{{is_valid}} == 'true'"
+
+stop_all_nodes: true
+```
+
+## Example 7: Workflow Composition
+
+Compose complex workflows from smaller, reusable components.
+
+```yaml
+description: Workflow composition example
+name: Workflow Composition
+
+# Base workflow for common setup
+base_workflow:
+  steps:
+    - name: Common Setup
+      type: script
+      script: |
+        echo "Common setup logic"
+        # Common setup steps
+
+    - name: Common Cleanup
+      type: script
+      script: |
+        echo "Common cleanup logic"
+        # Common cleanup steps
+
+nodes:
+  chain_id: testnet-1
+  count: 3
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: compose-node
+
+steps:
+  # Include base workflow steps
+  - name: Common Setup
+    type: script
+    script: |
+      echo "Common setup logic"
+      # Common setup steps
+
+  # Application-specific steps
+  - name: Install Application
+    type: install_application
+    node: compose-node-1
+    path: ./my-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: compose-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  # Testing steps
+  - name: Run Tests
+    type: parallel
+    steps:
+      - name: Test 1
+        type: call
+        node: compose-node-1
+        context_id: '{{context_id}}'
+        executor_public_key: '{{member_key}}'
+        method: test1
+
+      - name: Test 2
+        type: call
+        node: compose-node-1
+        context_id: '{{context_id}}'
+        executor_public_key: '{{member_key}}'
+        method: test2
+
+  # Include base workflow cleanup
+  - name: Common Cleanup
+    type: script
+    script: |
+      echo "Common cleanup logic"
+      # Common cleanup steps
+
+stop_all_nodes: true
+```
+
+## Example 8: Advanced Monitoring and Alerting
+
+Set up comprehensive monitoring and alerting for complex workflows.
+
+```yaml
+description: Advanced monitoring and alerting
+name: Advanced Monitoring
+
+nodes:
+  chain_id: testnet-1
+  count: 3
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: monitor-node
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  metrics:
+    - cpu_usage
+    - memory_usage
+    - disk_usage
+    - network_io
+    - application_metrics
+  alerts:
+    - metric: cpu_usage
+      threshold: 80
+      action: scale_up
+    - metric: memory_usage
+      threshold: 90
+      action: restart_node
+    - metric: application_errors
+      threshold: 10
+      action: alert
+
+steps:
+  - name: Install Application
+    type: install_application
+    node: monitor-node-1
+    path: ./monitored-app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: monitor-node-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Start Monitoring
+    type: script
+    script: |
+      echo "Starting monitoring..."
+      # Start monitoring services
+      echo "Monitoring started"
+
+  - name: Generate Load
+    type: repeat
+    count: 1000
+    steps:
+      - name: Process Data
+        type: call
+        node: monitor-node-1
+        context_id: '{{context_id}}'
+        executor_public_key: '{{member_key}}'
+        method: process_data
+        args:
+          data: 'load_test_{{iteration}}'
+
+  - name: Check Metrics
+    type: script
+    script: |
+      echo "Checking metrics..."
+      # Check monitoring metrics
+      echo "Metrics checked"
+
+  - name: Generate Report
+    type: script
+    script: |
+      echo "Generating monitoring report..."
+      # Generate monitoring report
+      echo "Report generated"
+
+stop_all_nodes: true
+```
+
+## Best Practices for Advanced Examples
+
+### 1. Error Handling
+
+```yaml
+# Always include comprehensive error handling
+steps:
+  - name: Risky Operation
+    type: call
+    node: calimero-node-1
+    method: risky_method
+    retry:
+      attempts: 3
+      delay: 5
+      backoff: exponential
+    on_error:
+      - name: Log Error
+        type: script
+        script: echo "Operation failed: {{error}}"
+      - name: Cleanup
+        type: script
+        script: echo "Cleaning up..."
+```
+
+### 2. Performance Optimization
+
+```yaml
+# Use parallel execution where possible
+steps:
+  - name: Parallel Operations
+    type: parallel
+    max_concurrent: 3
+    steps:
+      - name: Operation 1
+        type: call
+        # ... operation details
+      - name: Operation 2
+        type: call
+        # ... operation details
+```
+
+### 3. Resource Management
+
+```yaml
+# Set appropriate resource limits
+nodes:
+  resources:
+    memory: '2G'
+    cpus: '1.0'
+  count: 3 # Scale based on needs
+```
+
+### 4. Monitoring and Validation
+
+```yaml
+# Always validate results
+steps:
+  - name: Validate Results
+    type: assert
+    statements:
+      - '{{result}} != null'
+      - "contains({{result}}, 'expected_value')"
+```
+
+## Next Steps
+
+Now that you understand advanced examples:
+
+- [Best Practices](./best-practices) - Guidelines for effective Merobox usage
