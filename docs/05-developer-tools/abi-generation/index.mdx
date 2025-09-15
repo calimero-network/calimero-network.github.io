@@ -1,0 +1,273 @@
+---
+title: ABI Generation
+description:
+  Automatic generation of Application Binary Interfaces (ABI) for Calimero
+  applications with multi-protocol support.
+sidebar_position: 1
+---
+
+# ABI Generation
+
+ABI Generation provides automatic generation of Application Binary Interfaces
+(ABI) for your Calimero applications, enabling seamless integration across
+multiple blockchain protocols including Ethereum, NEAR, ICP, and Starknet.
+
+## What is ABI Generation?
+
+Application Binary Interface (ABI) generation is a compile-time process that
+automatically creates standardized interface definitions for your Calimero
+applications. This enables:
+
+- **Cross-Protocol Compatibility**: Write once, deploy everywhere across
+  different blockchain protocols
+- **Type Safety**: Compile-time validation ensures your application interfaces
+  are correct
+- **Automatic Documentation**: Generate human-readable interface documentation
+- **Tool Integration**: Seamless integration with development tools and IDEs
+
+## Key Features
+
+### Multi-Protocol Support
+
+- **Ethereum**: Full EVM compatibility with gas optimization
+- **NEAR Protocol**: Account-based architecture with optimized storage
+- **Internet Computer Protocol (ICP)**: Canister-based execution model
+- **Starknet**: Cairo-based smart contracts with account abstraction
+
+### Compile-Time Validation
+
+- **Type Checking**: Ensures all types are compatible across protocols
+- **Method Validation**: Verifies method signatures and return types
+- **Event Validation**: Validates event structures and parameters
+- **ABI Conformance**: Guarantees generated ABI meets protocol standards
+
+### Developer Experience
+
+- **Rust Macros**: Simple attribute-based configuration
+- **IDE Integration**: Full IntelliSense and error highlighting
+- **Documentation Generation**: Automatic API documentation
+- **Testing Support**: Built-in testing utilities and validation
+
+## Quick Start
+
+### 1. Add Dependencies
+
+Add the ABI generation dependencies to your `Cargo.toml`:
+
+```toml
+[build-dependencies]
+calimero-abi-emitter = "0.1.0"
+
+[dependencies]
+calimero-abi-emitter = "0.1.0"
+```
+
+### 2. Configure Build Script
+
+Create a `build.rs` file:
+
+```rust
+use calimero_abi_emitter::emit_manifest;
+
+fn main() {
+    emit_manifest().expect("Failed to generate ABI manifest");
+}
+```
+
+### 3. Annotate Your Application
+
+Use the `calimero_app` macro to enable ABI generation:
+
+```rust
+use calimero_abi_emitter::calimero_app;
+
+#[calimero_app]
+pub struct MyApp {
+    // Your application state
+}
+
+impl MyApp {
+    pub fn my_method(&self, input: String) -> String {
+        // Your method implementation
+        input
+    }
+}
+```
+
+### 4. Build and Validate
+
+Build your application and validate the generated ABI:
+
+```bash
+cargo build --target wasm32-unknown-unknown --release
+calimero-abi extract target/wasm32-unknown-unknown/release/my_app.wasm > abi.json
+calimero-abi validate abi.json
+```
+
+## Multi-Protocol Support
+
+ABI Generation automatically handles protocol-specific optimizations:
+
+### Ethereum
+
+- Gas-optimized method calls
+- Event logging with indexed parameters
+- Solidity-compatible type mapping
+- EIP-712 signature support
+
+### NEAR Protocol
+
+- Account-based method calls
+- Storage optimization for large data
+- Cross-contract calls
+- Batch operations
+
+### Internet Computer Protocol (ICP)
+
+- Canister method calls
+- Query and update methods
+- Inter-canister communication
+- Cycle management
+
+### Starknet
+
+- Cairo-based smart contracts
+- Account abstraction support
+- L2 scaling optimizations
+- Cross-contract calls
+
+## Integration with Calimero Tools
+
+### Merobox Integration
+
+Use ABI-enabled applications in your Merobox workflows:
+
+```yaml
+steps:
+  - name: Install ABI App
+    type: install_application
+    node: node-1
+    path: ./my_app.wasm
+    validate_abi: true
+
+  - name: Call Method
+    type: call
+    node: node-1
+    method: my_method
+    args:
+      input: 'Hello, ABI!'
+```
+
+### SDK Integration
+
+Generate type-safe client code from your ABI:
+
+```typescript
+import { MyAppClient } from './generated/MyAppClient';
+
+const client = new MyAppClient(nodeUrl);
+const result = await client.myMethod('Hello, ABI!');
+```
+
+### Testing Integration
+
+Validate ABI conformance in your tests:
+
+```rust
+#[test]
+fn test_abi_conformance() {
+    let abi = include_bytes!("../target/abi_conformance.abi.json");
+    validate_abi(abi).expect("ABI validation failed");
+}
+```
+
+## Best Practices
+
+### Type Design
+
+- Use primitive types when possible for better compatibility
+- Avoid complex nested structures
+- Consider protocol-specific limitations
+- Use enums for state management
+
+### Method Design
+
+- Keep method signatures simple
+- Use descriptive parameter names
+- Return meaningful error types
+- Consider gas costs for different protocols
+
+### Event Design
+
+- Use events for important state changes
+- Include relevant context in event data
+- Use indexed parameters for filtering
+- Keep event data minimal
+
+### Testing
+
+- Test ABI generation in CI/CD
+- Validate against multiple protocols
+- Test error conditions
+- Verify type safety
+
+## Troubleshooting
+
+### Common Issues
+
+- **Type Mismatches**: Ensure all types are protocol-compatible
+- **Method Conflicts**: Avoid naming conflicts with protocol methods
+- **Validation Failures**: Check ABI conformance requirements
+- **Build Errors**: Verify all dependencies are correctly configured
+
+### Debug Mode
+
+Enable debug mode for detailed ABI generation logs:
+
+```rust
+// build.rs
+use calimero_abi_emitter::{emit_manifest_with_config, AbiConfig};
+
+fn main() {
+    let config = AbiConfig {
+        debug_mode: true,
+        // ... other config
+    };
+    emit_manifest_with_config(config).expect("Failed to generate ABI manifest");
+}
+```
+
+## Getting Started
+
+Ready to implement ABI generation in your Calimero application?
+
+1. **Follow the Tutorial**: Start with our
+   [Getting Started Tutorial](/tutorials/abi-generation/getting-started) for a
+   complete walkthrough
+2. **Explore Configuration**: Learn about
+   [Configuration Options](./configuration) for advanced setups
+3. **Understand the Build Process**: Dive into
+   [How ABI Generation Works](./build-process)
+4. **Integrate with Rust**: See [Rust Integration Patterns](./rust-integration)
+
+## Documentation
+
+- [Build Process](./build-process) - How ABI generation works under the hood
+- [Configuration](./configuration) - Configure ABI generation for your needs
+- [Rust Integration](./rust-integration) - Advanced Rust patterns and best
+  practices
+- [Validation](./validation) - ABI validation and testing strategies
+- [Protocol Support](./protocol-support) - Protocol-specific features and
+  optimizations
+- [Tools](./tools) - ABI tools and utilities
+- [Examples](./examples) - Practical examples and use cases
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
+
+## Resources
+
+- [GitHub Repository](https://github.com/calimero-network/core) - Source code
+  and issues
+- [API Reference](https://docs.rs/calimero-abi-emitter) - Complete API
+  documentation
+- [Community Discord](https://discord.gg/calimero) - Get help from the community
+- [Blog Posts](https://calimero.network/blog) - Latest updates and tutorials

@@ -1,0 +1,132 @@
+---
+title: Protocol Support
+description:
+  Configure ABI generation for specific blockchain protocols including Ethereum,
+  NEAR, ICP, and Starknet.
+sidebar_position: 5
+---
+
+# Protocol Support
+
+This guide explains how to configure ABI generation for specific blockchain
+protocols, including Ethereum, NEAR, ICP, and Starknet.
+
+## Overview
+
+Calimero's ABI generation supports multiple blockchain protocols, each with its
+own specific requirements and optimizations.
+
+## Ethereum Support
+
+### Configuration
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolFeatures};
+
+#[calimero_app(
+    protocol = Protocol::Ethereum,
+    features = [
+        ProtocolFeatures::GasOptimization,
+        ProtocolFeatures::EventLogging
+    ]
+)]
+pub struct EthereumApp {
+    // Ethereum-specific application
+}
+```
+
+### Type Mappings
+
+Ethereum-specific type mappings and optimizations.
+
+## NEAR Support
+
+### Configuration
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolFeatures};
+
+#[calimero_app(
+    protocol = Protocol::NEAR,
+    features = [
+        ProtocolFeatures::AccountOptimization,
+        ProtocolFeatures::StorageOptimization
+    ]
+)]
+pub struct NearApp {
+    // NEAR-specific application
+}
+```
+
+## ICP Support
+
+### Configuration
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolFeatures};
+
+#[calimero_app(
+    protocol = Protocol::ICP,
+    features = [
+        ProtocolFeatures::CanisterOptimization,
+        ProtocolFeatures::CycleOptimization
+    ]
+)]
+pub struct IcpApp {
+    // ICP-specific application
+}
+```
+
+## Starknet Support
+
+### Configuration
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolFeatures};
+
+#[calimero_app(
+    protocol = Protocol::Starknet,
+    features = [
+        ProtocolFeatures::CairoOptimization,
+        ProtocolFeatures::AccountAbstraction
+    ]
+)]
+pub struct StarknetApp {
+    // Starknet-specific application
+}
+```
+
+## Multi-Protocol Support
+
+Configure your application to support multiple protocols:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolConfig};
+
+#[calimero_app(
+    protocols = [Protocol::Ethereum, Protocol::NEAR, Protocol::ICP, Protocol::Starknet],
+    protocol_config = ProtocolConfig {
+        ethereum: EthereumConfig {
+            gas_optimization: true,
+        },
+        near: NearConfig {
+            account_optimization: true,
+        },
+        icp: IcpConfig {
+            canister_optimization: true,
+        },
+        starknet: StarknetConfig {
+            cairo_optimization: true,
+        },
+    }
+)]
+pub struct MultiProtocolApp {
+    // Multi-protocol application
+}
+```
+
+## Next Steps
+
+- [Tools](./tools) - Use ABI tools for debugging and validation
+- [Examples](./examples) - See real-world examples and patterns
+- [Troubleshooting](./troubleshooting) - Common issues and solutions

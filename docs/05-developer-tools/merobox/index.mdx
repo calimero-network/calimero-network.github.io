@@ -1,0 +1,134 @@
+---
+title: Merobox
+description:
+  Powerful CLI tool for managing Calimero nodes in Docker with workflow
+  automation.
+sidebar_position: 1
+---
+
+# Merobox
+
+Merobox is a powerful CLI tool for managing Calimero nodes in Docker, automating
+workflows with YAML configuration, and integrating with testing frameworks for
+comprehensive development and deployment workflows.
+
+## Overview
+
+Merobox provides:
+
+- **Node Management**: Start, stop, and manage Calimero nodes in Docker
+  containers
+- **Workflow Automation**: Define and execute complex workflows using YAML
+  configuration
+- **Testing Integration**: Seamless integration with testing frameworks like
+  pytest
+- **Multi-Node Support**: Orchestrate multiple nodes for testing and development
+- **Authentication Service**: Built-in authentication service for
+  production-like testing
+
+## Quick Start
+
+### Installation
+
+```bash
+pip install merobox
+```
+
+### Basic Usage
+
+```bash
+# Start a node
+merobox run
+
+# List running nodes
+merobox list
+
+# Stop all nodes
+merobox stop
+```
+
+### Workflow Example
+
+Create a `workflow.yml` file:
+
+```yaml
+description: Simple workflow example
+name: My Workflow
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: my-node
+
+steps:
+  - name: Wait for Node
+    type: wait
+    seconds: 5
+
+  - name: Check Health
+    type: script
+    script: echo "Node is running!"
+
+stop_all_nodes: true
+```
+
+Run the workflow:
+
+```bash
+merobox bootstrap run workflow.yml
+```
+
+## Key Features
+
+### Node Management
+
+- Start and stop Calimero nodes
+- Health monitoring and logging
+- Resource management and cleanup
+
+### Workflow System
+
+- YAML-based workflow configuration
+- Support for multiple step types
+- Dynamic variable capture and reuse
+- Parallel execution capabilities
+
+### Testing Integration
+
+- Python context managers for ephemeral setups
+- Pytest fixtures for test automation
+- CI/CD pipeline integration
+
+### Authentication Service
+
+- Built-in authentication service
+- Traefik proxy integration
+- Admin dashboard access
+
+## Documentation
+
+- [Installation](./installation) - Get started with Merobox
+- [Node Management](./node-management) - Manage Calimero nodes
+- [Workflows](./workflows) - Configure and run workflows
+- [Examples](./examples) - Practical examples and tutorials
+- [Advanced Configuration](./advanced-configuration) - Advanced features
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
+
+## Resources
+
+- [GitHub Repository](https://github.com/calimero-network/merobox) - Source code
+  and issues
+- [PyPI Package](https://pypi.org/project/merobox/) - Python package
+  installation
+- [Documentation](https://docs.calimero.network/developer-tools/merobox) -
+  Complete documentation
+
+## Getting Help
+
+- Check the [Troubleshooting](./troubleshooting) guide for common issues
+- Review the [Examples](./examples) for practical patterns
+- Consult the [Advanced Configuration](./advanced-configuration) for complex
+  setups
+- Visit our [GitHub repository](https://github.com/calimero-network/merobox) for
+  support

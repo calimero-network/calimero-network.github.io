@@ -1,0 +1,64 @@
+---
+title: Examples
+description:
+  Real-world examples and patterns for ABI generation with different use cases.
+sidebar_position: 7
+---
+
+# ABI Examples
+
+This guide provides real-world examples and patterns for ABI generation with
+different use cases.
+
+## Basic Examples
+
+### Simple Application
+
+```rust
+use calimero_abi_emitter::calimero_app;
+
+#[calimero_app]
+pub struct SimpleApp {
+    data: String,
+}
+
+impl SimpleApp {
+    pub fn new() -> Self {
+        Self {
+            data: String::new(),
+        }
+    }
+
+    pub fn get_data(&self) -> String {
+        self.data.clone()
+    }
+
+    pub fn set_data(&mut self, data: String) {
+        self.data = data;
+    }
+}
+```
+
+## Advanced Examples
+
+### Multi-Protocol Application
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol};
+
+#[calimero_app(protocols = [Protocol::Ethereum, Protocol::NEAR])]
+pub struct MultiProtocolApp {
+    // Application state
+}
+
+impl MultiProtocolApp {
+    pub fn process_cross_chain(&self, data: String) -> Result<String, String> {
+        // Cross-chain processing logic
+        Ok(format!("Processed: {}", data))
+    }
+}
+```
+
+## Next Steps
+
+- [Troubleshooting](./troubleshooting) - Common issues and solutions

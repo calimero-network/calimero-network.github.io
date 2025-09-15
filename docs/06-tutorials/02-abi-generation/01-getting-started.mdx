@@ -1,0 +1,745 @@
+---
+title: Getting Started with ABI Generation
+description:
+  Step-by-step tutorial for implementing ABI generation in your Calimero
+  application.
+sidebar_position: 1
+---
+
+# Getting Started with ABI Generation
+
+This tutorial will walk you through creating your first Calimero application
+with ABI generation, from setup to deployment.
+
+## Prerequisites
+
+Before starting this tutorial, make sure you have:
+
+- Rust installed (latest stable version)
+- Cargo installed
+- Basic knowledge of Rust programming
+- Understanding of Calimero concepts
+
+## Tutorial Overview
+
+In this tutorial, you will:
+
+1. **Set up a new Calimero project** with ABI generation
+2. **Create a simple application** with public methods and types
+3. **Configure ABI generation** for your target protocol
+4. **Build and validate** the generated ABI
+5. **Test the application** with ABI validation
+
+## Step 1: Create a New Project
+
+### 1.1 Initialize the Project
+
+Create a new Rust project:
+
+```bash
+cargo new my-calimero-app
+cd my-calimero-app
+```
+
+### 1.2 Configure Cargo.toml
+
+Update your `Cargo.toml` with the required dependencies:
+
+```toml
+[package]
+name = "my-calimero-app"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+calimero-abi-emitter = "0.1.0"
+
+[dependencies]
+calimero-abi-emitter = "0.1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+```
+
+### 1.3 Create Build Script
+
+Create a `build.rs` file in your project root:
+
+```rust
+// build.rs
+use calimero_abi_emitter::emit_manifest;
+
+fn main() {
+    emit_manifest().expect("Failed to generate ABI manifest");
+}
+```
+
+## Step 2: Create Your Application
+
+### 2.1 Define the Application Structure
+
+Create your main application in `src/lib.rs`:
+
+```rust
+// src/lib.rs
+use calimero_abi_emitter::calimero_app;
+
+#[calimero_app]
+pub struct MyCalimeroApp {
+    // Application state
+    data: String,
+    count: u32,
+    users: Vec<User>,
+}
+
+impl MyCalimeroApp {
+    /// Creates a new instance of the application
+    pub fn new() -> Self {
+        Self {
+            data: String::new(),
+            count: 0,
+            users: Vec::new(),
+        }
+    }
+
+    /// Processes input data and returns the result
+    pub fn process_data(&mut self, input: String) -> Result<String, String> {
+        if input.is_empty() {
+            return Err("Input cannot be empty".to_string());
+        }
+
+        self.data = input.clone();
+        self.count += 1;
+
+        Ok(format!("Processed: {} (count: {})", input, self.count))
+    }
+
+    /// Returns the current application state
+    pub fn get_state(&self) -> AppState {
+        AppState {
+            data: self.data.clone(),
+            count: self.count,
+            user_count: self.users.len() as u32,
+        }
+    }
+
+    /// Adds a new user to the application
+    pub fn add_user(&mut self, name: String, email: String) -> Result<User, String> {
+        if name.is_empty() || email.is_empty() {
+            return Err("Name and email cannot be empty".to_string());
+        }
+
+        let user = User {
+            id: self.users.len() as u32 + 1,
+            name,
+            email,
+            created_at: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        };
+
+        self.users.push(user.clone());
+        Ok(user)
+    }
+
+    /// Gets a user by ID
+    pub fn get_user(&self, id: u32) -> Option<User> {
+        self.users.iter().find(|u| u.id == id).cloned()
+    }
+
+    /// Lists all users
+    pub fn list_users(&self) -> Vec<User> {
+        self.users.clone()
+    }
+}
+
+/// Application state structure
+#[derive(Clone, Debug)]
+pub struct AppState {
+    pub data: String,
+    pub count: u32,
+    pub user_count: u32,
+}
+
+/// User structure
+#[derive(Clone, Debug)]
+pub struct User {
+    pub id: u32,
+    pub name: String,
+    pub email: String,
+    pub created_at: u64,
+}
+```
+
+### 2.2 Add Type Annotations
+
+Add ABI type annotations to ensure proper generation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_type};
+
+#[calimero_app]
+pub struct MyCalimeroApp {
+    // Application state
+    data: String,
+    count: u32,
+    users: Vec<User>,
+}
+
+// ... implementation ...
+
+#[calimero_type]
+#[derive(Clone, Debug)]
+pub struct AppState {
+    pub data: String,
+    pub count: u32,
+    pub user_count: u32,
+}
+
+#[calimero_type]
+#[derive(Clone, Debug)]
+pub struct User {
+    pub id: u32,
+    pub name: String,
+    pub email: String,
+    pub created_at: u64,
+}
+```
+
+## Step 3: Configure ABI Generation
+
+### 3.1 Protocol Configuration
+
+Configure ABI generation for your target protocol. For this tutorial, we'll use
+Ethereum:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolFeatures};
+
+#[calimero_app(
+    protocol = Protocol::Ethereum,
+    features = [
+        ProtocolFeatures::GasOptimization,
+        ProtocolFeatures::EventLogging
+    ]
+)]
+pub struct MyCalimeroApp {
+    // ... application code ...
+}
+```
+
+### 3.2 Advanced Configuration
+
+For more control, create a custom build script:
+
+```rust
+// build.rs
+use calimero_abi_emitter::{
+    emit_manifest_with_config,
+    AbiConfig,
+    Protocol,
+    ProtocolFeatures,
+    TypeNormalization
+};
+
+fn main() {
+    let config = AbiConfig {
+        protocols: vec![Protocol::Ethereum],
+        type_normalization: TypeNormalization::EthereumCompatible,
+        generate_events: true,
+        validate_types: true,
+        debug_mode: false,
+    };
+
+    emit_manifest_with_config(config)
+        .expect("Failed to generate ABI manifest");
+}
+```
+
+## Step 4: Build and Validate
+
+### 4.1 Build the Application
+
+Build your application for WASM:
+
+```bash
+cargo build --target wasm32-unknown-unknown --release
+```
+
+### 4.2 Install ABI Tools
+
+Install the Calimero ABI tools:
+
+```bash
+cargo install calimero-abi
+```
+
+### 4.3 Extract and Validate ABI
+
+Extract the ABI from your compiled WASM binary:
+
+```bash
+calimero-abi extract target/wasm32-unknown-unknown/release/my_calimero_app.wasm > abi.json
+```
+
+Validate the generated ABI:
+
+```bash
+calimero-abi validate abi.json
+```
+
+### 4.4 Inspect the Generated ABI
+
+View the generated ABI:
+
+```bash
+calimero-abi inspect abi.json
+```
+
+You should see something like:
+
+```json
+{
+  "schema_version": "1.0.0",
+  "types": {
+    "AppState": {
+      "type": "record",
+      "fields": [
+        { "name": "data", "type": "string" },
+        { "name": "count", "type": "u32" },
+        { "name": "user_count", "type": "u32" }
+      ]
+    },
+    "User": {
+      "type": "record",
+      "fields": [
+        { "name": "id", "type": "u32" },
+        { "name": "name", "type": "string" },
+        { "name": "email", "type": "string" },
+        { "name": "created_at", "type": "u64" }
+      ]
+    }
+  },
+  "methods": {
+    "process_data": {
+      "input": "string",
+      "output": "Result<string, string>"
+    },
+    "get_state": {
+      "input": "()",
+      "output": "AppState"
+    },
+    "add_user": {
+      "input": "record{name: string, email: string}",
+      "output": "Result<User, string>"
+    },
+    "get_user": {
+      "input": "u32",
+      "output": "Option<User>"
+    },
+    "list_users": {
+      "input": "()",
+      "output": "list<User>"
+    }
+  },
+  "events": []
+}
+```
+
+## Step 5: Add Testing
+
+### 5.1 Create Unit Tests
+
+Add unit tests to your `src/lib.rs`:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use calimero_abi_emitter::validate_abi;
+
+    #[test]
+    fn test_app_creation() {
+        let app = MyCalimeroApp::new();
+        let state = app.get_state();
+        assert_eq!(state.count, 0);
+        assert_eq!(state.user_count, 0);
+    }
+
+    #[test]
+    fn test_data_processing() {
+        let mut app = MyCalimeroApp::new();
+        let result = app.process_data("test data".to_string());
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Processed: test data (count: 1)");
+    }
+
+    #[test]
+    fn test_user_management() {
+        let mut app = MyCalimeroApp::new();
+
+        // Add a user
+        let user = app.add_user("Alice".to_string(), "alice@example.com".to_string());
+        assert!(user.is_ok());
+
+        let user = user.unwrap();
+        assert_eq!(user.name, "Alice");
+        assert_eq!(user.email, "alice@example.com");
+
+        // Get the user
+        let retrieved = app.get_user(user.id);
+        assert!(retrieved.is_some());
+        assert_eq!(retrieved.unwrap().name, "Alice");
+    }
+
+    #[test]
+    fn test_abi_validation() {
+        // This test ensures the ABI is valid
+        let abi = include_bytes!("../target/abi_conformance.abi.json");
+        validate_abi(abi).expect("ABI validation failed");
+    }
+}
+```
+
+### 5.2 Run Tests
+
+Run your tests:
+
+```bash
+cargo test
+```
+
+## Step 6: Add Events (Optional)
+
+### 6.1 Define Events
+
+Add events to your application:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_event};
+
+#[calimero_app]
+pub struct MyCalimeroApp {
+    // ... existing code ...
+}
+
+#[calimero_event]
+pub struct DataProcessed {
+    pub input: String,
+    pub output: String,
+    pub timestamp: u64,
+}
+
+#[calimero_event]
+pub struct UserAdded {
+    pub user: User,
+    pub timestamp: u64,
+}
+
+impl MyCalimeroApp {
+    // ... existing methods ...
+
+    pub fn process_data(&mut self, input: String) -> Result<String, String> {
+        if input.is_empty() {
+            return Err("Input cannot be empty".to_string());
+        }
+
+        self.data = input.clone();
+        self.count += 1;
+
+        let output = format!("Processed: {} (count: {})", input, self.count);
+
+        // Emit event
+        self.emit_event(DataProcessed {
+            input: input.clone(),
+            output: output.clone(),
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        });
+
+        Ok(output)
+    }
+
+    pub fn add_user(&mut self, name: String, email: String) -> Result<User, String> {
+        if name.is_empty() || email.is_empty() {
+            return Err("Name and email cannot be empty".to_string());
+        }
+
+        let user = User {
+            id: self.users.len() as u32 + 1,
+            name,
+            email,
+            created_at: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        };
+
+        self.users.push(user.clone());
+
+        // Emit event
+        self.emit_event(UserAdded {
+            user: user.clone(),
+            timestamp: user.created_at,
+        });
+
+        Ok(user)
+    }
+}
+```
+
+### 6.2 Rebuild and Validate
+
+Rebuild your application and validate the updated ABI:
+
+```bash
+cargo build --target wasm32-unknown-unknown --release
+calimero-abi extract target/wasm32-unknown-unknown/release/my_calimero_app.wasm > abi.json
+calimero-abi validate abi.json
+```
+
+## Step 7: Multi-Protocol Support (Advanced)
+
+### 7.1 Configure Multi-Protocol
+
+Update your application to support multiple protocols:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolConfig};
+
+#[calimero_app(
+    protocols = [Protocol::Ethereum, Protocol::NEAR, Protocol::ICP],
+    protocol_config = ProtocolConfig {
+        ethereum: EthereumConfig {
+            gas_optimization: true,
+        },
+        near: NearConfig {
+            account_optimization: true,
+        },
+        icp: IcpConfig {
+            canister_optimization: true,
+        },
+    }
+)]
+pub struct MyCalimeroApp {
+    // ... application code ...
+}
+```
+
+### 7.2 Protocol-Specific Logic
+
+Add protocol-specific logic:
+
+```rust
+impl MyCalimeroApp {
+    // ... existing methods ...
+
+    pub fn process_for_protocol(&self, data: String, protocol: String) -> Result<String, String> {
+        match protocol.as_str() {
+            "ethereum" => self.process_ethereum(data),
+            "near" => self.process_near(data),
+            "icp" => self.process_icp(data),
+            _ => Err("Unsupported protocol".to_string()),
+        }
+    }
+
+    fn process_ethereum(&self, data: String) -> Result<String, String> {
+        // Ethereum-specific processing
+        Ok(format!("Ethereum: {}", data))
+    }
+
+    fn process_near(&self, data: String) -> Result<String, String> {
+        // NEAR-specific processing
+        Ok(format!("NEAR: {}", data))
+    }
+
+    fn process_icp(&self, data: String) -> Result<String, String> {
+        // ICP-specific processing
+        Ok(format!("ICP: {}", data))
+    }
+}
+```
+
+## Step 8: CI/CD Integration
+
+### 8.1 GitHub Actions
+
+Create a `.github/workflows/abi-validation.yml` file:
+
+```yaml
+name: ABI Validation
+
+on: [push, pull_request]
+
+jobs:
+  validate-abi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+      - name: Install ABI tools
+        run: |
+          cargo install calimero-abi
+
+      - name: Build application
+        run: |
+          cargo build --target wasm32-unknown-unknown --release
+
+      - name: Extract ABI
+        run: |
+          calimero-abi extract target/wasm32-unknown-unknown/release/my_calimero_app.wasm > abi.json
+
+      - name: Validate ABI
+        run: |
+          calimero-abi validate abi.json
+
+      - name: Run tests
+        run: |
+          cargo test
+
+      - name: Upload ABI
+        uses: actions/upload-artifact@v3
+        with:
+          name: abi-files
+          path: abi.json
+```
+
+### 8.2 Makefile
+
+Create a `Makefile` for easy development:
+
+```makefile
+.PHONY: build test validate-abi clean
+
+build:
+	cargo build --target wasm32-unknown-unknown --release
+
+test:
+	cargo test
+
+validate-abi: build
+	calimero-abi extract target/wasm32-unknown-unknown/release/my_calimero_app.wasm > abi.json
+	calimero-abi validate abi.json
+
+clean:
+	cargo clean
+	rm -f abi.json
+
+all: test validate-abi
+```
+
+## Step 9: Deployment
+
+### 9.1 Deploy with Merobox
+
+Use Merobox to deploy your application:
+
+```yaml
+# deploy.yml
+description: Deploy ABI-enabled application
+name: ABI Deployment
+
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: abi-app
+
+steps:
+  - name: Build Application
+    type: script
+    script: |
+      cargo build --target wasm32-unknown-unknown --release
+
+  - name: Validate ABI
+    type: script
+    script: |
+      calimero-abi validate target/wasm32-unknown-unknown/release/my_calimero_app.wasm
+
+  - name: Install Application
+    type: install_application
+    node: abi-app-1
+    path: target/wasm32-unknown-unknown/release/my_calimero_app.wasm
+    dev: true
+    outputs:
+      app_id: applicationId
+
+  - name: Create Context
+    type: create_context
+    node: abi-app-1
+    application_id: '{{app_id}}'
+    outputs:
+      context_id: contextId
+      member_key: memberPublicKey
+
+  - name: Test Application
+    type: call
+    node: abi-app-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: process_data
+    args:
+      input: 'Hello, ABI!'
+    outputs:
+      result: result
+
+  - name: Validate Result
+    type: assert
+    statements:
+      - "contains({{result}}, 'Processed: Hello, ABI!')"
+
+stop_all_nodes: true
+```
+
+Run the deployment:
+
+```bash
+merobox bootstrap run deploy.yml
+```
+
+## Summary
+
+Congratulations! You've successfully:
+
+1. ✅ **Created a Calimero application** with ABI generation
+2. ✅ **Configured ABI generation** for your target protocol
+3. ✅ **Built and validated** the generated ABI
+4. ✅ **Added comprehensive testing** including ABI validation
+5. ✅ **Implemented events** for better observability
+6. ✅ **Set up multi-protocol support** for broader compatibility
+7. ✅ **Integrated CI/CD** for automated validation
+8. ✅ **Deployed your application** using Merobox
+
+## Next Steps
+
+Now that you have a working ABI-enabled Calimero application:
+
+- **Explore Advanced Features**: Check out the
+  [Advanced Configuration](/developer-tools/abi-generation/configuration) guide
+- **Learn More About Protocols**: Read the
+  [Protocol Support](/developer-tools/abi-generation/protocol-support)
+  documentation
+- **Debug Issues**: Consult the
+  [Troubleshooting](/developer-tools/abi-generation/troubleshooting) guide
+- **See More Examples**: Browse the
+  [Examples](/developer-tools/abi-generation/examples) section
+
+## Resources
+
+- [ABI Generation Overview](/developer-tools/abi-generation) - Complete ABI
+  documentation
+- [Build Process](/developer-tools/abi-generation/build-process) - How ABI
+  generation works
+- [Rust Integration](/developer-tools/abi-generation/rust-integration) -
+  Advanced Rust patterns
+- [Validation](/developer-tools/abi-generation/validation) - ABI validation
+  strategies
