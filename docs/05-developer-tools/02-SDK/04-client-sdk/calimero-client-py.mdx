@@ -87,16 +87,6 @@ calimero-client-py list-contexts --url http://localhost:2528
 
 ## Architecture
 
-### Rust + PyO3 Foundation
-
-The Python client is built on a solid Rust foundation using PyO3, which
-provides:
-
-- **Native Performance**: Rust core ensures optimal speed
-- **Memory Safety**: Rust's ownership system prevents memory leaks
-- **Python Integration**: Seamless Python bindings with PyO3
-- **Cross-Platform**: Works on Windows, macOS, and Linux
-
 ### Async-First Design
 
 The client is designed with async/await in mind:
@@ -144,38 +134,6 @@ The client provides comprehensive access to Calimero functionality:
 - **Function Execution**: Call smart contract functions.
 - **Identity Management**: Generate and manage identities.
 - **Permission Control**: Grant and revoke permissions.
-
-## Performance Benefits
-
-### Compared to JavaScript Client
-
-- **2-3x faster** for CPU-intensive operations.
-- **Lower memory usage** due to Rust's efficient memory management.
-- **Better concurrency** with Python's async/await.
-- **Native integration** with Python data science libraries.
-
-### Benchmark Example
-
-```python
-import time
-import asyncio
-from calimero_client_py import create_connection, create_client
-
-async def benchmark():
-    connection = create_connection("http://localhost:2528")
-    client = create_client(connection)
-
-    start = time.time()
-
-    # Execute 100 concurrent operations
-    tasks = [client.list_contexts() for _ in range(100)]
-    await asyncio.gather(*tasks)
-
-    end = time.time()
-    print(f"100 operations completed in {end - start:.2f} seconds")
-
-asyncio.run(benchmark())
-```
 
 ## Integration Examples
 
@@ -305,9 +263,9 @@ pip install target/wheels/calimero_client_py-*.whl
 
 Before installing the Python client, ensure you have:
 
-- **Python 3.9+** (3.11+ recommended for best performance)
-- **pip** (Python package manager)
-- **Rust toolchain** (only needed for building from source)
+- **Python 3.9+** (3.11+ recommended for best performance).
+- **pip** (Python package manager).
+- **Rust toolchain** (only needed for building from source).
 
 ### PyPI Installation (Recommended)
 
@@ -389,11 +347,11 @@ connection = create_connection(
 
 The client provides comprehensive access to Calimero functionality:
 
-- **Application Management**: Install, list, and manage applications
-- **Context Operations**: Create, sync, and manage contexts
-- **Function Execution**: Call smart contract functions
-- **Identity Management**: Generate and manage identities
-- **Permission Control**: Grant and revoke permissions
+- **Application Management**: Install, list, and manage applications.
+- **Context Operations**: Create, sync, and manage contexts.
+- **Function Execution**: Call smart contract functions.
+- **Identity Management**: Generate and manage identities.
+- **Permission Control**: Grant and revoke permissions.
 
 ### Error Handling
 
@@ -548,41 +506,6 @@ async def robust_operation(client, operation, *args, **kwargs):
             logger.error(f"Client error: {e}")
             raise
 ```
-
-## Migration Guide
-
-### From JavaScript Client
-
-If you're migrating from the JavaScript client:
-
-```python
-# JavaScript (old)
-import { createConnection, createClient } from '@calimero-network/calimero-client';
-
-const connection = createConnection('http://localhost:2528');
-const client = createClient(connection);
-
-# Python (new)
-from calimero_client_py import create_connection, create_client
-
-connection = create_connection("http://localhost:2528")
-client = create_client(connection)
-```
-
-### Key Differences
-
-1. **Async/Await**: Python client uses native async/await
-2. **Error Handling**: More specific exception types
-3. **Type Safety**: Better type hints and IDE support
-4. **Performance**: 2-3x faster for CPU-intensive operations
-
-### Migration Checklist
-
-- [ ] Update import statements
-- [ ] Convert callback-based code to async/await
-- [ ] Update error handling to use specific exception types
-- [ ] Test all functionality with new client
-- [ ] Update documentation and examples
 
 ## Resources
 
