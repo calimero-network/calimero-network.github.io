@@ -7,22 +7,33 @@ We provide different tools for building decentralized applications.
 
 ### CLI Tools for interacting with the node and its functionalities
 
-You can use CLI to interact with the node using the terminal.
-[Merod](./CLI/merod) is a CLI tool for managing nodes. [Meroctl](./CLI/meroctl)
-is tool for performing various operations with the node such as context
-creationa or app installation.
+You can use CLI to interact with the node using the terminal:
+
+- **[Merod](./CLI/merod)**: CLI tool for managing nodes.
+- **[Meroctl](./CLI/meroctl)**: Tool for performing various operations with the
+  node such as context creation or app installation.
+- **[Merobox](./merobox)**: Advanced CLI tool for managing Calimero nodes in
+  Docker, automating workflows with YAML configuration, and integrating with
+  testing frameworks.
 
 ### SDKs for building the application
 
-Two primary SDKs are available:
+Multiple SDKs are available for different development needs:
 
 [Protocol SDK](./SDK/protocol-sdk/protocol-sdk): Used for building WebAssembly
 (WASM) application logic in Rust. Provide macros for identifying different
 application components such as state, logic and events.
 
-[Client SDK](./SDK/client-sdk/client-ts-sdk): Enables frontend development in
-TypeScript, supporting wallet authentication and context data handling via
-JSON-RPC and WebSockets.
+[Client SDKs](/developer-tools/SDK/client-sdk): Enable frontend and backend
+development:
+
+- **[TypeScript Client](/developer-tools/SDK/client-sdk/client-ts-sdk)**:
+  Enables frontend development in TypeScript, supporting wallet authentication
+  and context data handling via JSON-RPC and WebSockets.
+
+- **[Python Client](/developer-tools/SDK/client-sdk/calimero-client-py)**:
+  High-performance Python client library built with Rust and PyO3, perfect for
+  backend services, data analysis, and automation workflows.
 
 ### Apps for node administration throught the UI
 
