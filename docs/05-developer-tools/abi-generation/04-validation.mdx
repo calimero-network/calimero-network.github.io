@@ -1,0 +1,665 @@
+---
+title: Validation
+description:
+  Set up ABI validation and testing to ensure your generated ABI is correct and
+  conformant.
+sidebar_position: 4
+---
+
+# ABI Validation
+
+This guide explains how to set up ABI validation and testing to ensure your
+generated ABI is correct, conformant, and compatible with your target protocols.
+
+## Overview
+
+ABI validation ensures that:
+
+- **Generated ABI is valid**: The ABI follows the correct schema and format
+- **Type compatibility**: Types are correctly mapped and compatible with target
+  protocols
+- **Method signatures**: Method signatures match the expected interface
+- **Event definitions**: Events are properly defined and accessible
+- **Protocol conformance**: The ABI works correctly with specific blockchain
+  protocols
+
+## Validation Types
+
+### 1.1 Schema Validation
+
+Validate that the generated ABI follows the correct schema:
+
+```rust
+use calimero_abi_emitter::{validate_abi, AbiManifest};
+
+#[test]
+fn test_abi_schema_validation() {
+    let abi_json = include_str!("../target/abi_conformance.abi.json");
+    let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+    // Validate schema version
+    assert_eq!(abi.schema_version, "1.0.0");
+
+    // Validate required fields
+    assert!(!abi.types.is_empty());
+    assert!(!abi.methods.is_empty());
+
+    // Validate type definitions
+    for (name, type_def) in &abi.types {
+        assert!(!name.is_empty());
+        assert!(!type_def.fields.is_empty());
+    }
+
+    // Validate method definitions
+    for method in &abi.methods {
+        assert!(!method.name.is_empty());
+        assert!(method.input.is_valid());
+        assert!(method.output.is_valid());
+    }
+}
+```
+
+### 1.2 Type Validation
+
+Validate that types are correctly defined and compatible:
+
+```rust
+use calimero_abi_emitter::{validate_abi, AbiManifest, TypeDefinition};
+
+#[test]
+fn test_abi_type_validation() {
+    let abi_json = include_str!("../target/abi_conformance.abi.json");
+    let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+    // Validate specific types
+    let app_state = abi.types.get("AppState").expect("AppState type not found");
+    assert_eq!(app_state.kind, TypeKind::Record);
+    assert_eq!(app_state.fields.len(), 2);
+
+    // Validate field types
+    let data_field = app_state.fields.iter()
+        .find(|f| f.name == "data")
+        .expect("data field not found");
+    assert_eq!(data_field.type_ref, TypeRef::Scalar(ScalarType::String));
+
+    let count_field = app_state.fields.iter()
+        .find(|f| f.name == "count")
+        .expect("count field not found");
+    assert_eq!(count_field.type_ref, TypeRef::Scalar(ScalarType::U32));
+}
+```
+
+### 1.3 Method Validation
+
+Validate that methods are correctly defined:
+
+```rust
+use calimero_abi_emitter::{validate_abi, AbiManifest, MethodDefinition};
+
+#[test]
+fn test_abi_method_validation() {
+    let abi_json = include_str!("../target/abi_conformance.abi.json");
+    let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+    // Validate specific methods
+    let process_method = abi.methods.iter()
+        .find(|m| m.name == "process_data")
+        .expect("process_data method not found");
+
+    assert_eq!(process_method.input, TypeRef::Scalar(ScalarType::String));
+    assert_eq!(process_method.output, TypeRef::Result(Box::new(TypeRef::Scalar(ScalarType::String))));
+    assert!(!process_method.is_async);
+
+    let get_state_method = abi.methods.iter()
+        .find(|m| m.name == "get_state")
+        .expect("get_state method not found");
+
+    assert_eq!(get_state_method.input, TypeRef::Unit);
+    assert_eq!(get_state_method.output, TypeRef::Reference("AppState".to_string()));
+}
+```
+
+## Protocol-Specific Validation
+
+### 2.1 Ethereum Validation
+
+Validate ABI compatibility with Ethereum:
+
+```rust
+use calimero_abi_emitter::{validate_abi, AbiManifest, Protocol};
+
+#[test]
+fn test_ethereum_abi_validation() {
+    let abi_json = include_str!("../target/abi_conformance.abi.json");
+    let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+    // Validate Ethereum-specific requirements
+    for method in &abi.methods {
+        // Ethereum methods should have valid gas estimates
+        assert!(method.gas_estimate.is_some());
+
+        // Input and output types should be Ethereum-compatible
+        assert!(is_ethereum_compatible_type(&method.input));
+        assert!(is_ethereum_compatible_type(&method.output));
+    }
+
+    // Validate events
+    for event in &abi.events {
+        // Ethereum events should have indexed fields
+        assert!(!event.indexed_fields.is_empty());
+    }
+}
+
+fn is_ethereum_compatible_type(type_ref: &TypeRef) -> bool {
+    match type_ref {
+        TypeRef::Scalar(scalar) => matches!(scalar, ScalarType::U8 | ScalarType::U32 | ScalarType::U64 | ScalarType::String | ScalarType::Bool),
+        TypeRef::Collection(collection) => match collection {
+            CollectionType::List(inner) => is_ethereum_compatible_type(inner),
+            CollectionType::Array(inner, _) => is_ethereum_compatible_type(inner),
+            CollectionType::Map(key, value) => is_ethereum_compatible_type(key) && is_ethereum_compatible_type(value),
+        },
+        TypeRef::Reference(_) => true,
+        _ => false,
+    }
+}
+```
+
+### 2.2 NEAR Validation
+
+Validate ABI compatibility with NEAR:
+
+```rust
+use calimero_abi_emitter::{validate_abi, AbiManifest, Protocol};
+
+#[test]
+fn test_near_abi_validation() {
+    let abi_json = include_str!("../target/abi_conformance.abi.json");
+    let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+    // Validate NEAR-specific requirements
+    for method in &abi.methods {
+        // NEAR methods should have valid gas estimates
+        assert!(method.gas_estimate.is_some());
+
+        // Input and output types should be NEAR-compatible
+        assert!(is_near_compatible_type(&method.input));
+        assert!(is_near_compatible_type(&method.output));
+    }
+
+    // Validate that all types are serializable
+    for (name, type_def) in &abi.types {
+        assert!(is_serializable_type(type_def));
+    }
+}
+
+fn is_near_compatible_type(type_ref: &TypeRef) -> bool {
+    match type_ref {
+        TypeRef::Scalar(scalar) => matches!(scalar, ScalarType::U8 | ScalarType::U32 | ScalarType::U64 | ScalarType::String | ScalarType::Bool),
+        TypeRef::Collection(collection) => match collection {
+            CollectionType::List(inner) => is_near_compatible_type(inner),
+            CollectionType::Array(inner, _) => is_near_compatible_type(inner),
+            CollectionType::Map(key, value) => is_near_compatible_type(key) && is_near_compatible_type(value),
+        },
+        TypeRef::Reference(_) => true,
+        _ => false,
+    }
+}
+
+fn is_serializable_type(type_def: &TypeDefinition) -> bool {
+    // Check if the type can be serialized to JSON
+    // This is a simplified check - in practice, you'd use serde
+    true
+}
+```
+
+### 2.3 Multi-Protocol Validation
+
+Validate ABI compatibility across multiple protocols:
+
+```rust
+use calimero_abi_emitter::{validate_abi, AbiManifest, Protocol};
+
+#[test]
+fn test_multi_protocol_abi_validation() {
+    let abi_json = include_str!("../target/abi_conformance.abi.json");
+    let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+    let protocols = vec![Protocol::Ethereum, Protocol::NEAR, Protocol::ICP, Protocol::Starknet];
+
+    for protocol in protocols {
+        match protocol {
+            Protocol::Ethereum => validate_ethereum_compatibility(&abi),
+            Protocol::NEAR => validate_near_compatibility(&abi),
+            Protocol::ICP => validate_icp_compatibility(&abi),
+            Protocol::Starknet => validate_starknet_compatibility(&abi),
+        }
+    }
+}
+
+fn validate_ethereum_compatibility(abi: &AbiManifest) {
+    // Ethereum-specific validation
+}
+
+fn validate_near_compatibility(abi: &AbiManifest) {
+    // NEAR-specific validation
+}
+
+fn validate_icp_compatibility(abi: &AbiManifest) {
+    // ICP-specific validation
+}
+
+fn validate_starknet_compatibility(abi: &AbiManifest) {
+    // Starknet-specific validation
+}
+```
+
+## Automated Validation
+
+### 3.1 CI/CD Integration
+
+Set up automated ABI validation in your CI/CD pipeline:
+
+```yaml
+# .github/workflows/abi-validation.yml
+name: ABI Validation
+
+on: [push, pull_request]
+
+jobs:
+  validate-abi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+      - name: Install ABI tools
+        run: |
+          cargo install calimero-abi
+
+      - name: Build application
+        run: |
+          cargo build --target wasm32-unknown-unknown --release
+
+      - name: Extract ABI
+        run: |
+          calimero-abi extract target/wasm32-unknown-unknown/release/my_app.wasm > abi.json
+
+      - name: Validate ABI schema
+        run: |
+          calimero-abi validate-schema abi.json
+
+      - name: Validate ABI types
+        run: |
+          calimero-abi validate-types abi.json
+
+      - name: Validate ABI methods
+        run: |
+          calimero-abi validate-methods abi.json
+
+      - name: Validate protocol compatibility
+        run: |
+          calimero-abi validate-protocol abi.json --protocol ethereum
+          calimero-abi validate-protocol abi.json --protocol near
+          calimero-abi validate-protocol abi.json --protocol icp
+          calimero-abi validate-protocol abi.json --protocol stellar
+```
+
+### 3.2 Pre-commit Hooks
+
+Set up pre-commit hooks for ABI validation:
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: abi-validation
+        name: ABI Validation
+        entry:
+          bash -c 'cargo build --target wasm32-unknown-unknown --release &&
+          calimero-abi validate
+          target/wasm32-unknown-unknown/release/my_app.wasm'
+        language: system
+        files: \.(rs|toml)$
+        pass_filenames: false
+```
+
+### 3.3 Makefile Integration
+
+Add ABI validation to your Makefile:
+
+```makefile
+# Makefile
+.PHONY: build validate-abi test-abi
+
+build:
+	cargo build --target wasm32-unknown-unknown --release
+
+validate-abi: build
+	calimero-abi extract target/wasm32-unknown-unknown/release/my_app.wasm > abi.json
+	calimero-abi validate abi.json
+	calimero-abi validate-protocol abi.json --protocol ethereum
+	calimero-abi validate-protocol abi.json --protocol near
+
+test-abi: validate-abi
+	cargo test abi_validation
+	cargo test abi_conformance
+```
+
+## Validation Tools
+
+### 4.1 Command Line Tools
+
+Use the `calimero-abi` command line tool for validation:
+
+```bash
+# Extract ABI from WASM binary
+calimero-abi extract target/wasm32-unknown-unknown/release/my_app.wasm
+
+# Validate ABI schema
+calimero-abi validate-schema abi.json
+
+# Validate ABI types
+calimero-abi validate-types abi.json
+
+# Validate ABI methods
+calimero-abi validate-methods abi.json
+
+# Validate protocol compatibility
+calimero-abi validate-protocol abi.json --protocol ethereum
+
+# Validate all aspects
+calimero-abi validate abi.json
+```
+
+### 4.2 Programmatic Validation
+
+Use the ABI validation library in your code:
+
+```rust
+use calimero_abi_emitter::{
+    validate_abi,
+    AbiManifest,
+    ValidationError,
+    ValidationResult
+};
+
+fn validate_my_abi() -> Result<(), ValidationError> {
+    let abi_json = include_str!("../target/abi_conformance.abi.json");
+    let abi: AbiManifest = serde_json::from_str(abi_json)?;
+
+    // Validate schema
+    validate_abi_schema(&abi)?;
+
+    // Validate types
+    validate_abi_types(&abi)?;
+
+    // Validate methods
+    validate_abi_methods(&abi)?;
+
+    // Validate protocol compatibility
+    validate_protocol_compatibility(&abi, Protocol::Ethereum)?;
+
+    Ok(())
+}
+
+fn validate_abi_schema(abi: &AbiManifest) -> Result<(), ValidationError> {
+    // Schema validation logic
+    Ok(())
+}
+
+fn validate_abi_types(abi: &AbiManifest) -> Result<(), ValidationError> {
+    // Type validation logic
+    Ok(())
+}
+
+fn validate_abi_methods(abi: &AbiManifest) -> Result<(), ValidationError> {
+    // Method validation logic
+    Ok(())
+}
+
+fn validate_protocol_compatibility(abi: &AbiManifest, protocol: Protocol) -> Result<(), ValidationError> {
+    // Protocol compatibility validation logic
+    Ok(())
+}
+```
+
+## Testing Strategies
+
+### 5.1 Unit Testing
+
+Write unit tests for ABI validation:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use calimero_abi_emitter::{validate_abi, AbiManifest};
+
+    #[test]
+    fn test_abi_schema_validation() {
+        let abi_json = include_str!("../target/abi_conformance.abi.json");
+        let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+        // Test schema validation
+        assert!(validate_abi_schema(&abi).is_ok());
+    }
+
+    #[test]
+    fn test_abi_type_validation() {
+        let abi_json = include_str!("../target/abi_conformance.abi.json");
+        let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+        // Test type validation
+        assert!(validate_abi_types(&abi).is_ok());
+    }
+
+    #[test]
+    fn test_abi_method_validation() {
+        let abi_json = include_str!("../target/abi_conformance.abi.json");
+        let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+        // Test method validation
+        assert!(validate_abi_methods(&abi).is_ok());
+    }
+
+    #[test]
+    fn test_protocol_compatibility() {
+        let abi_json = include_str!("../target/abi_conformance.abi.json");
+        let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+        // Test protocol compatibility
+        assert!(validate_protocol_compatibility(&abi, Protocol::Ethereum).is_ok());
+        assert!(validate_protocol_compatibility(&abi, Protocol::NEAR).is_ok());
+        assert!(validate_protocol_compatibility(&abi, Protocol::ICP).is_ok());
+        assert!(validate_protocol_compatibility(&abi, Protocol::Starknet).is_ok());
+    }
+}
+```
+
+### 5.2 Integration Testing
+
+Write integration tests for ABI validation:
+
+```rust
+#[cfg(test)]
+mod integration_tests {
+    use super::*;
+    use calimero_abi_emitter::{validate_abi, AbiManifest};
+
+    #[test]
+    fn test_full_abi_validation() {
+        let abi_json = include_str!("../target/abi_conformance.abi.json");
+        let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+        // Test full ABI validation
+        assert!(validate_abi(&abi).is_ok());
+    }
+
+    #[test]
+    fn test_abi_roundtrip() {
+        let abi_json = include_str!("../target/abi_conformance.abi.json");
+        let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+        // Test roundtrip serialization
+        let serialized = serde_json::to_string(&abi).unwrap();
+        let deserialized: AbiManifest = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(abi, deserialized);
+    }
+}
+```
+
+## Error Handling
+
+### 6.1 Validation Errors
+
+Handle validation errors gracefully:
+
+```rust
+use calimero_abi_emitter::{ValidationError, ValidationResult};
+
+fn validate_abi_with_error_handling(abi_json: &str) -> ValidationResult<()> {
+    let abi: AbiManifest = serde_json::from_str(abi_json)
+        .map_err(|e| ValidationError::InvalidJson(e))?;
+
+    validate_abi_schema(&abi)
+        .map_err(|e| ValidationError::SchemaValidationFailed(e))?;
+
+    validate_abi_types(&abi)
+        .map_err(|e| ValidationError::TypeValidationFailed(e))?;
+
+    validate_abi_methods(&abi)
+        .map_err(|e| ValidationError::MethodValidationFailed(e))?;
+
+    Ok(())
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ValidationError {
+    #[error("Invalid JSON: {0}")]
+    InvalidJson(serde_json::Error),
+
+    #[error("Schema validation failed: {0}")]
+    SchemaValidationFailed(String),
+
+    #[error("Type validation failed: {0}")]
+    TypeValidationFailed(String),
+
+    #[error("Method validation failed: {0}")]
+    MethodValidationFailed(String),
+}
+```
+
+### 6.2 Error Reporting
+
+Provide detailed error reporting:
+
+```rust
+use calimero_abi_emitter::{ValidationError, ValidationResult};
+
+fn validate_abi_with_detailed_errors(abi_json: &str) -> ValidationResult<()> {
+    let mut errors = Vec::new();
+
+    // Validate schema
+    if let Err(e) = validate_abi_schema(&abi) {
+        errors.push(format!("Schema validation failed: {}", e));
+    }
+
+    // Validate types
+    if let Err(e) = validate_abi_types(&abi) {
+        errors.push(format!("Type validation failed: {}", e));
+    }
+
+    // Validate methods
+    if let Err(e) = validate_abi_methods(&abi) {
+        errors.push(format!("Method validation failed: {}", e));
+    }
+
+    if !errors.is_empty() {
+        return Err(ValidationError::MultipleErrors(errors));
+    }
+
+    Ok(())
+}
+```
+
+## Performance Considerations
+
+### 7.1 Validation Performance
+
+Optimize validation performance:
+
+```rust
+use calimero_abi_emitter::{validate_abi, AbiManifest};
+use std::time::Instant;
+
+fn validate_abi_with_timing(abi_json: &str) -> Result<(), ValidationError> {
+    let start = Instant::now();
+
+    let abi: AbiManifest = serde_json::from_str(abi_json)?;
+
+    let parse_time = start.elapsed();
+    println!("ABI parsing took: {:?}", parse_time);
+
+    let validation_start = Instant::now();
+    validate_abi(&abi)?;
+    let validation_time = validation_start.elapsed();
+
+    println!("ABI validation took: {:?}", validation_time);
+    println!("Total time: {:?}", start.elapsed());
+
+    Ok(())
+}
+```
+
+### 7.2 Caching
+
+Cache validation results for better performance:
+
+```rust
+use std::collections::HashMap;
+use calimero_abi_emitter::{validate_abi, AbiManifest};
+
+struct ValidationCache {
+    cache: HashMap<String, bool>,
+}
+
+impl ValidationCache {
+    fn new() -> Self {
+        Self {
+            cache: HashMap::new(),
+        }
+    }
+
+    fn validate_cached(&mut self, abi_json: &str) -> Result<bool, ValidationError> {
+        let hash = sha256::digest(abi_json);
+
+        if let Some(&is_valid) = self.cache.get(&hash) {
+            return Ok(is_valid);
+        }
+
+        let abi: AbiManifest = serde_json::from_str(abi_json)?;
+        let is_valid = validate_abi(&abi).is_ok();
+
+        self.cache.insert(hash, is_valid);
+        Ok(is_valid)
+    }
+}
+```
+
+## Next Steps
+
+Now that you understand ABI validation:
+
+- [Protocol Support](./protocol-support) - Configure support for specific
+  protocols
+- [Tools](./tools) - Use ABI tools for debugging and validation
+- [Examples](./examples) - See real-world examples and patterns
+- [Troubleshooting](./troubleshooting) - Common issues and solutions

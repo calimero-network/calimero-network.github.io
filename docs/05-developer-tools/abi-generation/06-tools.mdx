@@ -1,0 +1,56 @@
+---
+title: Tools
+description:
+  Use ABI tools for debugging, validation, and inspection of generated ABI
+  files.
+sidebar_position: 6
+---
+
+# ABI Tools
+
+This guide explains how to use the Calimero ABI tools for debugging, validation,
+and inspection of generated ABI files.
+
+## Overview
+
+The Calimero ABI tools provide command-line utilities for working with generated
+ABI files.
+
+## Installation
+
+Install the ABI tools:
+
+```bash
+cargo install calimero-abi
+```
+
+## Command Reference
+
+### Extract ABI
+
+Extract ABI from a WASM binary:
+
+```bash
+calimero-abi extract target/wasm32-unknown-unknown/release/my_app.wasm
+```
+
+### Validate ABI
+
+Validate ABI schema and structure:
+
+```bash
+calimero-abi validate abi.json
+```
+
+### Inspect ABI
+
+Inspect ABI contents:
+
+```bash
+calimero-abi inspect abi.json
+```
+
+## Next Steps
+
+- [Examples](./examples) - See real-world examples and patterns
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
