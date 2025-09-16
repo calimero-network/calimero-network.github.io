@@ -1,0 +1,539 @@
+---
+title: Python Client SDK
+description:
+  High-performance Python client library for Calimero Network APIs, built with
+  Rust and PyO3 for optimal performance and native integration.
+sidebar_position: 2
+---
+
+# Python Client SDK
+
+The Calimero Python Client SDK provides a comprehensive, high-performance
+interface for interacting with Calimero Network APIs. Built with Rust and PyO3,
+it offers native performance with the ease of Python development.
+
+## Overview
+
+The Python client library is designed for developers who want to build Calimero
+applications using Python, whether for web development, data analysis,
+automation, or integration with existing Python ecosystems.
+
+### Key Features
+
+- **🚀 High Performance**: Built with Rust and PyO3 for optimal performance.
+- **🔒 Type Safety**: Strongly typed Python bindings with full IDE support.
+- **⚡ Async Support**: Built-in async/await support for concurrent operations.
+- **🌐 Multi-Protocol**: Support for NEAR, Ethereum, ICP, and Starknet networks.
+- **📦 Easy Installation**: Simple `pip install` with no complex dependencies.
+- **🔧 Comprehensive API**: Full access to all Calimero Network functionality.
+
+## Supported Protocols
+
+- ✅ **NEAR Protocol** - Account-based architecture with optimized storage.
+- ✅ **Ethereum** - Full EVM compatibility with gas optimization.
+- ✅ **Internet Computer Protocol (ICP)** - Canister-based execution model.
+- ✅ **Starknet** - Cairo-based smart contracts with account abstraction.
+
+## Quick Start
+
+### Installation
+
+Install the Python client from PyPI:
+
+```bash
+pip install calimero-client-py
+```
+
+### Basic Usage
+
+```python
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def main():
+    # Create a connection
+    connection = create_connection(
+        base_url="http://localhost:2528",
+        auth_mode=AuthMode.NONE
+    )
+
+    # Create a client
+    client = create_client(connection)
+
+    # List available contexts
+    contexts = await client.list_contexts()
+    print(f"Found {len(contexts)} contexts")
+
+    # List applications
+    apps = await client.list_applications()
+    print(f"Found {len(apps)} applications")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### CLI Usage
+
+The Python client also includes a command-line interface:
+
+```bash
+# Install the CLI
+pip install calimero-client-py
+
+# Use the CLI
+calimero-client-py --help
+calimero-client-py list-contexts --url http://localhost:2528
+```
+
+## Architecture
+
+### Async-First Design
+
+The client is designed with async/await in mind:
+
+```python
+# All operations are async
+async def example():
+    client = create_client(connection)
+
+    # Concurrent operations
+    contexts_task = client.list_contexts()
+    apps_task = client.list_applications()
+
+    contexts, apps = await asyncio.gather(contexts_task, apps_task)
+    return contexts, apps
+```
+
+## Core Components
+
+### Connection Management
+
+```python
+from calimero_client_py import create_connection, AuthMode
+
+# Basic connection
+connection = create_connection(
+    base_url="http://localhost:2528",
+    auth_mode=AuthMode.NONE
+)
+
+# Authenticated connection
+connection = create_connection(
+    base_url="http://localhost:2528",
+    auth_mode=AuthMode.REQUIRED,
+    jwt_token="your-jwt-token"
+)
+```
+
+### Client Operations
+
+The client provides comprehensive access to Calimero functionality:
+
+- **Application Management**: Install, list, and manage applications.
+- **Context Operations**: Create, sync, and manage contexts.
+- **Function Execution**: Call smart contract functions.
+- **Identity Management**: Generate and manage identities.
+- **Permission Control**: Grant and revoke permissions.
+
+## Integration Examples
+
+### With Merobox
+
+```python
+import asyncio
+from calimero_client_py import create_connection, create_client
+from merobox import Cluster
+
+async def deploy_with_merobox():
+    # Start Merobox cluster
+    with Cluster() as cluster:
+        # Get node URL
+        node_url = cluster.get_node_url("node-1")
+
+        # Create Calimero client
+        connection = create_connection(node_url)
+        client = create_client(connection)
+
+        # Deploy application
+        app = await client.install_application(
+            url="https://example.com/app.wasm",
+            metadata=b'{"name": "My App"}'
+        )
+
+        print(f"Deployed app: {app['application_id']}")
+```
+
+### With FastAPI
+
+```python
+from fastapi import FastAPI
+from calimero_client_py import create_connection, create_client
+
+app = FastAPI()
+
+# Global client instance
+connection = create_connection("http://localhost:2528")
+client = create_client(connection)
+
+@app.get("/contexts")
+async def get_contexts():
+    return await client.list_contexts()
+
+@app.post("/contexts")
+async def create_context(application_id: str, protocol: str):
+    return await client.create_context(application_id, protocol)
+```
+
+### With Jupyter Notebooks
+
+```python
+# Perfect for data analysis and exploration
+import pandas as pd
+from calimero_client_py import create_connection, create_client
+
+# Create client
+connection = create_connection("http://localhost:2528")
+client = create_client(connection)
+
+# Get contexts data
+contexts = await client.list_contexts()
+
+# Convert to DataFrame for analysis
+df = pd.DataFrame(contexts)
+print(df.describe())
+```
+
+## Error Handling
+
+The client provides comprehensive error handling:
+
+```python
+from calimero_client_py import ClientError, AuthError, NetworkError
+
+try:
+    result = await client.execute_function(
+        context_id="context-123",
+        method="transfer",
+        args='{"amount": 100}',
+        executor_public_key="key-123"
+    )
+except AuthError as e:
+    print(f"Authentication failed: {e}")
+except NetworkError as e:
+    print(f"Network error: {e}")
+except ClientError as e:
+    print(f"Client error: {e}")
+```
+
+## Development Workflow
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/calimero-network/calimero-client-py
+cd calimero-client-py
+
+# Install in development mode
+pip install -e .
+
+# Run tests
+pytest
+
+# Run example
+python example_usage.py
+```
+
+### Building from Source
+
+```bash
+# Install maturin
+pip install maturin
+
+# Build the package
+maturin build --release
+
+# Install the built package
+pip install target/wheels/calimero_client_py-*.whl
+```
+
+## Installation
+
+### Prerequisites
+
+Before installing the Python client, ensure you have:
+
+- **Python 3.9+** (3.11+ recommended for best performance).
+- **pip** (Python package manager).
+- **Rust toolchain** (only needed for building from source).
+
+### PyPI Installation (Recommended)
+
+The easiest way to install the Python client is from PyPI:
+
+```bash
+pip install calimero-client-py
+```
+
+#### Verify Installation
+
+```python
+# Test the installation
+python -c "import calimero_client_py; print('Installation successful!')"
+
+# Check version
+python -c "import calimero_client_py; print(calimero_client_py.__version__)"
+```
+
+### Virtual Environment (Recommended for Development)
+
+Create an isolated environment for your project:
+
+```bash
+# Create virtual environment
+python -m venv calimero-env
+
+# Activate virtual environment
+# On Windows:
+calimero-env\Scripts\activate
+# On macOS/Linux:
+source calimero-env/bin/activate
+
+# Install the client
+pip install calimero-client-py
+```
+
+### Building from Source
+
+For development or if you need the latest features:
+
+```bash
+# Install Rust toolchain
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+# Install maturin (Python-Rust build tool)
+pip install maturin
+
+# Clone and build
+git clone https://github.com/calimero-network/calimero-client-py
+cd calimero-client-py
+maturin build --release
+pip install target/wheels/calimero_client_py-*.whl
+```
+
+## API Reference
+
+### Connection Management
+
+```python
+from calimero_client_py import create_connection, AuthMode
+
+# Basic connection
+connection = create_connection(
+    base_url="http://localhost:2528",
+    auth_mode=AuthMode.NONE
+)
+
+# Authenticated connection
+connection = create_connection(
+    base_url="http://localhost:2528",
+    auth_mode=AuthMode.REQUIRED,
+    jwt_token="your-jwt-token"
+)
+```
+
+### Client Operations
+
+The client provides comprehensive access to Calimero functionality:
+
+- **Application Management**: Install, list, and manage applications.
+- **Context Operations**: Create, sync, and manage contexts.
+- **Function Execution**: Call smart contract functions.
+- **Identity Management**: Generate and manage identities.
+- **Permission Control**: Grant and revoke permissions.
+
+### Error Handling
+
+```python
+from calimero_client_py import ClientError, AuthError, NetworkError
+
+try:
+    result = await client.execute_function(
+        context_id="context-123",
+        method="transfer",
+        args='{"amount": 100}',
+        executor_public_key="key-123"
+    )
+except AuthError as e:
+    print(f"Authentication failed: {e}")
+except NetworkError as e:
+    print(f"Network error: {e}")
+except ClientError as e:
+    print(f"Client error: {e}")
+```
+
+## Examples
+
+### Basic Usage
+
+```python
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def main():
+    # Create a connection
+    connection = create_connection(
+        base_url="http://localhost:2528",
+        auth_mode=AuthMode.NONE
+    )
+
+    # Create a client
+    client = create_client(connection)
+
+    # List available contexts
+    contexts = await client.list_contexts()
+    print(f"Found {len(contexts)} contexts")
+
+    # List applications
+    apps = await client.list_applications()
+    print(f"Found {len(apps)} applications")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### With Merobox
+
+```python
+import asyncio
+from calimero_client_py import create_connection, create_client
+from merobox import Cluster
+
+async def deploy_with_merobox():
+    # Start Merobox cluster
+    with Cluster() as cluster:
+        # Get node URL
+        node_url = cluster.get_node_url("node-1")
+
+        # Create Calimero client
+        connection = create_connection(node_url)
+        client = create_client(connection)
+
+        # Deploy application
+        app = await client.install_application(
+            url="https://example.com/app.wasm",
+            metadata=b'{"name": "My App"}'
+        )
+
+        print(f"Deployed app: {app['application_id']}")
+```
+
+### With FastAPI
+
+```python
+from fastapi import FastAPI
+from calimero_client_py import create_connection, create_client
+
+app = FastAPI()
+
+# Global client instance
+connection = create_connection("http://localhost:2528")
+client = create_client(connection)
+
+@app.get("/contexts")
+async def get_contexts():
+    return await client.list_contexts()
+
+@app.post("/contexts")
+async def create_context(application_id: str, protocol: str):
+    return await client.create_context(application_id, protocol)
+```
+
+## Advanced Usage
+
+### Performance Optimization
+
+```python
+import asyncio
+import time
+from calimero_client_py import create_connection, create_client
+
+async def benchmark():
+    connection = create_connection("http://localhost:2528")
+    client = create_client(connection)
+
+    start = time.time()
+
+    # Execute 100 concurrent operations
+    tasks = [client.list_contexts() for _ in range(100)]
+    await asyncio.gather(*tasks)
+
+    end = time.time()
+    print(f"100 operations completed in {end - start:.2f} seconds")
+
+asyncio.run(benchmark())
+```
+
+### Custom Error Handling
+
+```python
+from calimero_client_py import ClientError, AuthError, NetworkError
+import logging
+
+logger = logging.getLogger(__name__)
+
+async def robust_operation(client, operation, *args, **kwargs):
+    """Execute operation with robust error handling and retries."""
+    max_retries = 3
+    retry_delay = 1
+
+    for attempt in range(max_retries):
+        try:
+            return await operation(*args, **kwargs)
+        except NetworkError as e:
+            if attempt < max_retries - 1:
+                logger.warning(f"Network error, retrying in {retry_delay}s: {e}")
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
+            else:
+                logger.error(f"Network error after {max_retries} attempts: {e}")
+                raise
+        except AuthError as e:
+            logger.error(f"Authentication error: {e}")
+            raise
+        except ClientError as e:
+            logger.error(f"Client error: {e}")
+            raise
+```
+
+## Resources
+
+- **GitHub Repository**:
+  [calimero-client-py](https://github.com/calimero-network/calimero-client-py)
+- **PyPI Package**:
+  [calimero-client-py](https://pypi.org/project/calimero-client-py/)
+- **API Documentation**: Complete method reference
+- **Examples Repository**:
+  [calimero-examples](https://github.com/calimero-network/examples)
+
+## Getting Help
+
+- **Documentation**: Comprehensive guides and examples
+- **GitHub Issues**:
+  [Report bugs and request features](https://github.com/calimero-network/calimero-client-py/issues)
+- **Community Discord**: [Join the conversation](https://discord.gg/calimero)
+- **Email Support**: [team@calimero.network](mailto:team@calimero.network)
+
+## Next Steps
+
+Ready to get started with the Python client?
+
+1. **Follow the Installation section above** to set up your environment
+2. **Explore the API Reference section** to understand available methods
+3. **Check out the Examples section** for practical usage patterns
+4. **Read the Advanced Usage section** for optimization techniques
+
+The Python client brings the power and performance of Calimero Network to the
+Python ecosystem, enabling you to build sophisticated decentralized applications
+with the tools you know and love.

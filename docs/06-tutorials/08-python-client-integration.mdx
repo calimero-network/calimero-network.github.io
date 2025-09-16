@@ -1,0 +1,996 @@
+---
+title: Python Client Integration
+description:
+  Complete tutorial on integrating the Calimero Python client SDK into your
+  applications, from basic setup to advanced patterns.
+sidebar_position: 8
+---
+
+# Python Client Integration
+
+This tutorial walks you through integrating the Calimero Python client SDK into
+your applications, from basic setup to advanced patterns and real-world use
+cases.
+
+## Prerequisites
+
+Before starting this tutorial, ensure you have:
+
+- **Python 3.9+** installed
+- **pip** package manager
+- **Basic Python knowledge** (async/await, error handling)
+- **Calimero node** running locally or remotely
+- **Basic understanding** of Calimero concepts (contexts, applications,
+  functions)
+
+## Step 1: Installation and Setup
+
+### Install the Python Client
+
+```bash
+pip install calimero-client-py
+```
+
+### Verify Installation
+
+```python
+# test_installation.py
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def test_installation():
+    """Test that the Python client is properly installed."""
+    try:
+        connection = create_connection("http://localhost:2528", AuthMode.NONE)
+        client = create_client(connection)
+        print("✓ Python client installed successfully!")
+        return True
+    except Exception as e:
+        print(f"✗ Installation test failed: {e}")
+        return False
+
+if __name__ == "__main__":
+    asyncio.run(test_installation())
+```
+
+Run the test:
+
+```bash
+python test_installation.py
+```
+
+## Step 2: Basic Connection and Operations
+
+### Create a Connection
+
+```python
+# basic_connection.py
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def basic_connection_example():
+    """Basic connection and operation example."""
+    # Create connection
+    connection = create_connection(
+        base_url="http://localhost:2528",
+        auth_mode=AuthMode.NONE
+    )
+
+    # Create client
+    client = create_client(connection)
+
+    # Test basic operations
+    print("Testing basic operations...")
+
+    # Get peers count
+    peers_count = await client.get_peers_count()
+    print(f"Connected peers: {peers_count}")
+
+    # List contexts
+    contexts = await client.list_contexts()
+    print(f"Found {len(contexts)} contexts")
+
+    # List applications
+    apps = await client.list_applications()
+    print(f"Found {len(apps)} applications")
+
+    return client
+
+if __name__ == "__main__":
+    asyncio.run(basic_connection_example())
+```
+
+### Error Handling
+
+```python
+# error_handling.py
+import asyncio
+from calimero_client_py import (
+    create_connection, create_client, AuthMode,
+    ClientError, AuthError, NetworkError
+)
+
+async def error_handling_example():
+    """Example of proper error handling."""
+    try:
+        connection = create_connection("http://localhost:2528", AuthMode.NONE)
+        client = create_client(connection)
+
+        # This might fail if the context doesn't exist
+        context = await client.get_context("non-existent-context")
+        print(f"Context: {context}")
+
+    except AuthError as e:
+        print(f"Authentication error: {e}")
+    except NetworkError as e:
+        print(f"Network error: {e}")
+    except ClientError as e:
+        print(f"Client error: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(error_handling_example())
+```
+
+## Step 3: Application Management
+
+### Install and Manage Applications
+
+```python
+# application_management.py
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def application_management_example():
+    """Example of managing applications."""
+    connection = create_connection("http://localhost:2528", AuthMode.NONE)
+    client = create_client(connection)
+
+    print("=== Application Management Example ===")
+
+    # Install an application
+    print("Installing application...")
+    app = await client.install_application(
+        url="https://example.com/my-app.wasm",
+        metadata=b'{"name": "My Test App", "version": "1.0.0"}'
+    )
+    app_id = app["application_id"]
+    print(f"✓ Installed app: {app_id}")
+
+    # Get application details
+    app_info = await client.get_application(app_id)
+    print(f"✓ App details: {app_info}")
+
+    # List all applications
+    apps = await client.list_applications()
+    print(f"✓ Total applications: {len(apps)}")
+
+    # Uninstall the application
+    print("Uninstalling application...")
+    result = await client.uninstall_application(app_id)
+    print(f"✓ Uninstall result: {result}")
+
+    return app_id
+
+if __name__ == "__main__":
+    asyncio.run(application_management_example())
+```
+
+### Development Application Installation
+
+```python
+# dev_application.py
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def dev_application_example():
+    """Example of installing development applications."""
+    connection = create_connection("http://localhost:2528", AuthMode.NONE)
+    client = create_client(connection)
+
+    print("=== Development Application Example ===")
+
+    # Install development application from local path
+    app = await client.install_dev_application(
+        path="/path/to/your/app.wasm",
+        metadata=b'{"name": "Dev App", "version": "0.1.0"}'
+    )
+    app_id = app["application_id"]
+    print(f"✓ Installed dev app: {app_id}")
+
+    # Clean up
+    await client.uninstall_application(app_id)
+    print("✓ Cleaned up dev app")
+
+if __name__ == "__main__":
+    asyncio.run(dev_application_example())
+```
+
+## Step 4: Context Management
+
+### Create and Manage Contexts
+
+```python
+# context_management.py
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def context_management_example():
+    """Example of managing contexts."""
+    connection = create_connection("http://localhost:2528", AuthMode.NONE)
+    client = create_client(connection)
+
+    print("=== Context Management Example ===")
+
+    # First, install an application
+    print("Installing application...")
+    app = await client.install_application(
+        url="https://example.com/my-app.wasm",
+        metadata=b'{"name": "Context Test App"}'
+    )
+    app_id = app["application_id"]
+
+    try:
+        # Create a context
+        print("Creating context...")
+        context = await client.create_context(
+            application_id=app_id,
+            protocol="near",
+            params='{"network": "testnet"}'
+        )
+        context_id = context["context_id"]
+        print(f"✓ Created context: {context_id}")
+
+        # Get context details
+        context_info = await client.get_context(context_id)
+        print(f"✓ Context info: {context_info}")
+
+        # Sync the context
+        print("Syncing context...")
+        sync_result = await client.sync_context(context_id)
+        print(f"✓ Sync result: {sync_result}")
+
+        # Get context identities
+        identities = await client.get_context_identities(context_id)
+        print(f"✓ Context identities: {identities}")
+
+        # Get context storage
+        storage = await client.get_context_storage(context_id)
+        print(f"✓ Context storage: {storage}")
+
+        return context_id
+
+    finally:
+        # Clean up
+        print("Cleaning up...")
+        await client.delete_context(context_id)
+        await client.uninstall_application(app_id)
+        print("✓ Cleanup completed")
+
+if __name__ == "__main__":
+    asyncio.run(context_management_example())
+```
+
+### Context Invitations and Joining
+
+```python
+# context_invitations.py
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def context_invitations_example():
+    """Example of context invitations and joining."""
+    connection = create_connection("http://localhost:2528", AuthMode.NONE)
+    client = create_client(connection)
+
+    print("=== Context Invitations Example ===")
+
+    # Install application
+    app = await client.install_application(
+        url="https://example.com/my-app.wasm",
+        metadata=b'{"name": "Invitation Test App"}'
+    )
+    app_id = app["application_id"]
+
+    try:
+        # Create context
+        context = await client.create_context(app_id, "near")
+        context_id = context["context_id"]
+        print(f"✓ Created context: {context_id}")
+
+        # Generate identities
+        inviter_identity = await client.generate_context_identity()
+        invitee_identity = await client.generate_context_identity()
+        print(f"✓ Generated identities")
+
+        # Invite to context
+        print("Creating invitation...")
+        invitation = await client.invite_to_context(
+            context_id=context_id,
+            inviter_id=inviter_identity["identity_id"],
+            invitee_id=invitee_identity["identity_id"]
+        )
+        print(f"✓ Created invitation: {invitation}")
+
+        # Join context
+        print("Joining context...")
+        join_result = await client.join_context(
+            context_id=context_id,
+            invitee_id=invitee_identity["identity_id"],
+            invitation_payload=invitation["invitation_payload"]
+        )
+        print(f"✓ Join result: {join_result}")
+
+        return context_id
+
+    finally:
+        # Clean up
+        await client.delete_context(context_id)
+        await client.uninstall_application(app_id)
+        print("✓ Cleanup completed")
+
+if __name__ == "__main__":
+    asyncio.run(context_invitations_example())
+```
+
+## Step 5: Function Execution
+
+### Execute Smart Contract Functions
+
+```python
+# function_execution.py
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def function_execution_example():
+    """Example of executing smart contract functions."""
+    connection = create_connection("http://localhost:2528", AuthMode.NONE)
+    client = create_client(connection)
+
+    print("=== Function Execution Example ===")
+
+    # Install application
+    app = await client.install_application(
+        url="https://example.com/my-app.wasm",
+        metadata=b'{"name": "Function Test App"}'
+    )
+    app_id = app["application_id"]
+
+    try:
+        # Create context
+        context = await client.create_context(app_id, "near")
+        context_id = context["context_id"]
+        print(f"✓ Created context: {context_id}")
+
+        # Generate executor identity
+        executor_identity = await client.generate_context_identity()
+        executor_public_key = executor_identity["public_key"]
+        print(f"✓ Generated executor identity")
+
+        # Execute a simple function
+        print("Executing function...")
+        result = await client.execute_function(
+            context_id=context_id,
+            method="initialize",
+            args='{}',
+            executor_public_key=executor_public_key
+        )
+        print(f"✓ Function result: {result}")
+
+        # Execute function with complex arguments
+        print("Executing function with arguments...")
+        transfer_result = await client.execute_function(
+            context_id=context_id,
+            method="transfer",
+            args='{"amount": 100, "to": "alice.near", "memo": "Payment"}',
+            executor_public_key=executor_public_key
+        )
+        print(f"✓ Transfer result: {transfer_result}")
+
+        return context_id
+
+    finally:
+        # Clean up
+        await client.delete_context(context_id)
+        await client.uninstall_application(app_id)
+        print("✓ Cleanup completed")
+
+if __name__ == "__main__":
+    asyncio.run(function_execution_example())
+```
+
+### Batch Function Execution
+
+```python
+# batch_execution.py
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+async def batch_execution_example():
+    """Example of batch function execution."""
+    connection = create_connection("http://localhost:2528", AuthMode.NONE)
+    client = create_client(connection)
+
+    print("=== Batch Execution Example ===")
+
+    # Install application
+    app = await client.install_application(
+        url="https://example.com/my-app.wasm",
+        metadata=b'{"name": "Batch Test App"}'
+    )
+    app_id = app["application_id"]
+
+    try:
+        # Create context
+        context = await client.create_context(app_id, "near")
+        context_id = context["context_id"]
+        print(f"✓ Created context: {context_id}")
+
+        # Generate executor identity
+        executor_identity = await client.generate_context_identity()
+        executor_public_key = executor_identity["public_key"]
+
+        # Define batch operations
+        operations = [
+            {
+                "context_id": context_id,
+                "method": "initialize",
+                "args": "{}",
+                "executor_public_key": executor_public_key
+            },
+            {
+                "context_id": context_id,
+                "method": "set_value",
+                "args": '{"key": "test", "value": "hello"}',
+                "executor_public_key": executor_public_key
+            },
+            {
+                "context_id": context_id,
+                "method": "get_value",
+                "args": '{"key": "test"}',
+                "executor_public_key": executor_public_key
+            }
+        ]
+
+        # Execute batch operations concurrently
+        print("Executing batch operations...")
+        results = await asyncio.gather(*[
+            client.execute_function(**op) for op in operations
+        ])
+
+        print(f"✓ Batch execution completed: {len(results)} operations")
+        for i, result in enumerate(results):
+            print(f"  Operation {i + 1}: {result}")
+
+        return context_id
+
+    finally:
+        # Clean up
+        await client.delete_context(context_id)
+        await client.uninstall_application(app_id)
+        print("✓ Cleanup completed")
+
+if __name__ == "__main__":
+    asyncio.run(batch_execution_example())
+```
+
+## Step 6: Advanced Patterns
+
+### Custom Client Wrapper
+
+```python
+# custom_client.py
+import asyncio
+from typing import Optional, Dict, Any
+from calimero_client_py import create_connection, create_client, AuthMode, ClientError
+
+class CustomCalimeroClient:
+    """Custom wrapper with additional functionality."""
+
+    def __init__(self, base_url: str, auth_mode: AuthMode = AuthMode.NONE, jwt_token: Optional[str] = None):
+        self.connection = create_connection(base_url, auth_mode, jwt_token)
+        self.client = create_client(self.connection)
+        self._context_cache = {}
+        self._app_cache = {}
+
+    async def get_or_create_context(self, application_id: str, protocol: str, params: str = None) -> Dict[str, Any]:
+        """Get existing context or create new one."""
+        # Check cache first
+        cache_key = f"{application_id}:{protocol}"
+        if cache_key in self._context_cache:
+            return self._context_cache[cache_key]
+
+        # Try to find existing context
+        contexts = await self.client.list_contexts()
+        for context in contexts:
+            if (context.get("application_id") == application_id and
+                context.get("protocol") == protocol):
+                self._context_cache[cache_key] = context
+                return context
+
+        # Create new context
+        context = await self.client.create_context(application_id, protocol, params)
+        self._context_cache[cache_key] = context
+        return context
+
+    async def safe_execute_function(self, context_id: str, method: str, args: str, executor_public_key: str, max_retries: int = 3) -> Dict[str, Any]:
+        """Execute function with safety checks and retries."""
+        # Validate context exists
+        try:
+            context = await self.client.get_context(context_id)
+        except ClientError:
+            raise ValueError(f"Context {context_id} not found")
+
+        # Execute with retries
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                return await self.client.execute_function(context_id, method, args, executor_public_key)
+            except ClientError as e:
+                last_error = e
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    break
+
+        raise last_error
+
+    def clear_cache(self):
+        """Clear internal caches."""
+        self._context_cache.clear()
+        self._app_cache.clear()
+
+# Usage example
+async def custom_client_example():
+    """Example of using the custom client wrapper."""
+    client = CustomCalimeroClient("http://localhost:2528")
+
+    # Get or create context
+    context = await client.get_or_create_context("app-123", "near")
+    print(f"Context: {context['context_id']}")
+
+    # Safe function execution
+    result = await client.safe_execute_function(
+        context["context_id"], "test", "{}", "key-123"
+    )
+    print(f"Result: {result}")
+
+if __name__ == "__main__":
+    asyncio.run(custom_client_example())
+```
+
+### Monitoring and Health Checks
+
+```python
+# monitoring.py
+import asyncio
+import time
+from calimero_client_py import create_connection, create_client, AuthMode
+
+class CalimeroMonitor:
+    """Monitor Calimero node health and performance."""
+
+    def __init__(self, base_url="http://localhost:2528"):
+        self.connection = create_connection(base_url, AuthMode.NONE)
+        self.client = create_client(self.connection)
+        self.metrics = []
+
+    async def collect_metrics(self):
+        """Collect node metrics."""
+        try:
+            # Get basic metrics
+            peers_count = await self.client.get_peers_count()
+            contexts = await self.client.list_contexts()
+            apps = await client.list_applications()
+
+            metrics = {
+                "timestamp": time.time(),
+                "peers_count": peers_count,
+                "contexts_count": len(contexts),
+                "applications_count": len(apps),
+                "status": "healthy"
+            }
+
+            self.metrics.append(metrics)
+            return metrics
+
+        except Exception as e:
+            error_metrics = {
+                "timestamp": time.time(),
+                "status": "error",
+                "error": str(e)
+            }
+            self.metrics.append(error_metrics)
+            return error_metrics
+
+    async def start_monitoring(self, interval=60):
+        """Start monitoring with specified interval."""
+        print(f"Starting monitoring (interval: {interval}s)")
+
+        while True:
+            metrics = await self.collect_metrics()
+            print(f"Metrics: {metrics}")
+
+            # Check for alerts
+            if metrics["status"] == "error":
+                print("ALERT: Node is unhealthy!")
+
+            await asyncio.sleep(interval)
+
+    def get_metrics_summary(self):
+        """Get summary of collected metrics."""
+        if not self.metrics:
+            return "No metrics collected"
+
+        healthy_metrics = [m for m in self.metrics if m["status"] == "healthy"]
+        error_metrics = [m for m in self.metrics if m["status"] == "error"]
+
+        return {
+            "total_samples": len(self.metrics),
+            "healthy_samples": len(healthy_metrics),
+            "error_samples": len(error_metrics),
+            "uptime_percentage": len(healthy_metrics) / len(self.metrics) * 100
+        }
+
+# Usage example
+async def monitoring_example():
+    """Example of using the monitoring system."""
+    monitor = CalimeroMonitor()
+
+    # Run monitoring for 5 minutes
+    try:
+        await asyncio.wait_for(monitor.start_monitoring(10), timeout=300)
+    except asyncio.TimeoutError:
+        print("Monitoring completed")
+        print(f"Summary: {monitor.get_metrics_summary()}")
+
+if __name__ == "__main__":
+    asyncio.run(monitoring_example())
+```
+
+## Step 7: Integration with Web Frameworks
+
+### FastAPI Integration
+
+```python
+# fastapi_integration.py
+from fastapi import FastAPI, HTTPException
+from calimero_client_py import create_connection, create_client, AuthMode, ClientError
+
+app = FastAPI(title="Calimero API Wrapper")
+
+# Global client instance
+connection = create_connection("http://localhost:2528", AuthMode.NONE)
+client = create_client(connection)
+
+@app.get("/contexts")
+async def get_contexts():
+    """Get all contexts."""
+    try:
+        contexts = await client.list_contexts()
+        return {"contexts": contexts}
+    except ClientError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/contexts/{context_id}")
+async def get_context(context_id: str):
+    """Get specific context."""
+    try:
+        context = await client.get_context(context_id)
+        return context
+    except ClientError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@app.post("/contexts")
+async def create_context(application_id: str, protocol: str, params: str = None):
+    """Create a new context."""
+    try:
+        context = await client.create_context(application_id, protocol, params)
+        return context
+    except ClientError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/contexts/{context_id}/execute")
+async def execute_function(
+    context_id: str,
+    method: str,
+    args: str,
+    executor_public_key: str
+):
+    """Execute a function in a context."""
+    try:
+        result = await client.execute_function(
+            context_id, method, args, executor_public_key
+        )
+        return result
+    except ClientError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+### Django Integration
+
+```python
+# django_integration.py
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode, ClientError
+
+# Global client instance
+connection = create_connection("http://localhost:2528", AuthMode.NONE)
+client = create_client(connection)
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def list_contexts(request):
+    """List all contexts."""
+    try:
+        contexts = asyncio.run(client.list_contexts())
+        return JsonResponse({"contexts": contexts})
+    except ClientError as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_context(request):
+    """Create a new context."""
+    try:
+        data = request.json
+        context = asyncio.run(client.create_context(
+            data["application_id"],
+            data["protocol"],
+            data.get("params")
+        ))
+        return JsonResponse(context)
+    except ClientError as e:
+        return JsonResponse({"error": str(e)}, status=400)
+```
+
+## Step 8: Testing
+
+### Unit Testing
+
+```python
+# test_calimero_client.py
+import pytest
+from unittest.mock import AsyncMock, MagicMock
+from calimero_client_py import create_connection, create_client, AuthMode
+
+class TestCalimeroClient:
+    """Test suite for Calimero client."""
+
+    @pytest.fixture
+    def mock_client(self):
+        """Create a mock client for testing."""
+        connection = create_connection("http://localhost:2528", AuthMode.NONE)
+        client = create_client(connection)
+
+        # Mock the client methods
+        client.list_contexts = AsyncMock(return_value=[
+            {"context_id": "ctx-1", "application_id": "app-1"},
+            {"context_id": "ctx-2", "application_id": "app-2"}
+        ])
+
+        client.create_context = AsyncMock(return_value={
+            "context_id": "ctx-3", "application_id": "app-3"
+        })
+
+        return client
+
+    @pytest.mark.asyncio
+    async def test_list_contexts(self, mock_client):
+        """Test listing contexts."""
+        contexts = await mock_client.list_contexts()
+        assert len(contexts) == 2
+        assert contexts[0]["context_id"] == "ctx-1"
+
+    @pytest.mark.asyncio
+    async def test_create_context(self, mock_client):
+        """Test creating context."""
+        context = await mock_client.create_context("app-3", "near")
+        assert context["context_id"] == "ctx-3"
+        assert context["application_id"] == "app-3"
+
+# Run tests
+if __name__ == "__main__":
+    pytest.main([__file__])
+```
+
+### Integration Testing
+
+```python
+# test_integration.py
+import pytest
+import asyncio
+from calimero_client_py import create_connection, create_client, AuthMode
+
+class TestCalimeroIntegration:
+    """Integration tests for Calimero client."""
+
+    @pytest.fixture
+    async def client(self):
+        """Create a real client for integration testing."""
+        connection = create_connection("http://localhost:2528", AuthMode.NONE)
+        client = create_client(connection)
+        return client
+
+    @pytest.mark.asyncio
+    async def test_full_workflow(self, client):
+        """Test complete workflow."""
+        # Install application
+        app = await client.install_application(
+            url="https://example.com/test.wasm",
+            metadata=b'{"name": "Test App"}'
+        )
+        app_id = app["application_id"]
+
+        try:
+            # Create context
+            context = await client.create_context(app_id, "near")
+            context_id = context["context_id"]
+
+            # Execute function
+            result = await client.execute_function(
+                context_id, "test", "{}", "test-key"
+            )
+
+            assert result is not None
+
+        finally:
+            # Cleanup
+            await client.delete_context(context_id)
+            await client.uninstall_application(app_id)
+
+# Run integration tests
+if __name__ == "__main__":
+    pytest.main([__file__, "-m", "integration"])
+```
+
+## Step 9: Production Deployment
+
+### Environment Configuration
+
+```python
+# config.py
+import os
+from calimero_client_py import AuthMode
+
+class CalimeroConfig:
+    """Configuration for Calimero client."""
+
+    def __init__(self):
+        self.base_url = os.getenv("CALIMERO_BASE_URL", "http://localhost:2528")
+        self.auth_mode = AuthMode.REQUIRED if os.getenv("CALIMERO_AUTH_REQUIRED") else AuthMode.NONE
+        self.jwt_token = os.getenv("CALIMERO_JWT_TOKEN")
+        self.max_retries = int(os.getenv("CALIMERO_MAX_RETRIES", "3"))
+        self.timeout = int(os.getenv("CALIMERO_TIMEOUT", "30"))
+
+    def get_connection_params(self):
+        """Get connection parameters."""
+        params = {
+            "base_url": self.base_url,
+            "auth_mode": self.auth_mode
+        }
+        if self.jwt_token:
+            params["jwt_token"] = self.jwt_token
+        return params
+```
+
+### Production Client
+
+```python
+# production_client.py
+import asyncio
+import logging
+from calimero_client_py import create_connection, create_client, AuthMode, ClientError
+from config import CalimeroConfig
+
+class ProductionCalimeroClient:
+    """Production-ready Calimero client."""
+
+    def __init__(self, config: CalimeroConfig):
+        self.config = config
+        self.connection = create_connection(**config.get_connection_params())
+        self.client = create_client(self.connection)
+        self.logger = logging.getLogger(__name__)
+
+    async def execute_with_retry(self, operation, *args, **kwargs):
+        """Execute operation with retry logic."""
+        last_error = None
+
+        for attempt in range(self.config.max_retries):
+            try:
+                return await operation(*args, **kwargs)
+            except ClientError as e:
+                last_error = e
+                self.logger.warning(f"Attempt {attempt + 1} failed: {e}")
+
+                if attempt < self.config.max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    break
+
+        self.logger.error(f"All {self.config.max_retries} attempts failed")
+        raise last_error
+
+    async def safe_list_contexts(self):
+        """Safely list contexts with retry."""
+        return await self.execute_with_retry(self.client.list_contexts)
+
+    async def safe_create_context(self, application_id: str, protocol: str, params: str = None):
+        """Safely create context with retry."""
+        return await self.execute_with_retry(
+            self.client.create_context, application_id, protocol, params
+        )
+
+# Usage
+async def main():
+    config = CalimeroConfig()
+    client = ProductionCalimeroClient(config)
+
+    contexts = await client.safe_list_contexts()
+    print(f"Found {len(contexts)} contexts")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Step 10: Best Practices and Tips
+
+### 1. Connection Management
+
+- Reuse client instances when possible
+- Use connection pooling for high-throughput applications
+- Implement proper cleanup in finally blocks
+
+### 2. Error Handling
+
+- Use specific exception types (AuthError, NetworkError, etc.)
+- Implement retry logic with exponential backoff
+- Log errors for debugging and monitoring
+
+### 3. Performance
+
+- Use asyncio.gather() for concurrent operations
+- Implement caching for frequently accessed data
+- Monitor memory usage for large datasets
+
+### 4. Testing
+
+- Write unit tests with mocked clients
+- Implement integration tests with real servers
+- Use fixtures for test setup and cleanup
+
+### 5. Monitoring
+
+- Implement logging and metrics collection
+- Use circuit breakers for fault tolerance
+- Monitor performance and error rates
+
+## Next Steps
+
+Now that you've completed this tutorial, you can:
+
+1. **Explore the
+   [Python Client Documentation](/developer-tools/SDK/client-sdk/calimero-client-py)**
+   for complete method documentation, examples, and advanced usage
+2. **Check out the Examples section** for more practical patterns
+3. **Read the Advanced Usage section** for optimization techniques
+4. **Review the Migration Guide section** if coming from other clients
+
+## Resources
+
+- **GitHub Repository**:
+  [calimero-client-py](https://github.com/calimero-network/calimero-client-py)
+- **PyPI Package**:
+  [calimero-client-py](https://pypi.org/project/calimero-client-py/)
+- **Community Discord**: [Join the conversation](https://discord.gg/calimero)
+- **Email Support**: [team@calimero.network](mailto:team@calimero.network)
+
+Happy coding with the Calimero Python client! 🐍✨
