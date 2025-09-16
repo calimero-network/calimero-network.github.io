@@ -9,37 +9,32 @@ sidebar_position: 1
 # ABI Generation
 
 ABI Generation provides automatic generation of Application Binary Interfaces
-(ABI) for your Calimero applications, enabling seamless integration across
-multiple blockchain protocols including Ethereum, NEAR, ICP, and Starknet.
+(ABI) for your Calimero applications. This blockchain-agnostic tool generates
+ABIs driven by JSON Schema with compile-time validation and strong type safety.
 
 ## What is ABI Generation?
 
 Application Binary Interface (ABI) generation is a compile-time process that
 automatically creates standardized interface definitions for your Calimero
-applications. This enables:
+applications using JSON Schema. This enables:
 
-- **Cross-Protocol Compatibility**: Write once, deploy everywhere across
-  different blockchain protocols
-- **Type Safety**: Compile-time validation ensures your application interfaces
-  are correct
+- **JSON Schema-Driven Generation**: ABI generation is driven by a JSON Schema
+  with compile-time validation
+- **Strong Type Safety**: Compile-time validation ensures your application
+  interfaces are correct
 - **Automatic Documentation**: Generate human-readable interface documentation
 - **Tool Integration**: Seamless integration with development tools and IDEs
 
 ## Key Features
 
-### Multi-Protocol Support
+### JSON Schema-Driven Generation
 
-- **Ethereum**: Full EVM compatibility with gas optimization
-- **NEAR Protocol**: Account-based architecture with optimized storage
-- **Internet Computer Protocol (ICP)**: Canister-based execution model
-- **Starknet**: Cairo-based smart contracts with account abstraction
-
-### Compile-Time Validation
-
-- **Type Checking**: Ensures all types are compatible across protocols
+- **Schema-Based**: ABI generation is driven by a JSON Schema with compile-time
+  validation
+- **Type Safety**: Strong type safety ensures your application interfaces are
+  correct
 - **Method Validation**: Verifies method signatures and return types
 - **Event Validation**: Validates event structures and parameters
-- **ABI Conformance**: Guarantees generated ABI meets protocol standards
 
 ### Developer Experience
 
@@ -104,37 +99,17 @@ calimero-abi extract target/wasm32-unknown-unknown/release/my_app.wasm > abi.jso
 calimero-abi validate abi.json
 ```
 
-## Multi-Protocol Support
+## Two-Step Generation Process
 
-ABI Generation automatically handles protocol-specific optimizations:
+ABI Generation follows a clear two-step process:
 
-### Ethereum
+1. **Generate ABI at build time as JSON** - The build process analyzes your Rust
+   code and generates a JSON Schema-based ABI
+2. **Optionally embed into WASM** - The ABI can be embedded into the WASM binary
+   for tools that may load/swap different WASMs
 
-- Gas-optimized method calls
-- Event logging with indexed parameters
-- Solidity-compatible type mapping
-- EIP-712 signature support
-
-### NEAR Protocol
-
-- Account-based method calls
-- Storage optimization for large data
-- Cross-contract calls
-- Batch operations
-
-### Internet Computer Protocol (ICP)
-
-- Canister method calls
-- Query and update methods
-- Inter-canister communication
-- Cycle management
-
-### Starknet
-
-- Cairo-based smart contracts
-- Account abstraction support
-- L2 scaling optimizations
-- Cross-contract calls
+This split explains why we have both build-time and normal dependencies in your
+`Cargo.toml`.
 
 ## Integration with Calimero Tools
 
@@ -160,7 +135,9 @@ steps:
 
 ### SDK Integration
 
-Generate type-safe client code from your ABI:
+The generated ABI can be used to create type-safe client SDKs. This is a
+separate process from ABI generation itself - the ABI serves as the interface
+definition that client generation tools can consume:
 
 ```typescript
 import { MyAppClient } from './generated/MyAppClient';
