@@ -1,506 +1,193 @@
 ---
 title: Resource Management
-description:
-  Resource limits, monitoring, and optimization for Merobox deployments.
+description: Basic resource configuration and management for Merobox nodes.
 sidebar_position: 7.7
 ---
 
 # Resource Management
 
-This guide covers resource management for Merobox, including memory and CPU
-limits, storage configuration, and resource monitoring.
+This guide covers basic resource configuration for Merobox nodes, including
+memory and CPU limits for Docker containers.
 
-## Memory and CPU Limits
+## Basic Resource Configuration
 
-Configure resource limits for nodes to ensure optimal performance and prevent
-resource exhaustion:
+Merobox supports basic resource limits for Docker containers running Calimero
+nodes:
 
-### Basic Resource Configuration
+### Memory and CPU Limits
 
 ```yaml
 nodes:
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  resources:
+    memory: '1G' # Memory limit
+    cpus: '0.5' # CPU limit
+```
+
+### Environment Variables
+
+Configure resource-related environment variables:
+
+```yaml
+nodes:
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  environment:
+    RUST_LOG: 'info'
+  resources:
+    memory: '2G'
+    cpus: '1.0'
+```
+
+## Node Configuration
+
+### Basic Node Setup
+
+Configure Calimero nodes with basic settings:
+
+```yaml
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+  base_port: 2428
+  base_rpc_port: 2528
   resources:
     memory: '1G'
-    memory_swap: '2G'
     cpus: '0.5'
-    cpu_quota: 50000
-    cpu_period: 100000
 ```
 
-### Advanced Resource Configuration
+### Multiple Node Configuration
+
+Set up multiple nodes with different resource allocations:
 
 ```yaml
-# Detailed resource configuration
 nodes:
+  chain_id: testnet-1
+  count: 3
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
   resources:
-    # Memory settings
     memory: '2G'
-    memory_swap: '4G'
-    memory_reservation: '1G'
-    memory_swappiness: 10
-
-    # CPU settings
-    cpus: '1.5'
-    cpu_quota: 75000
-    cpu_period: 100000
-    cpu_shares: 1024
-
-    # I/O settings
-    blkio_weight: 300
-    blkio_weight_device:
-      - path: /dev/sda
-        weight: 200
-    device_read_bps:
-      - path: /dev/sda
-        rate: '10MB'
-    device_write_bps:
-      - path: /dev/sda
-        rate: '10MB'
+    cpus: '1.0'
 ```
 
-### Resource Limits per Node
+## Environment Variables
+
+Configure Merobox behavior using environment variables:
+
+### Core Configuration
+
+```bash
+# Docker daemon connection
+export DOCKER_HOST="unix:///var/run/docker.sock"
+
+# Logging level (if supported)
+export LOG_LEVEL="INFO"  # DEBUG, INFO, WARNING, ERROR
+```
+
+### Docker Configuration
+
+```bash
+# Docker daemon settings
+export DOCKER_HOST="unix:///var/run/docker.sock"
+
+# Docker build settings
+export DOCKER_BUILDKIT="1"
+export DOCKER_CLI_EXPERIMENTAL="enabled"
+```
+
+## Authentication Service
+
+Configure authentication service for Merobox nodes:
+
+### Basic Auth Service
 
 ```yaml
-# Different resource limits for different nodes
+# Enable authentication service
+auth_service: true
+auth_image: ghcr.io/calimero-network/mero-auth:edge
+
 nodes:
-  - name: calimero-node-1
-    resources:
-      memory: '4G'
-      cpus: '2.0'
-  - name: calimero-node-2
-    resources:
-      memory: '2G'
-      cpus: '1.0'
-  - name: calimero-node-3
-    resources:
-      memory: '1G'
-      cpus: '0.5'
-```
-
-## Storage Configuration
-
-Configure persistent storage for data persistence and performance:
-
-### Basic Volume Configuration
-
-```yaml
-nodes:
-  volumes:
-    - type: bind
-      source: ./data
-      target: /calimero/data
-    - type: volume
-      source: calimero-logs
-      target: /calimero/logs
-  tmpfs:
-    - /tmp: size=100M,noexec,nosuid,nodev
-```
-
-### Advanced Storage Configuration
-
-```yaml
-# Advanced storage setup
-nodes:
-  volumes:
-    # Bind mount for configuration
-    - type: bind
-      source: ./config
-      target: /calimero/config
-      read_only: true
-
-    # Named volume for data
-    - type: volume
-      source: calimero-data
-      target: /calimero/data
-      driver: local
-      driver_opts:
-        type: none
-        o: bind
-        device: /mnt/calimero-data
-
-    # External volume for logs
-    - type: volume
-      source: calimero-logs
-      target: /calimero/logs
-      external: true
-
-    # Tmpfs for temporary files
-    - type: tmpfs
-      target: /tmp
-      tmpfs:
-        size: 100M
-        mode: 1777
-        noexec: true
-        nosuid: true
-        nodev: true
-```
-
-### Storage Performance Optimization
-
-```yaml
-# Storage performance tuning
-storage:
-  optimization:
-    # Use SSD storage for better performance
-    device: /dev/nvme0n1
-    filesystem: ext4
-    mount_options:
-      - noatime
-      - nodiratime
-      - data=writeback
-      - commit=60
-
-  # Database storage optimization
-  database:
-    type: postgresql
-    storage:
-      device: /dev/nvme0n1p2
-      mount_point: /var/lib/postgresql
-      options:
-        - noatime
-        - nodiratime
-        - data=writeback
-```
-
-## Resource Monitoring
-
-Monitor resource usage to identify bottlenecks and optimize performance:
-
-### Basic Monitoring Configuration
-
-```yaml
-monitoring:
-  enabled: true
-  metrics:
-    - cpu_usage
-    - memory_usage
-    - disk_usage
-    - network_io
-  interval: 5
-```
-
-### Advanced Monitoring Setup
-
-```yaml
-# Comprehensive monitoring
-monitoring:
-  enabled: true
-  metrics:
-    # System metrics
-    - cpu_usage
-    - memory_usage
-    - disk_usage
-    - network_io
-    - load_average
-
-    # Application metrics
-    - request_count
-    - response_time
-    - error_rate
-    - active_connections
-
-    # Custom metrics
-    - blockchain_height
-    - consensus_participation
-    - transaction_throughput
-
-  # Monitoring intervals
-  intervals:
-    system: 5s
-    application: 10s
-    custom: 30s
-
-  # Alerting configuration
-  alerts:
-    - metric: memory_usage
-      threshold: 80
-      window: 60s
-      action: restart_node
-    - metric: cpu_usage
-      threshold: 90
-      window: 30s
-      action: scale_up
-    - metric: disk_usage
-      threshold: 85
-      window: 120s
-      action: cleanup_logs
-```
-
-### Prometheus Integration
-
-```yaml
-# Prometheus monitoring
-monitoring:
-  prometheus:
-    enabled: true
-    port: 9090
-    scrape_interval: 15s
-    targets:
-      - calimero-node-1:8080
-      - calimero-node-2:8080
-      - calimero-node-3:8080
-
-    # Custom metrics
-    custom_metrics:
-      - name: calimero_block_height
-        type: gauge
-        help: 'Current blockchain height'
-      - name: calimero_consensus_rounds
-        type: counter
-        help: 'Number of consensus rounds completed'
-```
-
-## Resource Optimization
-
-### CPU Optimization
-
-```yaml
-# CPU optimization settings
-cpu_optimization:
-  # CPU affinity
-  cpu_affinity:
-    - 0,1 # Use cores 0 and 1
-    - 2,3 # Use cores 2 and 3
-
-  # CPU governor
-  cpu_governor: performance
-
-  # CPU frequency scaling
-  cpu_scaling:
-    min_freq: 2.0GHz
-    max_freq: 3.5GHz
-
-  # Process priority
-  process_priority: -10 # High priority
-```
-
-### Memory Optimization
-
-```yaml
-# Memory optimization
-memory_optimization:
-  # Memory allocation strategy
-  allocation_strategy: jemalloc
-
-  # Memory pools
-  memory_pools:
-    - name: small_objects
-      size: 64MB
-      alignment: 8
-    - name: large_objects
-      size: 256MB
-      alignment: 64
-
-  # Garbage collection
-  gc:
-    enabled: true
-    threshold: 80%
-    interval: 30s
-    strategy: concurrent
-```
-
-### I/O Optimization
-
-```yaml
-# I/O optimization
-io_optimization:
-  # I/O scheduler
-  io_scheduler: mq-deadline
-
-  # Read-ahead
-  read_ahead: 1024
-
-  # Write caching
-  write_cache:
-    enabled: true
-    size: 256MB
-    sync_interval: 5s
-
-  # Disk I/O limits
-  disk_limits:
-    read_iops: 1000
-    write_iops: 1000
-    read_bps: 100MB
-    write_bps: 100MB
-```
-
-## Auto-Scaling
-
-### Horizontal Scaling
-
-```yaml
-# Auto-scaling configuration
-autoscaling:
-  enabled: true
-  min_nodes: 2
-  max_nodes: 10
-
-  # Scaling triggers
-  triggers:
-    - metric: cpu_usage
-      threshold: 70
-      scale_up: true
-      scale_down: false
-    - metric: memory_usage
-      threshold: 80
-      scale_up: true
-      scale_down: false
-    - metric: request_rate
-      threshold: 1000
-      scale_up: true
-      scale_down: false
-
-  # Scaling policies
-  policies:
-    scale_up:
-      step_size: 2
-      cooldown: 300s
-    scale_down:
-      step_size: 1
-      cooldown: 600s
-```
-
-### Vertical Scaling
-
-```yaml
-# Vertical scaling
-vertical_scaling:
-  enabled: true
-
-  # Resource scaling
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
   resources:
-    memory:
-      min: '1G'
-      max: '8G'
-      step: '1G'
-    cpus:
-      min: '0.5'
-      max: '4.0'
-      step: '0.5'
-
-  # Scaling triggers
-  triggers:
-    - metric: memory_usage
-      threshold: 85
-      action: increase_memory
-    - metric: cpu_usage
-      threshold: 90
-      action: increase_cpus
+    memory: '1G'
+    cpus: '0.5'
 ```
 
-## Resource Quotas
+### Auth Service Environment Variables
 
-### Namespace Quotas
-
-```yaml
-# Resource quotas
-quotas:
-  namespace: calimero
-
-  # Resource limits
-  limits:
-    cpu: '10'
-    memory: '20Gi'
-    pods: '20'
-    persistentvolumeclaims: '10'
-
-  # Resource requests
-  requests:
-    cpu: '5'
-    memory: '10Gi'
-    pods: '10'
-    persistentvolumeclaims: '5'
+```bash
+# Auth service is configured through CLI flags
+# merobox run --auth-service --auth-image ghcr.io/calimero-network/mero-auth:edge
 ```
 
-### Per-Node Quotas
-
-```yaml
-# Per-node resource quotas
-node_quotas:
-  - name: calimero-node-1
-    limits:
-      cpu: '2'
-      memory: '4Gi'
-    requests:
-      cpu: '1'
-      memory: '2Gi'
-
-  - name: calimero-node-2
-    limits:
-      cpu: '1'
-      memory: '2Gi'
-    requests:
-      cpu: '0.5'
-      memory: '1Gi'
-```
-
-## Resource Troubleshooting
+## Troubleshooting
 
 ### Common Resource Issues
 
+Check resource usage and node status:
+
 ```bash
-# Check resource usage
+# Check running Merobox nodes
+merobox list
+
+# Check node health
+merobox health
+
+# View node logs
+merobox logs calimero-node-1
+
+# Check Docker container resource usage
 docker stats $(docker ps -q --filter "name=calimero-")
-
-# Check memory usage
-docker exec calimero-node-1 free -h
-
-# Check CPU usage
-docker exec calimero-node-1 top
-
-# Check disk usage
-docker exec calimero-node-1 df -h
-
-# Check I/O usage
-docker exec calimero-node-1 iostat -x 1
 ```
 
 ### Resource Debugging
 
+Enable debug logging for troubleshooting:
+
 ```bash
-# Enable resource debugging
-export DOCKER_BUILDKIT=0
-export DOCKER_CLI_EXPERIMENTAL=enabled
+# Enable debug logging
+export LOG_LEVEL=DEBUG
 
-# Check container resource limits
-docker inspect calimero-node-1 | jq '.[0].HostConfig.Memory'
-docker inspect calimero-node-1 | jq '.[0].HostConfig.CpuQuota'
+# Run workflow with verbose output
+merobox bootstrap run workflow.yml --verbose
 
-# Monitor resource usage in real-time
-watch -n 1 'docker stats --no-stream $(docker ps -q --filter "name=calimero-")'
-
-# Check system resources
-htop
-iotop
+# Check Docker container details
+docker inspect calimero-node-1
 ```
 
 ## Best Practices
 
 ### Resource Planning
 
-1. **Capacity Planning**: Plan resources based on expected load
-2. **Monitoring**: Continuously monitor resource usage
-3. **Scaling**: Implement auto-scaling for dynamic workloads
-4. **Optimization**: Regularly optimize resource allocation
+1. **Start Small**: Begin with minimal resources and scale up as needed
+2. **Monitor Usage**: Use `docker stats` to monitor actual resource consumption
+3. **Test Workloads**: Test your applications with realistic data loads
+4. **Plan for Growth**: Consider future scaling requirements
 
-### Performance Optimization
+### Performance Tips
 
-1. **Right-sizing**: Use appropriately sized resources
-2. **Caching**: Implement caching to reduce resource usage
-3. **Load Balancing**: Distribute load across multiple nodes
-4. **Monitoring**: Use monitoring to identify bottlenecks
+1. **Memory Allocation**: Start with 1-2GB memory per node for most workloads
+2. **CPU Allocation**: Use 0.5-1.0 CPU cores per node for basic operations
+3. **Environment Variables**: Use appropriate `RUST_LOG` levels for debugging
+4. **Docker Images**: Use specific image tags instead of `latest` for stability
 
-### Cost Optimization
+### Troubleshooting Tips
 
-1. **Resource Efficiency**: Optimize resource utilization
-2. **Auto-scaling**: Scale resources based on demand
-3. **Spot Instances**: Use spot instances for non-critical workloads
-4. **Reserved Instances**: Use reserved instances for predictable workloads
+1. **Check Logs**: Always check node logs first when issues occur
+2. **Resource Limits**: Ensure Docker has sufficient resources available
+3. **Network Issues**: Verify port availability and network connectivity
+4. **Image Updates**: Keep Docker images updated for latest features
 
 ## Next Steps
 
-Now that you understand resource management:
+Now that you understand basic resource management:
 
-- [Security Configuration](./security-configuration) - Security settings and
-  policies
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions

@@ -1,405 +1,227 @@
 ---
 title: Python Customization
-description:
-  Advanced Python customization and extension capabilities for Merobox CLI.
+description: Basic Python integration and testing capabilities for Merobox CLI.
 sidebar_position: 6
 ---
 
 # Python Customization
 
-This guide covers advanced Python customization and extension capabilities for
-Merobox CLI, including custom commands, step types, and plugin development.
+This guide covers basic Python integration and testing capabilities for Merobox
+CLI.
 
 ## Overview
 
-Merobox provides extensive Python APIs for customization and extension:
+Merobox provides basic Python integration for testing and automation:
 
-- **Custom Commands**: Create new CLI commands for specific use cases
-- **Custom Step Types**: Implement custom workflow steps
-- **Plugin System**: Develop reusable plugins for Merobox
 - **Testing Integration**: Use Merobox in your Python test suites
+- **Basic Automation**: Automate Merobox workflows with Python scripts
+- **Environment Management**: Manage test environments programmatically
 
-## Custom Commands
+## Basic Python Integration
 
-Create custom Merobox commands for specific use cases:
-
-```python
-# custom_commands.py
-import click
-from merobox.commands.manager import CalimeroManager
-
-@click.command()
-@click.option('--custom-option', help='Custom option')
-def custom_command(custom_option):
-    """Custom command for specific use case."""
-    manager = CalimeroManager()
-    # Custom logic here
-    click.echo(f"Custom command executed with option: {custom_option}")
-```
-
-### Command Registration
-
-Register your custom commands with Merobox:
+### Using Merobox in Python Scripts
 
 ```python
-# main.py
-from merobox.cli import cli
-from custom_commands import custom_command
+# basic_integration.py
+import subprocess
+import json
 
-# Register custom command
-cli.add_command(custom_command)
+def run_merobox_command(command):
+    """Run a Merobox command and return the result."""
+    try:
+        result = subprocess.run(
+            ['merobox'] + command,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Error running merobox command: {e}")
+        return None
 
-if __name__ == '__main__':
-    cli()
-```
+# Example usage
+def start_nodes(count=2):
+    """Start Merobox nodes."""
+    output = run_merobox_command(['run', '--count', str(count)])
+    print(f"Started {count} nodes: {output}")
 
-### Command Examples
+def check_health():
+    """Check node health."""
+    output = run_merobox_command(['health'])
+    print(f"Health status: {output}")
 
-#### Database Management Command
-
-```python
-@click.command()
-@click.option('--backup', is_flag=True, help='Create database backup')
-@click.option('--restore', help='Restore from backup file')
-def db_manage(backup, restore):
-    """Manage Calimero node databases."""
-    manager = CalimeroManager()
-
-    if backup:
-        # Create backup
-        manager.backup_database()
-        click.echo("Database backup created")
-    elif restore:
-        # Restore from backup
-        manager.restore_database(restore)
-        click.echo(f"Database restored from {restore}")
-```
-
-#### Custom Health Check
-
-```python
-@click.command()
-@click.option('--detailed', is_flag=True, help='Show detailed health info')
-def health_check(detailed):
-    """Enhanced health check with custom metrics."""
-    manager = CalimeroManager()
-
-    # Basic health check
-    health = manager.check_health()
-
-    if detailed:
-        # Custom detailed health metrics
-        metrics = manager.get_custom_metrics()
-        click.echo(f"Custom metrics: {metrics}")
-
-    click.echo(f"Health status: {health['status']}")
-```
-
-## Custom Step Types
-
-Implement custom step types for specialized workflow operations:
-
-```python
-# custom_steps.py
-from merobox.commands.bootstrap.steps.base import BaseStep
-
-class CustomStep(BaseStep):
-    def _get_required_fields(self):
-        return ['custom_field']
-
-    def _get_exportable_variables(self):
-        return [('result', 'custom_result', 'Custom step result')]
-
-    def execute(self):
-        # Custom step logic
-        custom_field = self.config['custom_field']
-        # Process custom_field...
-        return {'result': 'custom_output'}
-```
-
-### Step Type Registration
-
-Register custom step types with the workflow executor:
-
-```python
-# workflow_executor.py
-from merobox.commands.bootstrap.run.executor import WorkflowExecutor
-from custom_steps import CustomStep
-
-# Register custom step type
-executor = WorkflowExecutor()
-executor.register_step_type('custom_step', CustomStep)
-```
-
-### Custom Step Examples
-
-#### Database Migration Step
-
-```python
-class DatabaseMigrationStep(BaseStep):
-    def _get_required_fields(self):
-        return ['migration_file', 'target_node']
-
-    def _get_exportable_variables(self):
-        return [('migration_id', 'migration_id', 'Migration identifier')]
-
-    def execute(self):
-        migration_file = self.config['migration_file']
-        target_node = self.config['target_node']
-
-        # Execute database migration
-        migration_id = self.run_migration(migration_file, target_node)
-
-        return {'migration_id': migration_id}
-```
-
-#### Custom Validation Step
-
-```python
-class ValidationStep(BaseStep):
-    def _get_required_fields(self):
-        return ['validation_rules', 'data_source']
-
-    def _get_exportable_variables(self):
-        return [('validation_result', 'is_valid', 'Validation result')]
-
-    def execute(self):
-        rules = self.config['validation_rules']
-        data_source = self.config['data_source']
-
-        # Perform custom validation
-        is_valid = self.validate_data(rules, data_source)
-
-        if not is_valid:
-            raise ValueError("Validation failed")
-
-        return {'is_valid': is_valid}
-```
-
-## Plugin System
-
-Create Merobox plugins for reusable functionality:
-
-```python
-# merobox_plugin.py
-from merobox.plugin import MeroboxPlugin
-
-class MyPlugin(MeroboxPlugin):
-    def register_commands(self, cli):
-        @cli.command()
-        def my_command():
-            """My custom command."""
-            pass
-
-    def register_steps(self, step_registry):
-        step_registry.register('custom_step', CustomStep)
-```
-
-### Plugin Structure
-
-Organize your plugin with proper structure:
-
-```
-my_merobox_plugin/
-├── __init__.py
-├── plugin.py
-├── commands/
-│   ├── __init__.py
-│   └── custom_commands.py
-├── steps/
-│   ├── __init__.py
-│   └── custom_steps.py
-└── setup.py
-```
-
-### Plugin Installation
-
-Install your plugin for use with Merobox:
-
-```python
-# setup.py
-from setuptools import setup, find_packages
-
-setup(
-    name='my-merobox-plugin',
-    version='1.0.0',
-    packages=find_packages(),
-    entry_points={
-        'merobox.plugins': [
-            'my_plugin = my_merobox_plugin.plugin:MyPlugin',
-        ],
-    },
-    install_requires=[
-        'merobox',
-    ],
-)
-```
-
-Install the plugin:
-
-```bash
-pip install -e .
+def stop_nodes():
+    """Stop all nodes."""
+    output = run_merobox_command(['stop', '--all'])
+    print(f"Stopped nodes: {output}")
 ```
 
 ## Testing Integration
 
-Use Merobox in your Python test suites:
-
-### Basic Testing
+### Basic Testing Setup
 
 ```python
-# test_my_app.py
+# test_merobox.py
 import pytest
-from merobox.testing import cluster
+import subprocess
+import time
 
-def test_my_application():
-    with cluster(count=2, prefix="test") as test_env:
-        # Get node endpoints
-        node1_endpoint = test_env["endpoints"]["test-1"]
-        node2_endpoint = test_env["endpoints"]["test-2"]
-
-        # Test your application
-        result = my_app_function(node1_endpoint)
-        assert result is not None
-```
-
-### Workflow Testing
-
-```python
-# test_workflow.py
-from merobox.testing import workflow
-
-def test_complex_workflow():
-    with workflow("my-workflow.yml", prefix="test") as env:
-        # Verify workflow results
-        assert env["workflow_result"] is True
-
-        # Test application functionality
-        endpoints = env["endpoints"]
-        result = test_my_app(endpoints)
-        assert result["status"] == "success"
-```
-
-### Pytest Integration
-
-```python
-# conftest.py
-import pytest
-from merobox.testing import pytest_cluster
-
-# Create pytest fixture
-merobox_cluster = pytest_cluster(count=2, scope="session")
-
-# test_example.py
-def test_with_cluster(merobox_cluster):
-    endpoints = merobox_cluster["endpoints"]
-    # Your test logic here
-```
-
-## Advanced Python Features
-
-### Custom Managers
-
-Extend the CalimeroManager for specialized functionality:
-
-```python
-# custom_manager.py
-from merobox.commands.manager import CalimeroManager
-
-class CustomCalimeroManager(CalimeroManager):
+class MeroboxTestHelper:
     def __init__(self):
-        super().__init__()
-        self.custom_config = {}
+        self.nodes = []
 
-    def setup_custom_environment(self, config):
-        """Setup custom environment configuration."""
-        self.custom_config = config
-        # Custom setup logic
+    def start_nodes(self, count=2):
+        """Start Merobox nodes for testing."""
+        result = subprocess.run(
+            ['merobox', 'run', '--count', str(count)],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            self.nodes = [f"calimero-node-{i+1}" for i in range(count)]
+            return True
+        return False
 
-    def get_custom_metrics(self):
-        """Get custom performance metrics."""
-        # Custom metrics collection
-        return {
-            'custom_metric_1': 'value1',
-            'custom_metric_2': 'value2'
-        }
+    def stop_nodes(self):
+        """Stop all test nodes."""
+        subprocess.run(['merobox', 'stop', '--all'])
+        self.nodes = []
+
+    def check_health(self):
+        """Check health of all nodes."""
+        result = subprocess.run(
+            ['merobox', 'health'],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+
+# Test fixture
+@pytest.fixture
+def merobox_helper():
+    helper = MeroboxTestHelper()
+    yield helper
+    helper.stop_nodes()
+
+def test_basic_functionality(merobox_helper):
+    """Test basic Merobox functionality."""
+    assert merobox_helper.start_nodes(2)
+    assert merobox_helper.check_health()
+    merobox_helper.stop_nodes()
 ```
 
-### Event Hooks
+## Workflow Automation
 
-Implement event hooks for workflow lifecycle:
-
-```python
-# event_hooks.py
-from merobox.events import WorkflowEvent, EventHandler
-
-class CustomEventHandler(EventHandler):
-    def on_workflow_start(self, event: WorkflowEvent):
-        """Called when workflow starts."""
-        print(f"Workflow {event.workflow_id} started")
-
-    def on_step_complete(self, event: WorkflowEvent):
-        """Called when a step completes."""
-        print(f"Step {event.step_name} completed")
-
-    def on_workflow_complete(self, event: WorkflowEvent):
-        """Called when workflow completes."""
-        print(f"Workflow {event.workflow_id} completed")
-```
-
-### Configuration Management
-
-Advanced configuration management:
+### Running Workflows from Python
 
 ```python
-# config_manager.py
-from merobox.config import ConfigManager
+# workflow_automation.py
+import subprocess
 import yaml
+import tempfile
+import os
 
-class CustomConfigManager(ConfigManager):
-    def load_custom_config(self, config_path):
-        """Load custom configuration from file."""
-        with open(config_path, 'r') as f:
-            config = yaml.safe_load(f)
+def create_workflow_file(workflow_config):
+    """Create a temporary workflow file."""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        yaml.dump(workflow_config, f)
+        return f.name
 
-        # Process custom configuration
-        self.merge_config(config)
+def run_workflow(workflow_config):
+    """Run a Merobox workflow from Python."""
+    workflow_file = create_workflow_file(workflow_config)
 
-    def validate_custom_config(self, config):
-        """Validate custom configuration."""
-        required_fields = ['custom_field1', 'custom_field2']
+    try:
+        result = subprocess.run(
+            ['merobox', 'bootstrap', 'run', workflow_file],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Workflow failed: {e}")
+        return None
+    finally:
+        os.unlink(workflow_file)
 
-        for field in required_fields:
-            if field not in config:
-                raise ValueError(f"Missing required field: {field}")
+# Example workflow configuration
+def create_test_workflow():
+    """Create a simple test workflow."""
+    return {
+        'description': 'Test workflow from Python',
+        'name': 'Python Test Workflow',
+        'nodes': {
+            'chain_id': 'testnet-1',
+            'count': 1,
+            'image': 'ghcr.io/calimero-network/merod:edge'
+        },
+        'steps': [
+            {
+                'name': 'Test Step',
+                'type': 'script',
+                'script': 'echo "Hello from Python workflow!"'
+            }
+        ],
+        'stop_all_nodes': True
+    }
+
+# Run the workflow
+workflow_config = create_test_workflow()
+result = run_workflow(workflow_config)
+print(f"Workflow result: {result}")
 ```
 
 ## Best Practices
 
-### Code Organization
+### Error Handling
 
-1. **Modular Design**: Keep commands, steps, and plugins in separate modules
-2. **Error Handling**: Implement proper error handling and logging
-3. **Documentation**: Document your custom code with docstrings
-4. **Testing**: Write comprehensive tests for your custom code
+```python
+# Always handle errors properly
+def safe_merobox_command(command):
+    """Run Merobox command with proper error handling."""
+    try:
+        result = subprocess.run(
+            ['merobox'] + command,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        print(f"Error output: {e.stderr}")
+        return None
+    except FileNotFoundError:
+        print("Merobox not found. Please install it first.")
+        return None
+```
 
-### Performance Considerations
+### Resource Cleanup
 
-1. **Resource Management**: Properly manage resources and connections
-2. **Caching**: Implement caching where appropriate
-3. **Async Operations**: Use async/await for I/O operations
-4. **Memory Management**: Be mindful of memory usage in long-running processes
+```python
+# Always clean up resources
+def test_with_cleanup():
+    """Test with proper cleanup."""
+    try:
+        # Start nodes
+        subprocess.run(['merobox', 'run', '--count', '2'])
 
-### Security
+        # Run tests
+        result = subprocess.run(['merobox', 'health'])
+        assert result.returncode == 0
 
-1. **Input Validation**: Validate all inputs to prevent security issues
-2. **Access Control**: Implement proper access controls
-3. **Secret Management**: Use secure methods for handling secrets
-4. **Audit Logging**: Log important operations for audit purposes
+    finally:
+        # Always cleanup
+        subprocess.run(['merobox', 'stop', '--all'])
+```
 
 ## Next Steps
 
-Now that you understand Python customization:
+Now that you understand basic Python integration with Merobox:
 
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
 - [Troubleshooting](./troubleshooting) - Common issues and solutions
-- [Advanced Configuration](./advanced-configuration) - Other advanced features

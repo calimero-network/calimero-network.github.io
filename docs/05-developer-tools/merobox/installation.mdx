@@ -169,8 +169,8 @@ docker run hello-world
 Merobox supports several environment variables for configuration:
 
 ```bash
-# Set Docker image for Calimero nodes
-export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
+# Docker image is set through CLI flags
+# merobox run --image ghcr.io/calimero-network/merod:edge
 
 # Set Docker daemon connection
 export DOCKER_HOST="unix:///var/run/docker.sock"

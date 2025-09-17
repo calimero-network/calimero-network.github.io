@@ -13,41 +13,19 @@ system.
 
 ## Core Configuration
 
-Essential environment variables for basic Merobox operation:
+Basic environment variables for Merobox operation:
 
 ```bash
-# Docker image for Calimero nodes
-export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
-
-# Docker daemon connection
+# Docker daemon connection (standard Docker environment variable)
 export DOCKER_HOST="unix:///var/run/docker.sock"
 
-# Logging level
+# Logging level (if supported by Merobox)
 export LOG_LEVEL="INFO"  # DEBUG, INFO, WARNING, ERROR
-
-# Custom data directory
-export CALIMERO_DATA_DIR="/custom/path/to/data"
-```
-
-### Logging Configuration
-
-Control logging behavior across Merobox:
-
-```bash
-# Set log level
-export LOG_LEVEL="DEBUG"  # Most verbose
-export LOG_LEVEL="INFO"   # Default
-export LOG_LEVEL="WARNING" # Warnings and errors only
-export LOG_LEVEL="ERROR"  # Errors only
-
-# Custom log format
-export LOG_FORMAT="json"  # json, text
-export LOG_OUTPUT="stdout"  # stdout, stderr, file
 ```
 
 ### Docker Configuration
 
-Customize Docker behavior:
+Standard Docker environment variables:
 
 ```bash
 # Docker daemon settings
@@ -60,209 +38,68 @@ export DOCKER_BUILDKIT="1"  # Enable BuildKit
 export DOCKER_CLI_EXPERIMENTAL="enabled"  # Enable experimental features
 ```
 
-## Authentication Service Configuration
+## Authentication Service
 
-Configure the authentication service:
-
-```bash
-# Auth service image
-export CALIMERO_AUTH_IMAGE="ghcr.io/calimero-network/mero-auth:edge"
-
-# Auth service configuration
-export CALIMERO_AUTH_CONFIG="/path/to/auth/config.yml"
-
-# Auth service environment
-export AUTH_SECRET_KEY="your-secret-key"
-export AUTH_SESSION_TIMEOUT="3600"
-export AUTH_DATABASE_URL="postgresql://user:pass@localhost/auth"
-```
-
-### Auth Service Customization
+The authentication service is configured through CLI flags, not environment
+variables:
 
 ```bash
-# Custom auth endpoints
-export AUTH_LOGIN_ENDPOINT="/custom/login"
-export AUTH_LOGOUT_ENDPOINT="/custom/logout"
-export AUTH_VERIFY_ENDPOINT="/custom/verify"
+# Enable authentication service
+merobox run --auth-service
 
-# Session management
-export AUTH_SESSION_COOKIE_NAME="calimero_session"
-export AUTH_SESSION_DOMAIN=".calimero.local"
-export AUTH_SESSION_SECURE="true"
+# Use custom auth service image
+merobox run --auth-service --auth-image ghcr.io/calimero-network/mero-auth:latest
 ```
 
 ## Network Configuration
 
-Customize network settings:
+Network settings are configured through CLI flags:
 
 ```bash
-# Custom network settings
-export CALIMERO_NETWORK_MODE="bridge"
-export CALIMERO_NETWORK_NAME="custom-calimero-network"
+# Custom base ports
+merobox run --base-port 3000 --base-rpc-port 4000
 
-# Port ranges
-export CALIMERO_PORT_RANGE_START="3000"
-export CALIMERO_PORT_RANGE_END="4000"
-
-# Network security
-export CALIMERO_NETWORK_ISOLATION="true"
-export CALIMERO_NETWORK_ENCRYPTION="true"
+# Use different port ranges
+merobox run --count 3 --base-port 3000 --base-rpc-port 4000
 ```
 
-### Advanced Network Settings
+## Development and Testing
+
+For development and testing, use CLI flags instead of environment variables:
 
 ```bash
-# Custom subnet configuration
-export CALIMERO_SUBNET="172.20.0.0/16"
-export CALIMERO_GATEWAY="172.20.0.1"
+# Development mode (if supported)
+merobox run --count 1 --verbose
 
-# DNS configuration
-export CALIMERO_DNS_SERVERS="8.8.8.8,8.8.4.4"
-export CALIMERO_DNS_SEARCH="calimero.local"
-
-# Network performance
-export CALIMERO_MTU="1500"
-export CALIMERO_BANDWIDTH="1000M"
-```
-
-## Development Configuration
-
-Settings for development environments:
-
-```bash
-# Development mode
-export CALIMERO_DEV_MODE="true"
-export CALIMERO_DEBUG="true"
-
-# Hot reloading
-export CALIMERO_WATCH="true"
-export CALIMERO_WATCH_INTERVAL="5"
-
-# Development tools
-export CALIMERO_PROFILING="true"
-export CALIMERO_METRICS="true"
-```
-
-### Testing Configuration
-
-```bash
-# Test environment
-export CALIMERO_TEST_MODE="true"
-export CALIMERO_TEST_DATA_DIR="/tmp/calimero-test"
-
-# Test isolation
-export CALIMERO_TEST_ISOLATION="true"
-export CALIMERO_TEST_CLEANUP="true"
-
-# Test reporting
-export CALIMERO_TEST_REPORT="junit"
-export CALIMERO_TEST_COVERAGE="true"
+# Testing with custom configuration
+merobox run --count 2 --prefix test-nodes
 ```
 
 ## Production Configuration
 
-Settings for production deployments:
+For production deployments, use CLI flags and workflow configuration:
 
 ```bash
-# Production mode
-export CALIMERO_PROD_MODE="true"
-export CALIMERO_SECURE="true"
+# Production deployment
+merobox run --count 5 --image ghcr.io/calimero-network/merod:latest
 
-# Performance tuning
-export CALIMERO_WORKERS="4"
-export CALIMERO_THREADS="8"
-export CALIMERO_MEMORY_LIMIT="2G"
-
-# Monitoring
-export CALIMERO_METRICS_ENDPOINT="/metrics"
-export CALIMERO_HEALTH_ENDPOINT="/health"
-```
-
-### Security Settings
-
-```bash
-# Security configuration
-export CALIMERO_SECURE_MODE="true"
-export CALIMERO_TLS_ENABLED="true"
-export CALIMERO_TLS_CERT="/path/to/cert.pem"
-export CALIMERO_TLS_KEY="/path/to/key.pem"
-
-# Access control
-export CALIMERO_AUTH_REQUIRED="true"
-export CALIMERO_RATE_LIMIT="1000"
-export CALIMERO_CORS_ORIGINS="https://myapp.com"
-```
-
-## Environment-Specific Configuration
-
-### Local Development
-
-```bash
-# .env.local
-CALIMERO_IMAGE="ghcr.io/calimero-network/merod:dev"
-LOG_LEVEL="DEBUG"
-CALIMERO_DEV_MODE="true"
-CALIMERO_WATCH="true"
-```
-
-### Staging Environment
-
-```bash
-# .env.staging
-CALIMERO_IMAGE="ghcr.io/calimero-network/merod:staging"
-LOG_LEVEL="INFO"
-CALIMERO_TEST_MODE="true"
-CALIMERO_METRICS="true"
-```
-
-### Production Environment
-
-```bash
-# .env.production
-CALIMERO_IMAGE="ghcr.io/calimero-network/merod:latest"
-LOG_LEVEL="WARNING"
-CALIMERO_PROD_MODE="true"
-CALIMERO_SECURE="true"
-CALIMERO_MONITORING="true"
-```
-
-## Configuration Validation
-
-Validate your environment configuration:
-
-```bash
-# Check configuration
-merobox config validate
-
-# List current settings
-merobox config list
-
-# Test configuration
-merobox config test
+# With authentication service
+merobox run --count 5 --auth-service --image ghcr.io/calimero-network/merod:latest
 ```
 
 ## Best Practices
 
 ### Environment Management
 
-1. **Use .env files**: Store environment-specific settings in `.env` files
-2. **Version control**: Track `.env.example` files, not actual `.env` files
-3. **Validation**: Always validate configuration before deployment
-4. **Documentation**: Document all custom environment variables
+1. **Use CLI flags**: Prefer CLI flags over environment variables when possible
+2. **Documentation**: Document all custom configurations
+3. **Testing**: Test configurations before deployment
 
 ### Security Considerations
 
-1. **Secrets**: Never store secrets in environment variables in version control
-2. **Access control**: Limit access to production environment variables
-3. **Rotation**: Regularly rotate sensitive configuration values
-4. **Auditing**: Log configuration changes for audit purposes
-
-### Performance Optimization
-
-1. **Resource limits**: Set appropriate resource limits for your environment
-2. **Caching**: Enable caching where appropriate
-3. **Monitoring**: Use monitoring to identify performance bottlenecks
-4. **Scaling**: Configure for horizontal scaling when needed
+1. **Secrets**: Never store secrets in version control
+2. **Access control**: Limit access to production configurations
+3. **Auditing**: Log configuration changes for audit purposes
 
 ## Next Steps
 
