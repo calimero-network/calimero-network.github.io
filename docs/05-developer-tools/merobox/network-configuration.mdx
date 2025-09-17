@@ -1,411 +1,175 @@
 ---
 title: Network Configuration
-description:
-  Advanced network configuration, Docker networks, and security for Merobox.
+description: Basic network configuration and port management for Merobox.
 sidebar_position: 7.3
 ---
 
 # Network Configuration
 
-This guide covers advanced network configuration for Merobox, including custom
-Docker networks, port management, and network security.
+This guide covers basic network configuration for Merobox, including port
+management and network settings.
 
-## Custom Docker Networks
+## Port Configuration
 
-Create and use custom Docker networks for better isolation and control:
+Merobox provides basic port configuration for Calimero nodes:
+
+### Basic Port Settings
+
+Configure ports in workflow files:
 
 ```yaml
 # workflow.yml
-networks:
-  - name: calimero-custom
-    driver: bridge
-    options:
-      com.docker.network.bridge.name: calimero-br0
-      com.docker.network.driver.mtu: 1500
-
 nodes:
-  networks:
-    - calimero-custom
-    - default
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+  base_port: 2428 # Base P2P port (optional)
+  base_rpc_port: 2528 # Base RPC port (optional)
 ```
 
-### Network Types
+### CLI Port Configuration
 
-Choose the appropriate network driver for your use case:
+Set ports using command-line flags:
 
-```yaml
-# Bridge network (default)
-networks:
-  - name: calimero-bridge
-    driver: bridge
-    options:
-      com.docker.network.bridge.enable_icc: 'true'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
+```bash
+# Custom base ports
+merobox run --count 2 --base-port 2428 --base-rpc-port 2528
 
-# Host network (shares host networking)
-networks:
-  - name: calimero-host
-    driver: host
-
-# Overlay network (for multi-host)
-networks:
-  - name: calimero-overlay
-    driver: overlay
-    options:
-      encrypted: 'true'
+# Different port ranges
+merobox run --count 3 --base-port 3000 --base-rpc-port 4000
 ```
 
-### Network Configuration Options
+### Automatic Port Detection
 
-```yaml
-# Advanced network configuration
-networks:
-  - name: calimero-advanced
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
-          ip_range: 172.20.1.0/24
-    options:
-      com.docker.network.bridge.name: calimero-br0
-      com.docker.network.driver.mtu: 1500
-      com.docker.network.bridge.enable_icc: 'true'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
+Merobox automatically detects available ports:
+
+- **P2P Ports**: Starting from 2428, increments by 1 for each node
+- **RPC Ports**: Starting from 2528, increments by 1 for each node
+- **Conflict Resolution**: Automatically finds next available ports
+
+## Environment Variables
+
+Configure network settings using environment variables:
+
+### Network Configuration
+
+```bash
+# Network configuration is done through CLI flags
+# merobox run --base-port 3000 --base-rpc-port 4000
 ```
 
-## Port Management
+### Advanced Network Settings
 
-Advanced port configuration and management:
-
-### Basic Port Configuration
-
-```yaml
-nodes:
-  ports:
-    p2p: 2428
-    rpc: 2528
-    admin: 2628
-  port_mapping:
-    mode: host # host, bridge, none
-  expose_ports:
-    - 2428
-    - 2528
+```bash
+# Advanced network configuration is done through Docker
+# Create custom Docker networks if needed
+docker network create calimero-custom
 ```
 
-### Port Range Configuration
+## Docker Networks
 
-```yaml
-# Dynamic port allocation
-nodes:
-  port_range:
-    start: 3000
-    end: 4000
-    step: 10
-  port_mapping:
-    mode: bridge
-    host_ports:
-      - 2428:2428
-      - 2528:2528
+Merobox uses Docker's default networking:
+
+### Default Network Behavior
+
+- **Bridge Network**: Merobox uses Docker's default bridge network
+- **Automatic Management**: Networks are created and managed automatically
+- **Node Communication**: Nodes can communicate with each other by default
+
+### Network Management
+
+```bash
+# List Docker networks
+docker network ls
+
+# Inspect Merobox networks
+docker network inspect bridge
+
+# Check node network connectivity
+docker exec calimero-node-1 ping calimero-node-2
 ```
 
-### Port Security
-
-```yaml
-# Restrict port access
-nodes:
-  ports:
-    p2p: 2428
-    rpc: 2528
-  port_security:
-    allowed_ips:
-      - 192.168.1.0/24
-      - 10.0.0.0/8
-    blocked_ports:
-      - 22
-      - 23
-```
-
-## Network Security
-
-Configure network security and isolation:
-
-### Network Isolation
-
-```yaml
-networks:
-  - name: calimero-secure
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-    options:
-      com.docker.network.bridge.enable_icc: 'false'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
-```
-
-### Firewall Configuration
-
-```yaml
-# Custom firewall rules
-firewall:
-  enabled: true
-  rules:
-    - action: allow
-      source: 192.168.1.0/24
-      destination: 2428
-      protocol: tcp
-    - action: deny
-      source: 0.0.0.0/0
-      destination: 22
-      protocol: tcp
-```
-
-### Network Policies
-
-```yaml
-# Network access policies
-network_policies:
-  - name: calimero-policy
-    rules:
-      - from:
-          - namespace: calimero
-        ports:
-          - protocol: tcp
-            port: 2428
-      - from:
-          - namespace: monitoring
-        ports:
-          - protocol: tcp
-            port: 2528
-```
-
-## Load Balancing and Proxying
-
-### Traefik Configuration
-
-Custom Traefik proxy configuration:
-
-```yaml
-traefik:
-  image: traefik:v2.10
-  config:
-    entryPoints:
-      web:
-        address: ':80'
-      websecure:
-        address: ':443'
-    providers:
-      docker:
-        endpoint: 'unix:///var/run/docker.sock'
-        exposedByDefault: false
-    api:
-      dashboard: true
-      insecure: false
-```
-
-### Load Balancer Setup
-
-```yaml
-# Load balancer configuration
-load_balancer:
-  enabled: true
-  image: nginx:alpine
-  config:
-    upstream:
-      - server: calimero-node-1:2428
-      - server: calimero-node-2:2428
-      - server: calimero-node-3:2428
-    health_check:
-      path: /health
-      interval: 30s
-      timeout: 5s
-```
-
-### Reverse Proxy
-
-```yaml
-# Reverse proxy configuration
-reverse_proxy:
-  enabled: true
-  image: nginx:alpine
-  config:
-    server:
-      listen: 80
-      location:
-        - path: /api
-          proxy_pass: http://calimero-node-1:2528
-        - path: /admin
-          proxy_pass: http://calimero-node-1:2628
-```
-
-## Network Monitoring
-
-### Network Metrics
-
-```yaml
-# Network monitoring
-monitoring:
-  network:
-    enabled: true
-    metrics:
-      - bandwidth
-      - latency
-      - packet_loss
-      - connection_count
-    alerts:
-      - metric: bandwidth
-        threshold: 80%
-        action: scale_up
-      - metric: latency
-        threshold: 100ms
-        action: alert
-```
-
-### Network Diagnostics
-
-```yaml
-# Network diagnostic tools
-diagnostics:
-  enabled: true
-  tools:
-    - ping
-    - traceroute
-    - netstat
-    - ss
-  interval: 60s
-```
-
-## DNS Configuration
-
-### Custom DNS
-
-```yaml
-# Custom DNS configuration
-dns:
-  servers:
-    - 8.8.8.8
-    - 8.8.4.4
-    - 1.1.1.1
-  search:
-    - calimero.local
-    - internal.local
-  options:
-    - ndots: 2
-    - timeout: 2
-```
-
-### Service Discovery
-
-```yaml
-# Service discovery
-service_discovery:
-  enabled: true
-  provider: consul
-  config:
-    address: consul:8500
-    service_name: calimero
-    tags:
-      - calimero
-      - blockchain
-```
-
-## Network Troubleshooting
+## Troubleshooting
 
 ### Common Network Issues
 
+Check network connectivity and port availability:
+
 ```bash
-# Check network connectivity
-docker network ls
-docker network inspect calimero-web
+# Check port binding
+netstat -tulpn | grep -E "(2428|2528)"
 
 # Test connectivity between nodes
 docker exec calimero-node-1 ping calimero-node-2
 
-# Check port binding
-netstat -tulpn | grep -E "(2428|2528)"
+# Check Docker networks
+docker network ls
+docker network inspect bridge
 
-# Test DNS resolution
-docker exec calimero-node-1 nslookup calimero-node-2
+# Find processes using ports
+lsof -ti:2528
+```
+
+### Port Conflicts
+
+If ports are already in use:
+
+```bash
+# Kill process using port
+lsof -ti:2528 | xargs kill
+
+# Or use different ports
+merobox run --base-rpc-port 3000
+
+# Check all ports
+netstat -tulpn | grep -E "(2428|2528)"
 ```
 
 ### Network Debugging
 
+Enable debug logging for troubleshooting:
+
 ```bash
-# Enable network debugging
-export DOCKER_BUILDKIT=0
-export DOCKER_CLI_EXPERIMENTAL=enabled
+# Enable debug logging
+export LOG_LEVEL=DEBUG
 
-# Check network configuration
-docker network inspect calimero-web | jq '.[0].IPAM'
+# Run with verbose output
+merobox run --count 2 --verbose
 
-# Test network performance
-docker exec calimero-node-1 iperf3 -c calimero-node-2
-
-# Monitor network traffic
-docker exec calimero-node-1 tcpdump -i eth0
-```
-
-## Performance Optimization
-
-### Network Performance
-
-```yaml
-# Network performance tuning
-network_performance:
-  tcp_nodelay: true
-  tcp_keepalive: true
-  tcp_keepalive_time: 600
-  tcp_keepalive_interval: 60
-  tcp_keepalive_probes: 3
-```
-
-### Bandwidth Management
-
-```yaml
-# Bandwidth limits
-bandwidth:
-  enabled: true
-  limits:
-    - interface: eth0
-      rate: 100M
-      burst: 200M
-    - interface: eth1
-      rate: 50M
-      burst: 100M
+# Check node logs
+merobox logs calimero-node-1
 ```
 
 ## Best Practices
 
-### Network Design
+### Port Management
 
-1. **Segmentation**: Use separate networks for different purposes
-2. **Isolation**: Isolate sensitive services from public networks
-3. **Redundancy**: Implement redundant network paths
-4. **Monitoring**: Monitor network performance and health
+1. **Use Default Ports**: Stick to default ports (2428, 2528) when possible
+2. **Avoid Conflicts**: Check for port conflicts before starting nodes
+3. **Document Ports**: Keep track of custom port configurations
+4. **Test Connectivity**: Verify node communication after configuration changes
 
-### Security Considerations
+### Network Configuration
 
-1. **Firewall rules**: Implement appropriate firewall rules
-2. **Access control**: Control network access with policies
-3. **Encryption**: Use encrypted connections where possible
-4. **Auditing**: Log network access for audit purposes
+1. **Environment Variables**: Use environment variables for consistent
+   configuration
+2. **Port Ranges**: Use appropriate port ranges for different environments
+3. **DNS Settings**: Configure DNS for better name resolution
+4. **Network Isolation**: Use network isolation for security when needed
 
-### Performance Optimization
+### Troubleshooting
 
-1. **Bandwidth management**: Set appropriate bandwidth limits
-2. **Latency optimization**: Minimize network latency
-3. **Load balancing**: Distribute load across multiple nodes
-4. **Caching**: Implement network-level caching
+1. **Check Logs**: Always check node logs first when issues occur
+2. **Verify Ports**: Ensure ports are available and not conflicting
+3. **Test Connectivity**: Use ping and other tools to test connectivity
+4. **Docker Networks**: Check Docker network status and configuration
 
 ## Next Steps
 
-Now that you understand network configuration:
+Now that you understand basic network configuration:
 
-- [Authentication Service Integration](./auth-service-integration) - Auth
-  service configuration
-- [Resource Management](./resource-management) - Resource limits and monitoring
-- [Security Configuration](./security-configuration) - Security settings and
-  policies
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
