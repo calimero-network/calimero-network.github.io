@@ -19,6 +19,8 @@ on your system:
 ### Required Software
 
 - **Python 3.8 or higher**: Merobox is a Python CLI tool
+- **pipx**: For installing Python applications in isolated environments
+  (required for Calimero development)
 - **Docker 20.10 or higher**: For running Calimero nodes in containers
 - **Docker Compose**: For managing multi-container applications
 - **Git**: For cloning repositories and version control
@@ -39,6 +41,10 @@ Check that all prerequisites are installed and working:
 python3 --version
 # Should output: Python 3.8.x or higher
 
+# Check pipx installation
+pipx --version
+# Should output: pipx version 1.x.x or higher
+
 # Check Docker installation
 docker --version
 # Should output: Docker version 20.10.x or higher
@@ -54,50 +60,40 @@ git --version
 
 ## Installation Methods
 
-### Method 1: Install from PyPI (Recommended)
+### Method 1: Install with pipx (Recommended)
 
-The easiest way to install Merobox is using pip:
+For Calimero development, install Merobox using pipx to ensure proper isolation:
+
+1. **Install pipx** using a package manager for your OS (see
+   [pipx installation guide](https://github.com/pypa/pipx?tab=readme-ov-file#install-pipx))
+
+2. **Install Merobox and dependencies:**
 
 ```bash
-pip install merobox
+# Install maturin (required dependency)
+pipx install maturin
+
+# Install Merobox
+pipx install merobox
 ```
 
-For Python 3.x specifically:
+### Method 3: Install from Source (For Merobox Development Only)
 
-```bash
-pip3 install merobox
-```
-
-### Method 2: Install from Source
-
-If you want to use the latest development version or contribute to the project:
+If you want to contribute to Merobox itself or use the latest development
+version:
 
 ```bash
 # Clone the repository
 git clone https://github.com/calimero-network/merobox.git
 cd merobox
 
-# Install in development mode
+# Install in development mode using pip (only for Merobox development)
 pip install -e .
 ```
 
-### Method 3: Install in Virtual Environment (Recommended for Development)
-
-For isolated development environments:
-
-```bash
-# Create virtual environment
-python3 -m venv merobox-env
-
-# Activate virtual environment
-# On Linux/macOS:
-source merobox-env/bin/activate
-# On Windows:
-# merobox-env\Scripts\activate
-
-# Install Merobox
-pip install merobox
-```
+:::warning Development Context The `pip` installation method above is **only**
+for developing Merobox itself. For Calimero app development, always use `pipx`
+as shown in Method 1. :::
 
 ## Verify Installation
 
@@ -230,6 +226,18 @@ merobox stop
 - On macOS: `brew install python3`
 - On Windows: Download from Microsoft Store or python.org
 
+#### pipx Not Found
+
+```bash
+# Error: pipx: command not found
+```
+
+**Solution:**
+
+- Install pipx using a package manager for your OS (see
+  [pipx installation guide](https://github.com/pypa/pipx?tab=readme-ov-file#install-pipx))
+- Restart your terminal after installation
+
 #### Docker Not Running
 
 ```bash
@@ -302,6 +310,10 @@ Now that Merobox is installed and configured:
 - [Advanced Configuration](./advanced-configuration) - Advanced setup options
 
 ## Development Setup
+
+:::warning Merobox Development Only This section is **only** for contributing to
+Merobox itself. For Calimero development, use the pipx installation method
+above. :::
 
 If you plan to contribute to Merobox or run it from source:
 
