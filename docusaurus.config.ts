@@ -51,26 +51,6 @@ const config: Config = {
               path: '0.7.0',
               badge: false,
             },
-            '0.6.0': {
-              label: 'Stable (0.6.0)',
-              path: '0.6.0',
-              badge: false,
-            },
-            '0.5.0': {
-              label: 'Stable (0.5.0)',
-              path: '0.5.0',
-              badge: false,
-            },
-            '0.4.0': {
-              label: 'Stable (0.4.0)',
-              path: '0.4.0',
-              badge: false,
-            },
-            '0.3.0': {
-              label: 'Legacy (0.3.0)',
-              path: '0.3.0',
-              badge: false,
-            },
           },
           exclude: ['**/shared/**', '**/_*.{js,jsx,ts,tsx,md,mdx}'],
         },
