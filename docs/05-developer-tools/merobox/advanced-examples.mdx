@@ -403,114 +403,13 @@ steps:
 stop_all_nodes: true
 ```
 
-## Example 6: Custom Step Types
-
-Define and use custom step types for specialized operations.
-
-```yaml
-description: Custom step types example
-name: Custom Step Types
-
-# Define custom step types
-step_types:
-  custom_deploy:
-    required_fields: [node, application, environment]
-    optional_fields: [config, timeout]
-    execute: |
-      echo "Deploying {{application}} to {{environment}} on {{node}}"
-
-      # Set timeout if provided
-      if [ -n "{{timeout}}" ]; then
-        timeout {{timeout}} deploy_command
-      else
-        deploy_command
-      fi
-    outputs:
-      deployment_id: '{{deployment_id}}'
-      status: '{{deployment_status}}'
-
-  custom_validate:
-    required_fields: [node, data]
-    optional_fields: [rules]
-    execute: |
-      echo "Validating data on {{node}}"
-
-      # Validate data
-      if [ -n "{{rules}}" ]; then
-        validate_with_rules "{{data}}" "{{rules}}"
-      else
-        validate_default "{{data}}"
-      fi
-    outputs:
-      validation_result: '{{validation_result}}'
-      is_valid: '{{is_valid}}'
-
-nodes:
-  chain_id: testnet-1
-  count: 2
-  image: ghcr.io/calimero-network/merod:edge
-  prefix: custom-node
-
-steps:
-  - name: Install Application
-    type: install_application
-    node: custom-node-1
-    path: ./my-app.wasm
-    dev: true
-    outputs:
-      app_id: applicationId
-
-  - name: Custom Deployment
-    type: custom_deploy
-    node: custom-node-1
-    application: '{{app_id}}'
-    environment: 'test'
-    config: 'test_config'
-    timeout: '300'
-    outputs:
-      deployment_id: deployment_id
-      status: status
-
-  - name: Custom Validation
-    type: custom_validate
-    node: custom-node-1
-    data: '{{deployment_id}}'
-    rules: 'deployment_rules'
-    outputs:
-      validation_result: validation_result
-      is_valid: is_valid
-
-  - name: Validate Results
-    type: assert
-    statements:
-      - "{{status}} == 'success'"
-      - "{{is_valid}} == 'true'"
-
-stop_all_nodes: true
-```
-
-## Example 7: Workflow Composition
+## Example 6: Workflow Composition
 
 Compose complex workflows from smaller, reusable components.
 
 ```yaml
 description: Workflow composition example
 name: Workflow Composition
-
-# Base workflow for common setup
-base_workflow:
-  steps:
-    - name: Common Setup
-      type: script
-      script: |
-        echo "Common setup logic"
-        # Common setup steps
-
-    - name: Common Cleanup
-      type: script
-      script: |
-        echo "Common cleanup logic"
-        # Common cleanup steps
 
 nodes:
   chain_id: testnet-1
@@ -519,7 +418,7 @@ nodes:
   prefix: compose-node
 
 steps:
-  # Include base workflow steps
+  # Common setup steps
   - name: Common Setup
     type: script
     script: |
@@ -561,100 +460,12 @@ steps:
         executor_public_key: '{{member_key}}'
         method: test2
 
-  # Include base workflow cleanup
+  # Common cleanup steps
   - name: Common Cleanup
     type: script
     script: |
       echo "Common cleanup logic"
       # Common cleanup steps
-
-stop_all_nodes: true
-```
-
-## Example 8: Advanced Monitoring and Alerting
-
-Set up comprehensive monitoring and alerting for complex workflows.
-
-```yaml
-description: Advanced monitoring and alerting
-name: Advanced Monitoring
-
-nodes:
-  chain_id: testnet-1
-  count: 3
-  image: ghcr.io/calimero-network/merod:edge
-  prefix: monitor-node
-
-# Monitoring configuration
-monitoring:
-  enabled: true
-  metrics:
-    - cpu_usage
-    - memory_usage
-    - disk_usage
-    - network_io
-    - application_metrics
-  alerts:
-    - metric: cpu_usage
-      threshold: 80
-      action: scale_up
-    - metric: memory_usage
-      threshold: 90
-      action: restart_node
-    - metric: application_errors
-      threshold: 10
-      action: alert
-
-steps:
-  - name: Install Application
-    type: install_application
-    node: monitor-node-1
-    path: ./monitored-app.wasm
-    dev: true
-    outputs:
-      app_id: applicationId
-
-  - name: Create Context
-    type: create_context
-    node: monitor-node-1
-    application_id: '{{app_id}}'
-    outputs:
-      context_id: contextId
-      member_key: memberPublicKey
-
-  - name: Start Monitoring
-    type: script
-    script: |
-      echo "Starting monitoring..."
-      # Start monitoring services
-      echo "Monitoring started"
-
-  - name: Generate Load
-    type: repeat
-    count: 1000
-    steps:
-      - name: Process Data
-        type: call
-        node: monitor-node-1
-        context_id: '{{context_id}}'
-        executor_public_key: '{{member_key}}'
-        method: process_data
-        args:
-          data: 'load_test_{{iteration}}'
-
-  - name: Check Metrics
-    type: script
-    script: |
-      echo "Checking metrics..."
-      # Check monitoring metrics
-      echo "Metrics checked"
-
-  - name: Generate Report
-    type: script
-    script: |
-      echo "Generating monitoring report..."
-      # Generate monitoring report
-      echo "Report generated"
 
 stop_all_nodes: true
 ```
@@ -705,9 +516,6 @@ steps:
 ```yaml
 # Set appropriate resource limits
 nodes:
-  resources:
-    memory: '2G'
-    cpus: '1.0'
   count: 3 # Scale based on needs
 ```
 
