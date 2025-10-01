@@ -7,7 +7,7 @@ sidebar_position: 4.2
 # Real-World Examples
 
 These examples demonstrate how to use Merobox for common real-world scenarios,
-from multi-node testing to performance testing.
+from multi-node testing to basic performance testing.
 
 ## Example 1: Multi-Node Testing
 
@@ -258,217 +258,170 @@ steps:
 stop_all_nodes: true
 ```
 
-## Example 4: Database Integration
+## Example 4: Basic Error Handling
 
-Test applications that interact with databases.
+Implement basic error handling in your workflows.
 
 ```yaml
-description: Database integration testing
-name: Database Integration
+description: Error handling example
+name: Error Handling Test
 
 nodes:
   chain_id: testnet-1
   count: 1
   image: ghcr.io/calimero-network/merod:edge
-  prefix: db-node
-
-# Add database service
-services:
-  - name: postgres
-    image: postgres:15
-    environment:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpass
-    ports:
-      - 5432:5432
+  prefix: error-node
 
 steps:
-  - name: Wait for Database
-    type: wait
-    seconds: 10
-    message: 'Waiting for database to start...'
-
   - name: Install Application
     type: install_application
-    node: db-node-1
-    path: ./db-app.wasm
+    node: error-node-1
+    path: ./my-app.wasm
     dev: true
     outputs:
       app_id: applicationId
 
   - name: Create Context
     type: create_context
-    node: db-node-1
+    node: error-node-1
     application_id: '{{app_id}}'
     outputs:
       context_id: contextId
       member_key: memberPublicKey
 
-  - name: Test Database Connection
+  - name: Test Error Handling
     type: call
-    node: db-node-1
+    node: error-node-1
     context_id: '{{context_id}}'
     executor_public_key: '{{member_key}}'
-    method: test_db_connection
+    method: test_error_handling
     args:
-      host: postgres
-      port: 5432
-      database: testdb
-      username: testuser
-      password: testpass
+      should_fail: true
     outputs:
-      db_result: result
+      error_result: result
 
-  - name: Validate Database Connection
+  - name: Validate Error Response
     type: assert
     statements:
-      - "contains({{db_result}}, 'connected')"
+      - "contains({{error_result}}, 'error')"
+
+  - name: Recovery Test
+    type: call
+    node: error-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: test_recovery
+    args:
+      should_succeed: true
+    outputs:
+      recovery_result: result
+
+  - name: Validate Recovery
+    type: assert
+    statements:
+      - "contains({{recovery_result}}, 'success')"
 
 stop_all_nodes: true
 ```
 
-## Example 5: Load Balancing
+## Example 5: Parallel Operations
 
-Test applications behind load balancers.
+Execute multiple operations in parallel for improved performance.
 
 ```yaml
-description: Load balancing testing
-name: Load Balancing Test
+description: Parallel operations example
+name: Parallel Operations
 
 nodes:
   chain_id: testnet-1
   count: 3
   image: ghcr.io/calimero-network/merod:edge
-  prefix: lb-node
-
-# Add load balancer
-services:
-  - name: nginx
-    image: nginx:alpine
-    ports:
-      - 8080:80
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+  prefix: parallel-node
 
 steps:
-  - name: Wait for Load Balancer
-    type: wait
-    seconds: 5
-    message: 'Waiting for load balancer to start...'
-
-  - name: Install Application on All Nodes
+  - name: Install Applications in Parallel
     type: parallel
     steps:
-      - name: Install on Node 1
+      - name: Install App 1
         type: install_application
-        node: lb-node-1
-        path: ./my-app.wasm
+        node: parallel-node-1
+        path: ./app1.wasm
         dev: true
         outputs:
           app_id_1: applicationId
 
-      - name: Install on Node 2
+      - name: Install App 2
         type: install_application
-        node: lb-node-2
-        path: ./my-app.wasm
+        node: parallel-node-2
+        path: ./app2.wasm
         dev: true
         outputs:
           app_id_2: applicationId
 
-      - name: Install on Node 3
+      - name: Install App 3
         type: install_application
-        node: lb-node-3
-        path: ./my-app.wasm
+        node: parallel-node-3
+        path: ./app3.wasm
         dev: true
         outputs:
           app_id_3: applicationId
 
-  - name: Test Load Balancer
-    type: script
-    script: |
-      echo "Testing load balancer..."
-      for i in {1..10}; do
-        echo "Request $i:"
-        curl -s http://localhost:8080/health
-        echo
-      done
-
-stop_all_nodes: true
-```
-
-## Example 6: Monitoring and Alerting
-
-Set up monitoring and alerting for your applications.
-
-```yaml
-description: Monitoring and alerting setup
-name: Monitoring Example
-
-nodes:
-  chain_id: testnet-1
-  count: 2
-  image: ghcr.io/calimero-network/merod:edge
-  prefix: monitor-node
-
-# Add monitoring stack
-services:
-  - name: prometheus
-    image: prom/prometheus:latest
-    ports:
-      - 9090:9090
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-
-  - name: grafana
-    image: grafana/grafana:latest
-    ports:
-      - 3000:3000
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
-
-steps:
-  - name: Wait for Monitoring Stack
-    type: wait
-    seconds: 15
-    message: 'Waiting for monitoring stack to start...'
-
-  - name: Install Application
-    type: install_application
-    node: monitor-node-1
-    path: ./monitored-app.wasm
-    dev: true
-    outputs:
-      app_id: applicationId
-
-  - name: Create Context
-    type: create_context
-    node: monitor-node-1
-    application_id: '{{app_id}}'
-    outputs:
-      context_id: contextId
-      member_key: memberPublicKey
-
-  - name: Generate Load
-    type: repeat
-    count: 50
+  - name: Create Contexts in Parallel
+    type: parallel
     steps:
-      - name: Call Application
-        type: call
-        node: monitor-node-1
-        context_id: '{{context_id}}'
-        executor_public_key: '{{member_key}}'
-        method: process_data
-        args:
-          data: 'load_test_{{iteration}}'
+      - name: Create Context 1
+        type: create_context
+        node: parallel-node-1
+        application_id: '{{app_id_1}}'
+        outputs:
+          context_id_1: contextId
+          member_key_1: memberPublicKey
 
-  - name: Check Monitoring
-    type: script
-    script: |
-      echo "Monitoring stack is running:"
-      echo "Prometheus: http://localhost:9090"
-      echo "Grafana: http://localhost:3000 (admin/admin)"
-      echo "Application metrics should be visible in Prometheus"
+      - name: Create Context 2
+        type: create_context
+        node: parallel-node-2
+        application_id: '{{app_id_2}}'
+        outputs:
+          context_id_2: contextId
+          member_key_2: memberPublicKey
+
+      - name: Create Context 3
+        type: create_context
+        node: parallel-node-3
+        application_id: '{{app_id_3}}'
+        outputs:
+          context_id_3: contextId
+          member_key_3: memberPublicKey
+
+  - name: Test All Applications
+    type: parallel
+    steps:
+      - name: Test App 1
+        type: call
+        node: parallel-node-1
+        context_id: '{{context_id_1}}'
+        executor_public_key: '{{member_key_1}}'
+        method: test_functionality
+        args:
+          test_data: 'app1_test'
+
+      - name: Test App 2
+        type: call
+        node: parallel-node-2
+        context_id: '{{context_id_2}}'
+        executor_public_key: '{{member_key_2}}'
+        method: test_functionality
+        args:
+          test_data: 'app2_test'
+
+      - name: Test App 3
+        type: call
+        node: parallel-node-3
+        context_id: '{{context_id_3}}'
+        executor_public_key: '{{member_key_3}}'
+        method: test_functionality
+        args:
+          test_data: 'app3_test'
 
 stop_all_nodes: true
 ```
@@ -483,25 +436,12 @@ nodes:
   image: ghcr.io/calimero-network/merod:edge
   environment:
     RUST_LOG: info
-    CALIMERO_CHAIN_ID: testnet-1
-    CALIMERO_NETWORK: testnet
 ```
 
-### 2. Resource Management
+### 2. Error Handling
 
 ```yaml
-# Set appropriate resource limits
-nodes:
-  resources:
-    memory: '2G'
-    cpus: '1.0'
-  count: 3 # Scale based on needs
-```
-
-### 3. Error Handling
-
-```yaml
-# Include comprehensive error handling
+# Include basic error handling
 steps:
   - name: Risky Operation
     type: call
@@ -516,7 +456,7 @@ steps:
         script: echo "Operation failed: {{error}}"
 ```
 
-### 4. Monitoring and Validation
+### 3. Validation
 
 ```yaml
 # Always validate results

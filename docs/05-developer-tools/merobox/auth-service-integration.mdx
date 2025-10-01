@@ -1,516 +1,150 @@
 ---
 title: Authentication Service Integration
-description:
-  Advanced authentication service configuration and integration for Merobox.
+description: Basic authentication service configuration for Merobox.
 sidebar_position: 7.4
 ---
 
 # Authentication Service Integration
 
-This guide covers advanced authentication service configuration, custom
-middleware, and integration patterns for Merobox.
+This guide covers basic authentication service configuration for Merobox,
+including enabling the auth service and basic configuration options.
 
-## Advanced Auth Configuration
+## Basic Auth Service Configuration
 
-Configure authentication service with custom settings:
+Merobox provides basic authentication service support with Traefik proxy:
+
+### Enable Auth Service
+
+Enable authentication service when starting nodes:
+
+```bash
+# Start nodes with auth service
+merobox run --count 2 --auth-service
+
+# Use custom auth service image
+merobox run --count 2 --auth-service --auth-image ghcr.io/calimero-network/mero-auth:latest
+```
+
+### Workflow Configuration
+
+Enable auth service in workflow files:
 
 ```yaml
 # workflow.yml
 auth_service: true
-auth_config:
-  image: ghcr.io/calimero-network/mero-auth:latest
-  environment:
-    AUTH_SECRET_KEY: 'your-secret-key'
-    AUTH_SESSION_TIMEOUT: '3600'
-  volumes:
-    - ./auth-config:/app/config
-  networks:
-    - calimero-web
-    - calimero-internal
+auth_image: ghcr.io/calimero-network/mero-auth:edge
+
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
 ```
 
-### Auth Service Environment Variables
+### Environment Variables
 
-```yaml
-# Complete auth service configuration
-auth_service:
-  image: ghcr.io/calimero-network/mero-auth:latest
-  environment:
-    # Core configuration
-    AUTH_SECRET_KEY: 'your-secret-key'
-    AUTH_SESSION_TIMEOUT: '3600'
-    AUTH_DATABASE_URL: 'postgresql://user:pass@localhost/auth'
+Configure auth service using environment variables:
 
-    # Security settings
-    AUTH_ENCRYPTION_KEY: 'your-encryption-key'
-    AUTH_JWT_SECRET: 'your-jwt-secret'
-    AUTH_BCRYPT_ROUNDS: '12'
-
-    # Session management
-    AUTH_SESSION_COOKIE_NAME: 'calimero_session'
-    AUTH_SESSION_DOMAIN: '.calimero.local'
-    AUTH_SESSION_SECURE: 'true'
-    AUTH_SESSION_HTTP_ONLY: 'true'
-    AUTH_SESSION_SAME_SITE: 'strict'
+```bash
+# Auth service is configured through CLI flags
+# merobox run --auth-service --auth-image ghcr.io/calimero-network/mero-auth:edge
 ```
 
-### Database Configuration
+## Auth Service Features
 
-```yaml
-# Auth service database setup
-auth_service:
-  database:
-    type: postgresql
-    host: postgres
-    port: 5432
-    name: calimero_auth
-    username: auth_user
-    password: auth_password
-    ssl: true
-    ssl_mode: require
-    pool_size: 10
-    max_connections: 100
+When auth service is enabled, Merobox provides:
+
+### Node Access
+
+- **Authenticated Access**: Nodes are accessible via
+  `http://node1.127.0.0.1.nip.io`
+- **Admin Dashboard**: Available at
+  `http://node1.127.0.0.1.nip.io/admin-dashboard`
+- **API Authentication**: All API endpoints require authentication
+
+### Traefik Integration
+
+The auth service uses Traefik proxy for:
+
+- **Automatic HTTPS**: SSL termination and certificate management
+- **Load Balancing**: Distribute requests across multiple nodes
+- **Authentication**: Handle authentication for all requests
+
+## Managing Auth Service
+
+### Start Auth Service
+
+```bash
+# Start nodes with auth service
+merobox run --count 2 --auth-service
+
+# Stop auth service
+merobox stop --auth-service
+
+# Stop all nodes and auth service
+merobox stop --all
 ```
 
-## Custom Auth Middleware
+### Check Auth Service Status
 
-Configure custom authentication middleware:
+```bash
+# List running services
+merobox list
 
-```yaml
-auth_service:
-  middleware:
-    - name: cors
-      config:
-        origins: ['http://localhost:3000', 'https://myapp.com']
-        methods: ['GET', 'POST', 'PUT', 'DELETE']
-        headers: ['Content-Type', 'Authorization']
-        credentials: true
-    - name: rate-limit
-      config:
-        requests_per_minute: 100
-        burst_size: 200
-        window_size: 60
-    - name: custom-auth
-      config:
-        auth_endpoint: '/custom/auth'
-        token_header: 'X-Auth-Token'
-        refresh_endpoint: '/custom/refresh'
-```
-
-### Middleware Configuration Options
-
-```yaml
-# Advanced middleware configuration
-auth_service:
-  middleware:
-    # CORS middleware
-    - name: cors
-      config:
-        origins: ['https://app.calimero.com']
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-        headers: ['Content-Type', 'Authorization', 'X-Requested-With']
-        credentials: true
-        max_age: 86400
-
-    # Rate limiting
-    - name: rate-limit
-      config:
-        requests_per_minute: 1000
-        burst_size: 2000
-        window_size: 60
-        key_by: 'ip' # ip, user, custom
-
-    # Authentication
-    - name: auth
-      config:
-        required: true
-        token_type: 'bearer'
-        token_header: 'Authorization'
-        refresh_token_header: 'X-Refresh-Token'
-
-    # Logging
-    - name: logging
-      config:
-        level: 'info'
-        format: 'json'
-        fields: ['method', 'path', 'status', 'duration']
-
-    # Metrics
-    - name: metrics
-      config:
-        enabled: true
-        endpoint: '/metrics'
-        labels: ['method', 'path', 'status']
-```
-
-## Traefik Configuration
-
-Custom Traefik proxy configuration for auth service:
-
-```yaml
-traefik:
-  image: traefik:v2.10
-  config:
-    entryPoints:
-      web:
-        address: ':80'
-        http:
-          redirections:
-            entrypoint:
-              to: websecure
-              scheme: https
-      websecure:
-        address: ':443'
-        http:
-          tls:
-            options: default
-    providers:
-      docker:
-        endpoint: 'unix:///var/run/docker.sock'
-        exposedByDefault: false
-        network: calimero-web
-    api:
-      dashboard: true
-      insecure: false
-      auth:
-        basic:
-          admin: '$2y$10$...' # bcrypt hash
-    certificatesResolvers:
-      letsencrypt:
-        acme:
-          email: admin@calimero.com
-          storage: /acme.json
-          httpChallenge:
-            entryPoint: web
-```
-
-### SSL/TLS Configuration
-
-```yaml
-# SSL/TLS configuration
-traefik:
-  config:
-    tls:
-      options:
-        default:
-          sslProtocols:
-            - 'TLSv1.2'
-            - 'TLSv1.3'
-          cipherSuites:
-            - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
-            - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
-          minVersion: 'VersionTLS12'
-          maxVersion: 'VersionTLS13'
-```
-
-## OAuth Integration
-
-### OAuth Provider Configuration
-
-```yaml
-# OAuth provider setup
-auth_service:
-  oauth:
-    providers:
-      - name: google
-        client_id: '${GOOGLE_CLIENT_ID}'
-        client_secret: '${GOOGLE_CLIENT_SECRET}'
-        redirect_uri: 'https://auth.calimero.com/oauth/google/callback'
-        scopes: ['openid', 'email', 'profile']
-      - name: github
-        client_id: '${GITHUB_CLIENT_ID}'
-        client_secret: '${GITHUB_CLIENT_SECRET}'
-        redirect_uri: 'https://auth.calimero.com/oauth/github/callback'
-        scopes: ['user:email']
-      - name: microsoft
-        client_id: '${MICROSOFT_CLIENT_ID}'
-        client_secret: '${MICROSOFT_CLIENT_SECRET}'
-        redirect_uri: 'https://auth.calimero.com/oauth/microsoft/callback'
-        scopes: ['openid', 'email', 'profile']
-```
-
-### OAuth Flow Configuration
-
-```yaml
-# OAuth flow settings
-auth_service:
-  oauth:
-    flow:
-      authorization_code:
-        enabled: true
-        code_challenge_method: 'S256'
-        state_parameter: true
-      implicit:
-        enabled: false
-      client_credentials:
-        enabled: true
-        token_endpoint: '/oauth/token'
-      refresh_token:
-        enabled: true
-        rotation: true
-        lifetime: 86400 # 24 hours
-```
-
-## JWT Configuration
-
-### JWT Token Settings
-
-```yaml
-# JWT configuration
-auth_service:
-  jwt:
-    secret: '${JWT_SECRET}'
-    algorithm: 'HS256' # HS256, HS384, HS512, RS256, RS384, RS512
-    access_token:
-      lifetime: 3600 # 1 hour
-      issuer: 'calimero-auth'
-      audience: 'calimero-api'
-    refresh_token:
-      lifetime: 86400 # 24 hours
-      issuer: 'calimero-auth'
-      audience: 'calimero-api'
-    claims:
-      - name: 'sub'
-        required: true
-      - name: 'iat'
-        required: true
-      - name: 'exp'
-        required: true
-      - name: 'iss'
-        required: true
-      - name: 'aud'
-        required: true
-```
-
-### JWT Validation
-
-```yaml
-# JWT validation settings
-auth_service:
-  jwt:
-    validation:
-      clock_skew: 30 # seconds
-      require_exp: true
-      require_iat: true
-      require_nbf: false
-      leeway: 60 # seconds
-    blacklist:
-      enabled: true
-      storage: redis
-      ttl: 86400 # 24 hours
-```
-
-## Session Management
-
-### Session Configuration
-
-```yaml
-# Session management
-auth_service:
-  session:
-    store: redis # memory, redis, postgresql
-    config:
-      redis:
-        host: redis
-        port: 6379
-        password: '${REDIS_PASSWORD}'
-        db: 0
-        ttl: 3600
-    cookie:
-      name: 'calimero_session'
-      domain: '.calimero.local'
-      path: '/'
-      secure: true
-      http_only: true
-      same_site: 'strict'
-      max_age: 3600
-```
-
-### Session Security
-
-```yaml
-# Session security settings
-auth_service:
-  session:
-    security:
-      regenerate_id: true
-      rotate_tokens: true
-      max_concurrent_sessions: 5
-      ip_validation: true
-      user_agent_validation: true
-    encryption:
-      enabled: true
-      algorithm: 'AES-256-GCM'
-      key: '${SESSION_ENCRYPTION_KEY}'
-```
-
-## Multi-Tenant Configuration
-
-### Tenant Management
-
-```yaml
-# Multi-tenant setup
-auth_service:
-  multi_tenant:
-    enabled: true
-    tenant_resolution:
-      strategy: 'subdomain' # subdomain, path, header
-      header_name: 'X-Tenant-ID'
-      default_tenant: 'default'
-    tenant_isolation:
-      database: true
-      cache: true
-      sessions: true
-```
-
-### Tenant-Specific Configuration
-
-```yaml
-# Per-tenant configuration
-auth_service:
-  tenants:
-    - name: 'tenant1'
-      config:
-        auth_methods: ['password', 'oauth']
-        oauth_providers: ['google', 'github']
-        session_timeout: 7200
-    - name: 'tenant2'
-      config:
-        auth_methods: ['oauth']
-        oauth_providers: ['microsoft']
-        session_timeout: 3600
-```
-
-## Monitoring and Logging
-
-### Auth Service Monitoring
-
-```yaml
-# Monitoring configuration
-auth_service:
-  monitoring:
-    enabled: true
-    metrics:
-      - authentication_attempts
-      - authentication_successes
-      - authentication_failures
-      - session_creations
-      - session_destructions
-      - token_issuances
-      - token_validations
-    alerts:
-      - metric: authentication_failures
-        threshold: 100
-        window: 300
-        action: alert
-      - metric: session_creations
-        threshold: 1000
-        window: 60
-        action: scale_up
-```
-
-### Logging Configuration
-
-```yaml
-# Logging setup
-auth_service:
-  logging:
-    level: 'info'
-    format: 'json'
-    fields:
-      - timestamp
-      - level
-      - message
-      - user_id
-      - tenant_id
-      - request_id
-    outputs:
-      - stdout
-      - file: /var/log/auth-service.log
-      - syslog: udp://syslog:514
-```
-
-## Security Best Practices
-
-### Security Headers
-
-```yaml
-# Security headers
-auth_service:
-  security_headers:
-    - name: 'X-Content-Type-Options'
-      value: 'nosniff'
-    - name: 'X-Frame-Options'
-      value: 'DENY'
-    - name: 'X-XSS-Protection'
-      value: '1; mode=block'
-    - name: 'Strict-Transport-Security'
-      value: 'max-age=31536000; includeSubDomains'
-    - name: 'Content-Security-Policy'
-      value: "default-src 'self'"
-```
-
-### Rate Limiting
-
-```yaml
-# Advanced rate limiting
-auth_service:
-  rate_limiting:
-    global:
-      requests_per_minute: 1000
-      burst_size: 2000
-    endpoints:
-      - path: '/auth/login'
-        requests_per_minute: 10
-        burst_size: 20
-      - path: '/auth/register'
-        requests_per_minute: 5
-        burst_size: 10
-      - path: '/oauth/*'
-        requests_per_minute: 100
-        burst_size: 200
+# Check health status
+merobox health --verbose
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
+Check auth service logs and status:
+
 ```bash
-# Check auth service status
+# Check auth service logs
 docker logs calimero-auth-service
 
-# Test authentication
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "test", "password": "test"}'
+# Check Traefik logs
+docker logs calimero-traefik
 
-# Check database connectivity
-docker exec calimero-auth-service psql -h postgres -U auth_user -d calimero_auth -c "SELECT 1;"
-
-# Verify JWT tokens
-curl -H "Authorization: Bearer <token>" http://localhost:8080/auth/verify
+# Verify auth service is running
+docker ps | grep auth
 ```
 
-### Debug Configuration
+### Debug Mode
 
-```yaml
-# Debug mode
-auth_service:
-  debug:
-    enabled: true
-    log_level: 'debug'
-    trace_requests: true
-    trace_responses: true
-    profile_requests: true
+Enable debug logging for troubleshooting:
+
+```bash
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+
+# Run with verbose output
+merobox run --count 2 --auth-service --verbose
 ```
+
+## Best Practices
+
+### Security
+
+1. **Use HTTPS**: Always use HTTPS in production environments
+2. **Secure Images**: Use specific image tags instead of `latest`
+3. **Environment Variables**: Store sensitive configuration in environment
+   variables
+4. **Regular Updates**: Keep auth service images updated
+
+### Performance
+
+1. **Resource Limits**: Set appropriate memory and CPU limits
+2. **Monitoring**: Monitor auth service performance
+3. **Scaling**: Consider multiple nodes for high availability
 
 ## Next Steps
 
-Now that you understand authentication service integration:
+Now that you understand basic authentication service integration:
 
-- [Workflow Advanced Features](./workflow-advanced-features) - Advanced workflow
-  capabilities
-- [Testing Framework Integration](./testing-framework-integration) - Testing
-  with Merobox
-- [Resource Management](./resource-management) - Resource limits and monitoring
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
