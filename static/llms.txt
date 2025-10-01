@@ -39,7 +39,6 @@ Calimero Network provides a comprehensive development framework for building dec
 
 - [Merod](https://calimero-network.github.io/docs/05-developer-tools/01-CLI/01-merod): Command-line tool for managing Calimero nodes
 - [Meroctl](https://calimero-network.github.io/docs/05-developer-tools/01-CLI/02-meroctl): Control utility for node operations and management
-- [Cargo Mero](https://calimero-network.github.io/docs/05-developer-tools/01-CLI/03-cargo-mero): Rust package manager integration for Calimero development
 - [Protocol SDK](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/03-protocol-sdk/01-protocol-sdk): Foundation tools for building application logic in Rust
 - [Client SDK](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/04-client-sdk/calimero-client-js): TypeScript SDK for creating user interfaces and handling authentication
 - [Admin Dashboard](https://calimero-network.github.io/docs/05-developer-tools/03-apps/05-admin-dashboard): Web-based interface for node management and monitoring
