@@ -7993,75 +7993,51 @@ console.log(bytes); // [123, 34, 97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 
 
 # Advanced Configuration
 
-This guide covers advanced features, configuration options, and customization
-capabilities in Merobox for power users and complex scenarios.
+This guide covers advanced features and configuration options for Merobox.
 
 ## Overview
 
-Merobox provides extensive advanced configuration options organized into
+Merobox provides several advanced configuration options organized into
 specialized areas:
 
 - **[Environment Variables](./environment-variables)** - Configure Merobox
   behavior and Docker settings
 - **[Docker Image Management](./docker-image-management)** - Manage Docker
-  images, containers, and multi-architecture support
-- **[Network Configuration](./network-configuration)** - Advanced network setup,
-  Docker networks, and security
+  images and containers
+- **[Network Configuration](./network-configuration)** - Basic network setup and
+  port management
 - **[Authentication Service Integration](./auth-service-integration)** - Auth
-  service configuration and integration
+  service configuration
 - **[Workflow Advanced Features](./workflow-advanced-features)** - Conditional
-  execution, parallel steps, and custom step types
-- **[Testing Framework Integration](./testing-framework-integration)** -
-  Advanced testing configuration and utilities
-- **[Resource Management](./resource-management)** - Resource limits,
-  monitoring, and optimization
-- **[Security Configuration](./security-configuration)** - Security settings,
-  policies, and best practices
+  execution and parallel steps
+- **[Testing Framework Integration](./testing-framework-integration)** - Basic
+  testing configuration
+- **[Resource Management](./resource-management)** - Basic resource limits and
+  monitoring
+- **[Security Configuration](./security-configuration)** - Basic security
+  settings
 
 ## Quick Reference
 
 ### Common Configuration Patterns
 
 ```yaml
-# Basic advanced configuration
+# Basic workflow configuration
 nodes:
   count: 3
   image: ghcr.io/calimero-network/merod:latest
-  resources:
-    memory: '2G'
-    cpus: '1.0'
-  environment:
-    RUST_LOG: 'info'
-    CALIMERO_SECURE_MODE: 'true'
-
-# Network configuration
-networks:
-  - name: calimero-web
-    driver: bridge
-    options:
-      com.docker.network.bridge.enable_icc: 'true'
-
-# Security settings
-security:
-  user: '1000:1000'
-  read_only: true
-  capabilities:
-    drop: ['ALL']
-    add: ['NET_BIND_SERVICE']
+  chain_id: testnet-1
+  prefix: calimero-node
 ```
 
-### Environment Variables
+### CLI Configuration
 
 ```bash
 # Core configuration
-export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
-export LOG_LEVEL="INFO"
-export CALIMERO_DATA_DIR="/custom/path/to/data"
+merobox run --count 3 --image ghcr.io/calimero-network/merod:edge
 
 # Network settings
-export CALIMERO_NETWORK_MODE="bridge"
-export CALIMERO_PORT_RANGE_START="3000"
-export CALIMERO_PORT_RANGE_END="4000"
+merobox run --count 3 --base-port 3000 --base-rpc-port 4000
 ```
 
 ## Configuration Best Practices
@@ -8075,22 +8051,13 @@ Use different configurations for different environments:
 development:
   nodes:
     count: 2
-    resources:
-      memory: '1G'
-      cpus: '0.5'
-  security:
-    read_only: false
+    image: ghcr.io/calimero-network/merod:edge
 
 # Production
 production:
   nodes:
     count: 5
-    resources:
-      memory: '4G'
-      cpus: '2.0'
-  security:
-    read_only: true
-    no_new_privileges: true
+    image: ghcr.io/calimero-network/merod:latest
 ```
 
 ### 2. Resource Planning
@@ -8107,7 +8074,7 @@ Plan resources based on your workload:
 Implement security best practices:
 
 - Use non-root users
-- Enable read-only filesystems
+- Enable read-only filesystems where possible
 - Drop unnecessary capabilities
 - Implement network segmentation
 - Use secrets management
@@ -8115,9 +8082,10 @@ Implement security best practices:
 
 ### 4. Monitoring and Observability
 
-Set up comprehensive monitoring:
+Set up basic monitoring:
 
 ```yaml
+# Basic monitoring
 monitoring:
   enabled: true
   metrics:
@@ -8125,10 +8093,6 @@ monitoring:
     - memory_usage
     - disk_usage
     - network_io
-  alerts:
-    - metric: memory_usage
-      threshold: 80
-      action: restart_node
 ```
 
 ## Troubleshooting Advanced Issues
@@ -8154,9 +8118,6 @@ export DOCKER_CLI_EXPERIMENTAL=enabled
 Profile Merobox performance:
 
 ```bash
-# Profile workflow execution
-merobox bootstrap run workflow.yml --profile
-
 # Monitor resource usage
 docker stats $(docker ps -q --filter "name=calimero-")
 
@@ -8210,8 +8171,7 @@ netstat -tulpn | grep -E "(2428|2528)"
 
 Now that you understand advanced configuration:
 
-- [Python Customization](./python-customization) - Advanced Python customization
-  and extensions
+- [Python Customization](./python-customization) - Basic Python integration
 - [Troubleshooting](./troubleshooting) - Common issues and solutions
 
 ---
@@ -8617,114 +8577,13 @@ steps:
 stop_all_nodes: true
 ```
 
-## Example 6: Custom Step Types
-
-Define and use custom step types for specialized operations.
-
-```yaml
-description: Custom step types example
-name: Custom Step Types
-
-# Define custom step types
-step_types:
-  custom_deploy:
-    required_fields: [node, application, environment]
-    optional_fields: [config, timeout]
-    execute: |
-      echo "Deploying {{application}} to {{environment}} on {{node}}"
-
-      # Set timeout if provided
-      if [ -n "{{timeout}}" ]; then
-        timeout {{timeout}} deploy_command
-      else
-        deploy_command
-      fi
-    outputs:
-      deployment_id: '{{deployment_id}}'
-      status: '{{deployment_status}}'
-
-  custom_validate:
-    required_fields: [node, data]
-    optional_fields: [rules]
-    execute: |
-      echo "Validating data on {{node}}"
-
-      # Validate data
-      if [ -n "{{rules}}" ]; then
-        validate_with_rules "{{data}}" "{{rules}}"
-      else
-        validate_default "{{data}}"
-      fi
-    outputs:
-      validation_result: '{{validation_result}}'
-      is_valid: '{{is_valid}}'
-
-nodes:
-  chain_id: testnet-1
-  count: 2
-  image: ghcr.io/calimero-network/merod:edge
-  prefix: custom-node
-
-steps:
-  - name: Install Application
-    type: install_application
-    node: custom-node-1
-    path: ./my-app.wasm
-    dev: true
-    outputs:
-      app_id: applicationId
-
-  - name: Custom Deployment
-    type: custom_deploy
-    node: custom-node-1
-    application: '{{app_id}}'
-    environment: 'test'
-    config: 'test_config'
-    timeout: '300'
-    outputs:
-      deployment_id: deployment_id
-      status: status
-
-  - name: Custom Validation
-    type: custom_validate
-    node: custom-node-1
-    data: '{{deployment_id}}'
-    rules: 'deployment_rules'
-    outputs:
-      validation_result: validation_result
-      is_valid: is_valid
-
-  - name: Validate Results
-    type: assert
-    statements:
-      - "{{status}} == 'success'"
-      - "{{is_valid}} == 'true'"
-
-stop_all_nodes: true
-```
-
-## Example 7: Workflow Composition
+## Example 6: Workflow Composition
 
 Compose complex workflows from smaller, reusable components.
 
 ```yaml
 description: Workflow composition example
 name: Workflow Composition
-
-# Base workflow for common setup
-base_workflow:
-  steps:
-    - name: Common Setup
-      type: script
-      script: |
-        echo "Common setup logic"
-        # Common setup steps
-
-    - name: Common Cleanup
-      type: script
-      script: |
-        echo "Common cleanup logic"
-        # Common cleanup steps
 
 nodes:
   chain_id: testnet-1
@@ -8733,7 +8592,7 @@ nodes:
   prefix: compose-node
 
 steps:
-  # Include base workflow steps
+  # Common setup steps
   - name: Common Setup
     type: script
     script: |
@@ -8775,100 +8634,12 @@ steps:
         executor_public_key: '{{member_key}}'
         method: test2
 
-  # Include base workflow cleanup
+  # Common cleanup steps
   - name: Common Cleanup
     type: script
     script: |
       echo "Common cleanup logic"
       # Common cleanup steps
-
-stop_all_nodes: true
-```
-
-## Example 8: Advanced Monitoring and Alerting
-
-Set up comprehensive monitoring and alerting for complex workflows.
-
-```yaml
-description: Advanced monitoring and alerting
-name: Advanced Monitoring
-
-nodes:
-  chain_id: testnet-1
-  count: 3
-  image: ghcr.io/calimero-network/merod:edge
-  prefix: monitor-node
-
-# Monitoring configuration
-monitoring:
-  enabled: true
-  metrics:
-    - cpu_usage
-    - memory_usage
-    - disk_usage
-    - network_io
-    - application_metrics
-  alerts:
-    - metric: cpu_usage
-      threshold: 80
-      action: scale_up
-    - metric: memory_usage
-      threshold: 90
-      action: restart_node
-    - metric: application_errors
-      threshold: 10
-      action: alert
-
-steps:
-  - name: Install Application
-    type: install_application
-    node: monitor-node-1
-    path: ./monitored-app.wasm
-    dev: true
-    outputs:
-      app_id: applicationId
-
-  - name: Create Context
-    type: create_context
-    node: monitor-node-1
-    application_id: '{{app_id}}'
-    outputs:
-      context_id: contextId
-      member_key: memberPublicKey
-
-  - name: Start Monitoring
-    type: script
-    script: |
-      echo "Starting monitoring..."
-      # Start monitoring services
-      echo "Monitoring started"
-
-  - name: Generate Load
-    type: repeat
-    count: 1000
-    steps:
-      - name: Process Data
-        type: call
-        node: monitor-node-1
-        context_id: '{{context_id}}'
-        executor_public_key: '{{member_key}}'
-        method: process_data
-        args:
-          data: 'load_test_{{iteration}}'
-
-  - name: Check Metrics
-    type: script
-    script: |
-      echo "Checking metrics..."
-      # Check monitoring metrics
-      echo "Metrics checked"
-
-  - name: Generate Report
-    type: script
-    script: |
-      echo "Generating monitoring report..."
-      # Generate monitoring report
-      echo "Report generated"
 
 stop_all_nodes: true
 ```
@@ -8919,9 +8690,6 @@ steps:
 ```yaml
 # Set appropriate resource limits
 nodes:
-  resources:
-    memory: '2G'
-    cpus: '1.0'
   count: 3 # Scale based on needs
 ```
 
@@ -8949,513 +8717,148 @@ Now that you understand advanced examples:
 
 # Authentication Service Integration
 
-This guide covers advanced authentication service configuration, custom
-middleware, and integration patterns for Merobox.
+This guide covers basic authentication service configuration for Merobox,
+including enabling the auth service and basic configuration options.
 
-## Advanced Auth Configuration
+## Basic Auth Service Configuration
 
-Configure authentication service with custom settings:
+Merobox provides basic authentication service support with Traefik proxy:
+
+### Enable Auth Service
+
+Enable authentication service when starting nodes:
+
+```bash
+# Start nodes with auth service
+merobox run --count 2 --auth-service
+
+# Use custom auth service image
+merobox run --count 2 --auth-service --auth-image ghcr.io/calimero-network/mero-auth:latest
+```
+
+### Workflow Configuration
+
+Enable auth service in workflow files:
 
 ```yaml
 # workflow.yml
 auth_service: true
-auth_config:
-  image: ghcr.io/calimero-network/mero-auth:latest
-  environment:
-    AUTH_SECRET_KEY: 'your-secret-key'
-    AUTH_SESSION_TIMEOUT: '3600'
-  volumes:
-    - ./auth-config:/app/config
-  networks:
-    - calimero-web
-    - calimero-internal
+auth_image: ghcr.io/calimero-network/mero-auth:edge
+
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
 ```
 
-### Auth Service Environment Variables
+### Environment Variables
 
-```yaml
-# Complete auth service configuration
-auth_service:
-  image: ghcr.io/calimero-network/mero-auth:latest
-  environment:
-    # Core configuration
-    AUTH_SECRET_KEY: 'your-secret-key'
-    AUTH_SESSION_TIMEOUT: '3600'
-    AUTH_DATABASE_URL: 'postgresql://user:pass@localhost/auth'
+Configure auth service using environment variables:
 
-    # Security settings
-    AUTH_ENCRYPTION_KEY: 'your-encryption-key'
-    AUTH_JWT_SECRET: 'your-jwt-secret'
-    AUTH_BCRYPT_ROUNDS: '12'
-
-    # Session management
-    AUTH_SESSION_COOKIE_NAME: 'calimero_session'
-    AUTH_SESSION_DOMAIN: '.calimero.local'
-    AUTH_SESSION_SECURE: 'true'
-    AUTH_SESSION_HTTP_ONLY: 'true'
-    AUTH_SESSION_SAME_SITE: 'strict'
+```bash
+# Auth service is configured through CLI flags
+# merobox run --auth-service --auth-image ghcr.io/calimero-network/mero-auth:edge
 ```
 
-### Database Configuration
+## Auth Service Features
 
-```yaml
-# Auth service database setup
-auth_service:
-  database:
-    type: postgresql
-    host: postgres
-    port: 5432
-    name: calimero_auth
-    username: auth_user
-    password: auth_password
-    ssl: true
-    ssl_mode: require
-    pool_size: 10
-    max_connections: 100
+When auth service is enabled, Merobox provides:
+
+### Node Access
+
+- **Authenticated Access**: Nodes are accessible via
+  `http://node1.127.0.0.1.nip.io`
+- **Admin Dashboard**: Available at
+  `http://node1.127.0.0.1.nip.io/admin-dashboard`
+- **API Authentication**: All API endpoints require authentication
+
+### Traefik Integration
+
+The auth service uses Traefik proxy for:
+
+- **Automatic HTTPS**: SSL termination and certificate management
+- **Load Balancing**: Distribute requests across multiple nodes
+- **Authentication**: Handle authentication for all requests
+
+## Managing Auth Service
+
+### Start Auth Service
+
+```bash
+# Start nodes with auth service
+merobox run --count 2 --auth-service
+
+# Stop auth service
+merobox stop --auth-service
+
+# Stop all nodes and auth service
+merobox stop --all
 ```
 
-## Custom Auth Middleware
+### Check Auth Service Status
 
-Configure custom authentication middleware:
+```bash
+# List running services
+merobox list
 
-```yaml
-auth_service:
-  middleware:
-    - name: cors
-      config:
-        origins: ['http://localhost:3000', 'https://myapp.com']
-        methods: ['GET', 'POST', 'PUT', 'DELETE']
-        headers: ['Content-Type', 'Authorization']
-        credentials: true
-    - name: rate-limit
-      config:
-        requests_per_minute: 100
-        burst_size: 200
-        window_size: 60
-    - name: custom-auth
-      config:
-        auth_endpoint: '/custom/auth'
-        token_header: 'X-Auth-Token'
-        refresh_endpoint: '/custom/refresh'
-```
-
-### Middleware Configuration Options
-
-```yaml
-# Advanced middleware configuration
-auth_service:
-  middleware:
-    # CORS middleware
-    - name: cors
-      config:
-        origins: ['https://app.calimero.com']
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-        headers: ['Content-Type', 'Authorization', 'X-Requested-With']
-        credentials: true
-        max_age: 86400
-
-    # Rate limiting
-    - name: rate-limit
-      config:
-        requests_per_minute: 1000
-        burst_size: 2000
-        window_size: 60
-        key_by: 'ip' # ip, user, custom
-
-    # Authentication
-    - name: auth
-      config:
-        required: true
-        token_type: 'bearer'
-        token_header: 'Authorization'
-        refresh_token_header: 'X-Refresh-Token'
-
-    # Logging
-    - name: logging
-      config:
-        level: 'info'
-        format: 'json'
-        fields: ['method', 'path', 'status', 'duration']
-
-    # Metrics
-    - name: metrics
-      config:
-        enabled: true
-        endpoint: '/metrics'
-        labels: ['method', 'path', 'status']
-```
-
-## Traefik Configuration
-
-Custom Traefik proxy configuration for auth service:
-
-```yaml
-traefik:
-  image: traefik:v2.10
-  config:
-    entryPoints:
-      web:
-        address: ':80'
-        http:
-          redirections:
-            entrypoint:
-              to: websecure
-              scheme: https
-      websecure:
-        address: ':443'
-        http:
-          tls:
-            options: default
-    providers:
-      docker:
-        endpoint: 'unix:///var/run/docker.sock'
-        exposedByDefault: false
-        network: calimero-web
-    api:
-      dashboard: true
-      insecure: false
-      auth:
-        basic:
-          admin: '$2y$10$...' # bcrypt hash
-    certificatesResolvers:
-      letsencrypt:
-        acme:
-          email: admin@calimero.com
-          storage: /acme.json
-          httpChallenge:
-            entryPoint: web
-```
-
-### SSL/TLS Configuration
-
-```yaml
-# SSL/TLS configuration
-traefik:
-  config:
-    tls:
-      options:
-        default:
-          sslProtocols:
-            - 'TLSv1.2'
-            - 'TLSv1.3'
-          cipherSuites:
-            - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
-            - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
-          minVersion: 'VersionTLS12'
-          maxVersion: 'VersionTLS13'
-```
-
-## OAuth Integration
-
-### OAuth Provider Configuration
-
-```yaml
-# OAuth provider setup
-auth_service:
-  oauth:
-    providers:
-      - name: google
-        client_id: '${GOOGLE_CLIENT_ID}'
-        client_secret: '${GOOGLE_CLIENT_SECRET}'
-        redirect_uri: 'https://auth.calimero.com/oauth/google/callback'
-        scopes: ['openid', 'email', 'profile']
-      - name: github
-        client_id: '${GITHUB_CLIENT_ID}'
-        client_secret: '${GITHUB_CLIENT_SECRET}'
-        redirect_uri: 'https://auth.calimero.com/oauth/github/callback'
-        scopes: ['user:email']
-      - name: microsoft
-        client_id: '${MICROSOFT_CLIENT_ID}'
-        client_secret: '${MICROSOFT_CLIENT_SECRET}'
-        redirect_uri: 'https://auth.calimero.com/oauth/microsoft/callback'
-        scopes: ['openid', 'email', 'profile']
-```
-
-### OAuth Flow Configuration
-
-```yaml
-# OAuth flow settings
-auth_service:
-  oauth:
-    flow:
-      authorization_code:
-        enabled: true
-        code_challenge_method: 'S256'
-        state_parameter: true
-      implicit:
-        enabled: false
-      client_credentials:
-        enabled: true
-        token_endpoint: '/oauth/token'
-      refresh_token:
-        enabled: true
-        rotation: true
-        lifetime: 86400 # 24 hours
-```
-
-## JWT Configuration
-
-### JWT Token Settings
-
-```yaml
-# JWT configuration
-auth_service:
-  jwt:
-    secret: '${JWT_SECRET}'
-    algorithm: 'HS256' # HS256, HS384, HS512, RS256, RS384, RS512
-    access_token:
-      lifetime: 3600 # 1 hour
-      issuer: 'calimero-auth'
-      audience: 'calimero-api'
-    refresh_token:
-      lifetime: 86400 # 24 hours
-      issuer: 'calimero-auth'
-      audience: 'calimero-api'
-    claims:
-      - name: 'sub'
-        required: true
-      - name: 'iat'
-        required: true
-      - name: 'exp'
-        required: true
-      - name: 'iss'
-        required: true
-      - name: 'aud'
-        required: true
-```
-
-### JWT Validation
-
-```yaml
-# JWT validation settings
-auth_service:
-  jwt:
-    validation:
-      clock_skew: 30 # seconds
-      require_exp: true
-      require_iat: true
-      require_nbf: false
-      leeway: 60 # seconds
-    blacklist:
-      enabled: true
-      storage: redis
-      ttl: 86400 # 24 hours
-```
-
-## Session Management
-
-### Session Configuration
-
-```yaml
-# Session management
-auth_service:
-  session:
-    store: redis # memory, redis, postgresql
-    config:
-      redis:
-        host: redis
-        port: 6379
-        password: '${REDIS_PASSWORD}'
-        db: 0
-        ttl: 3600
-    cookie:
-      name: 'calimero_session'
-      domain: '.calimero.local'
-      path: '/'
-      secure: true
-      http_only: true
-      same_site: 'strict'
-      max_age: 3600
-```
-
-### Session Security
-
-```yaml
-# Session security settings
-auth_service:
-  session:
-    security:
-      regenerate_id: true
-      rotate_tokens: true
-      max_concurrent_sessions: 5
-      ip_validation: true
-      user_agent_validation: true
-    encryption:
-      enabled: true
-      algorithm: 'AES-256-GCM'
-      key: '${SESSION_ENCRYPTION_KEY}'
-```
-
-## Multi-Tenant Configuration
-
-### Tenant Management
-
-```yaml
-# Multi-tenant setup
-auth_service:
-  multi_tenant:
-    enabled: true
-    tenant_resolution:
-      strategy: 'subdomain' # subdomain, path, header
-      header_name: 'X-Tenant-ID'
-      default_tenant: 'default'
-    tenant_isolation:
-      database: true
-      cache: true
-      sessions: true
-```
-
-### Tenant-Specific Configuration
-
-```yaml
-# Per-tenant configuration
-auth_service:
-  tenants:
-    - name: 'tenant1'
-      config:
-        auth_methods: ['password', 'oauth']
-        oauth_providers: ['google', 'github']
-        session_timeout: 7200
-    - name: 'tenant2'
-      config:
-        auth_methods: ['oauth']
-        oauth_providers: ['microsoft']
-        session_timeout: 3600
-```
-
-## Monitoring and Logging
-
-### Auth Service Monitoring
-
-```yaml
-# Monitoring configuration
-auth_service:
-  monitoring:
-    enabled: true
-    metrics:
-      - authentication_attempts
-      - authentication_successes
-      - authentication_failures
-      - session_creations
-      - session_destructions
-      - token_issuances
-      - token_validations
-    alerts:
-      - metric: authentication_failures
-        threshold: 100
-        window: 300
-        action: alert
-      - metric: session_creations
-        threshold: 1000
-        window: 60
-        action: scale_up
-```
-
-### Logging Configuration
-
-```yaml
-# Logging setup
-auth_service:
-  logging:
-    level: 'info'
-    format: 'json'
-    fields:
-      - timestamp
-      - level
-      - message
-      - user_id
-      - tenant_id
-      - request_id
-    outputs:
-      - stdout
-      - file: /var/log/auth-service.log
-      - syslog: udp://syslog:514
-```
-
-## Security Best Practices
-
-### Security Headers
-
-```yaml
-# Security headers
-auth_service:
-  security_headers:
-    - name: 'X-Content-Type-Options'
-      value: 'nosniff'
-    - name: 'X-Frame-Options'
-      value: 'DENY'
-    - name: 'X-XSS-Protection'
-      value: '1; mode=block'
-    - name: 'Strict-Transport-Security'
-      value: 'max-age=31536000; includeSubDomains'
-    - name: 'Content-Security-Policy'
-      value: "default-src 'self'"
-```
-
-### Rate Limiting
-
-```yaml
-# Advanced rate limiting
-auth_service:
-  rate_limiting:
-    global:
-      requests_per_minute: 1000
-      burst_size: 2000
-    endpoints:
-      - path: '/auth/login'
-        requests_per_minute: 10
-        burst_size: 20
-      - path: '/auth/register'
-        requests_per_minute: 5
-        burst_size: 10
-      - path: '/oauth/*'
-        requests_per_minute: 100
-        burst_size: 200
+# Check health status
+merobox health --verbose
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
+Check auth service logs and status:
+
 ```bash
-# Check auth service status
+# Check auth service logs
 docker logs calimero-auth-service
 
-# Test authentication
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "test", "password": "test"}'
+# Check Traefik logs
+docker logs calimero-traefik
 
-# Check database connectivity
-docker exec calimero-auth-service psql -h postgres -U auth_user -d calimero_auth -c "SELECT 1;"
-
-# Verify JWT tokens
-curl -H "Authorization: Bearer " http://localhost:8080/auth/verify
+# Verify auth service is running
+docker ps | grep auth
 ```
 
-### Debug Configuration
+### Debug Mode
 
-```yaml
-# Debug mode
-auth_service:
-  debug:
-    enabled: true
-    log_level: 'debug'
-    trace_requests: true
-    trace_responses: true
-    profile_requests: true
+Enable debug logging for troubleshooting:
+
+```bash
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+
+# Run with verbose output
+merobox run --count 2 --auth-service --verbose
 ```
+
+## Best Practices
+
+### Security
+
+1. **Use HTTPS**: Always use HTTPS in production environments
+2. **Secure Images**: Use specific image tags instead of `latest`
+3. **Environment Variables**: Store sensitive configuration in environment
+   variables
+4. **Regular Updates**: Keep auth service images updated
+
+### Performance
+
+1. **Resource Limits**: Set appropriate memory and CPU limits
+2. **Monitoring**: Monitor auth service performance
+3. **Scaling**: Consider multiple nodes for high availability
 
 ## Next Steps
 
-Now that you understand authentication service integration:
+Now that you understand basic authentication service integration:
 
-- [Workflow Advanced Features](./workflow-advanced-features) - Advanced workflow
-  capabilities
-- [Testing Framework Integration](./testing-framework-integration) - Testing
-  with Merobox
-- [Resource Management](./resource-management) - Resource limits and monitoring
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
 
 ---
 
@@ -10075,21 +9478,20 @@ Now that you understand best practices:
 
 # Docker Image Management
 
-This guide covers advanced Docker image management, including custom image
-configuration, pull strategies, and multi-architecture support for Merobox.
+This guide covers basic Docker image management for Merobox deployments.
 
-## Custom Image Configuration
+## Basic Image Configuration
 
-Configure custom Docker images for different scenarios:
+Merobox uses Docker images for running Calimero nodes:
 
 ```yaml
 # workflow.yml
 nodes:
-  image: ghcr.io/calimero-network/merod:latest
-  auth_image: ghcr.io/calimero-network/mero-auth:latest
+  image: ghcr.io/calimero-network/merod:edge
+  auth_image: ghcr.io/calimero-network/mero-auth:edge
 ```
 
-### Image Selection Strategies
+### Image Selection
 
 Choose the right image for your use case:
 
@@ -10105,302 +9507,68 @@ nodes:
 # Specific version
 nodes:
   image: ghcr.io/calimero-network/merod:v0.7.0
-
-# Custom build
-nodes:
-  image: my-registry.com/calimero:custom
 ```
 
-### Multi-Image Workflows
+## Basic Image Management
 
-Use different images for different nodes:
+### Pulling Images
 
-```yaml
-# workflow.yml
-nodes:
-  - name: calimero-node-1
-    image: ghcr.io/calimero-network/merod:latest
-  - name: calimero-node-2
-    image: ghcr.io/calimero-network/merod:edge
-  - name: calimero-node-3
-    image: my-registry.com/calimero:custom
+```bash
+# Pull the default Calimero image
+docker pull ghcr.io/calimero-network/merod:edge
+
+# Pull the authentication service image
+docker pull ghcr.io/calimero-network/mero-auth:edge
+
+# List available images
+docker images | grep calimero
 ```
 
-## Image Pull Strategies
+### Image Verification
 
-Control how Merobox handles Docker images:
+```bash
+# Check image details
+docker inspect ghcr.io/calimero-network/merod:edge
 
-### Pull Policies
+# Test image locally
+docker run --rm ghcr.io/calimero-network/merod:edge --version
 
-```yaml
-# Always pull latest images
-force_pull_image: true
-
-# Custom pull behavior per node
-nodes:
-  image: ghcr.io/calimero-network/merod:edge
-  pull_policy: always # always, if-not-present, never
+# Check image layers
+docker history ghcr.io/calimero-network/merod:edge
 ```
 
-### Pull Configuration Options
+## Basic Docker Commands
 
-```yaml
-# Global pull settings
-image_pull_policy: if-not-present
-image_pull_timeout: 300
-image_pull_retries: 3
+### Container Management
 
-# Per-node pull settings
-nodes:
-  - name: calimero-node-1
-    image: ghcr.io/calimero-network/merod:latest
-    pull_policy: always
-    pull_timeout: 600
-  - name: calimero-node-2
-    image: ghcr.io/calimero-network/merod:edge
-    pull_policy: if-not-present
+```bash
+# List running containers
+docker ps
+
+# List all containers
+docker ps -a
+
+# Stop containers
+docker stop calimero-node-1
+
+# Remove containers
+docker rm calimero-node-1
+
+# Clean up unused containers
+docker container prune
 ```
 
-### Registry Authentication
+### Image Management
 
-Configure authentication for private registries:
+```bash
+# List images
+docker images
 
-```yaml
-# Registry credentials
-registries:
-  - name: ghcr.io
-    username: ${GITHUB_USERNAME}
-    password: ${GITHUB_TOKEN}
-  - name: my-registry.com
-    username: ${REGISTRY_USERNAME}
-    password: ${REGISTRY_PASSWORD}
+# Remove unused images
+docker image prune
 
-# Use authenticated registry
-nodes:
-  image: my-registry.com/calimero:private
-  registry: my-registry.com
-```
-
-## Multi-Architecture Support
-
-Use different images for different architectures:
-
-### Platform-Specific Images
-
-```yaml
-nodes:
-  image: ghcr.io/calimero-network/merod:edge
-  platform: linux/amd64 # linux/arm64, linux/arm/v7
-```
-
-### Multi-Platform Workflows
-
-```yaml
-# Different platforms for different nodes
-nodes:
-  - name: calimero-node-amd64
-    image: ghcr.io/calimero-network/merod:edge
-    platform: linux/amd64
-  - name: calimero-node-arm64
-    image: ghcr.io/calimero-network/merod:edge
-    platform: linux/arm64
-```
-
-### Architecture Detection
-
-```yaml
-# Auto-detect platform
-nodes:
-  image: ghcr.io/calimero-network/merod:edge
-  platform: auto # Automatically detect host architecture
-
-# Conditional platform selection
-nodes:
-  image: ghcr.io/calimero-network/merod:edge
-  platform: "{{platform}}" # Use dynamic platform variable
-```
-
-## Image Building and Customization
-
-### Custom Image Building
-
-Build custom images with your modifications:
-
-```dockerfile
-# Dockerfile.custom
-FROM ghcr.io/calimero-network/merod:edge
-
-# Add custom configurations
-COPY custom-config.yml /calimero/config/
-COPY custom-plugins/ /calimero/plugins/
-
-# Set custom environment
-ENV CALIMERO_CUSTOM_MODE=true
-ENV CALIMERO_PLUGINS_PATH=/calimero/plugins
-
-# Expose additional ports
-EXPOSE 3000 3001
-```
-
-### Build Configuration
-
-```yaml
-# workflow.yml
-build:
-  context: .
-  dockerfile: Dockerfile.custom
-  tags:
-    - my-registry.com/calimero:custom
-    - my-registry.com/calimero:latest
-  args:
-    - BUILD_DATE={{now}}
-    - VERSION={{version}}
-  platforms:
-    - linux/amd64
-    - linux/arm64
-
-nodes:
-  image: my-registry.com/calimero:custom
-```
-
-### Image Optimization
-
-Optimize images for production:
-
-```dockerfile
-# Multi-stage build for optimization
-FROM ghcr.io/calimero-network/merod:edge as base
-
-# Development stage
-FROM base as dev
-RUN apt-get update && apt-get install -y \
-    curl \
-    vim \
-    && rm -rf /var/lib/apt/lists/*
-
-# Production stage
-FROM base as prod
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Use production stage
-FROM prod
-```
-
-## Image Caching and Performance
-
-### Build Cache Configuration
-
-```yaml
-# Enable build cache
-build:
-  cache: true
-  cache_from:
-    - ghcr.io/calimero-network/merod:edge
-    - my-registry.com/calimero:cache
-  cache_to:
-    - my-registry.com/calimero:cache
-
-# Cache configuration
-cache:
-  enabled: true
-  ttl: 3600 # 1 hour
-  max_size: 10GB
-```
-
-### Image Layer Optimization
-
-```dockerfile
-# Optimize layer caching
-FROM ghcr.io/calimero-network/merod:edge
-
-# Copy package files first (changes less frequently)
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
-
-# Copy source code last (changes more frequently)
-COPY src/ ./src/
-COPY config/ ./config/
-```
-
-## Image Security
-
-### Security Scanning
-
-```yaml
-# Enable security scanning
-security:
-  scan_images: true
-  scan_policy: strict
-  vulnerabilities:
-    - high
-    - critical
-  ignore:
-    - CVE-2023-1234 # Known false positive
-```
-
-### Image Signing
-
-```yaml
-# Sign images for security
-signing:
-  enabled: true
-  key: ${SIGNING_KEY}
-  passphrase: ${SIGNING_PASSPHRASE}
-  registry: my-registry.com
-```
-
-### Base Image Security
-
-```yaml
-# Use minimal base images
-nodes:
-  image: ghcr.io/calimero-network/merod:edge
-  security:
-    user: 1000:1000 # Non-root user
-    read_only: true
-    no_new_privileges: true
-```
-
-## Image Monitoring and Maintenance
-
-### Image Health Checks
-
-```yaml
-# Health check configuration
-nodes:
-  image: ghcr.io/calimero-network/merod:edge
-  healthcheck:
-    test: ['CMD', 'curl', '-f', 'http://localhost:2428/health']
-    interval: 30s
-    timeout: 10s
-    retries: 3
-    start_period: 40s
-```
-
-### Image Updates
-
-```yaml
-# Automatic image updates
-updates:
-  enabled: true
-  schedule: '0 2 * * *' # Daily at 2 AM
-  strategy: rolling
-  max_unavailable: 1
-  max_surge: 1
-```
-
-### Image Cleanup
-
-```yaml
-# Cleanup old images
-cleanup:
-  enabled: true
-  keep_last: 5
-  older_than: 7d
-  untagged: true
+# Clean up all unused resources
+docker system prune
 ```
 
 ## Troubleshooting Image Issues
@@ -10442,32 +9610,28 @@ docker run --rm ghcr.io/calimero-network/merod:edge sh -c "echo 'Image is workin
 
 1. **Use specific tags**: Avoid `latest` in production
 2. **Regular updates**: Keep images up to date with security patches
-3. **Minimal images**: Use minimal base images when possible
-4. **Version pinning**: Pin to specific versions for reproducibility
+3. **Version pinning**: Pin to specific versions for reproducibility
 
 ### Performance Optimization
 
-1. **Layer caching**: Optimize Dockerfile for better layer caching
-2. **Multi-stage builds**: Use multi-stage builds to reduce image size
-3. **Registry mirrors**: Use local registry mirrors for faster pulls
-4. **Image compression**: Compress images for storage efficiency
+1. **Pre-pull images**: Pull images before running workflows
+2. **Clean up unused images**: Regularly clean up unused Docker resources
+3. **Use appropriate image sizes**: Choose the right image for your use case
 
 ### Security Considerations
 
-1. **Vulnerability scanning**: Regularly scan images for vulnerabilities
-2. **Image signing**: Sign images to ensure authenticity
-3. **Access control**: Control access to image registries
-4. **Regular updates**: Keep base images updated
+1. **Use official images**: Prefer official Calimero images
+2. **Regular updates**: Keep images updated with security patches
+3. **Verify image integrity**: Check image signatures when possible
 
 ## Next Steps
 
-Now that you understand Docker image management:
+Now that you understand basic Docker image management:
 
-- [Network Configuration](./network-configuration) - Advanced network setup
-- [Authentication Service Integration](./auth-service-integration) - Auth
-  service configuration
-- [Resource Management](./resource-management) - Resource limits and monitoring
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
 
 ---
 
@@ -10481,41 +9645,19 @@ system.
 
 ## Core Configuration
 
-Essential environment variables for basic Merobox operation:
+Basic environment variables for Merobox operation:
 
 ```bash
-# Docker image for Calimero nodes
-export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
-
-# Docker daemon connection
+# Docker daemon connection (standard Docker environment variable)
 export DOCKER_HOST="unix:///var/run/docker.sock"
 
-# Logging level
+# Logging level (if supported by Merobox)
 export LOG_LEVEL="INFO"  # DEBUG, INFO, WARNING, ERROR
-
-# Custom data directory
-export CALIMERO_DATA_DIR="/custom/path/to/data"
-```
-
-### Logging Configuration
-
-Control logging behavior across Merobox:
-
-```bash
-# Set log level
-export LOG_LEVEL="DEBUG"  # Most verbose
-export LOG_LEVEL="INFO"   # Default
-export LOG_LEVEL="WARNING" # Warnings and errors only
-export LOG_LEVEL="ERROR"  # Errors only
-
-# Custom log format
-export LOG_FORMAT="json"  # json, text
-export LOG_OUTPUT="stdout"  # stdout, stderr, file
 ```
 
 ### Docker Configuration
 
-Customize Docker behavior:
+Standard Docker environment variables:
 
 ```bash
 # Docker daemon settings
@@ -10528,209 +9670,68 @@ export DOCKER_BUILDKIT="1"  # Enable BuildKit
 export DOCKER_CLI_EXPERIMENTAL="enabled"  # Enable experimental features
 ```
 
-## Authentication Service Configuration
+## Authentication Service
 
-Configure the authentication service:
-
-```bash
-# Auth service image
-export CALIMERO_AUTH_IMAGE="ghcr.io/calimero-network/mero-auth:edge"
-
-# Auth service configuration
-export CALIMERO_AUTH_CONFIG="/path/to/auth/config.yml"
-
-# Auth service environment
-export AUTH_SECRET_KEY="your-secret-key"
-export AUTH_SESSION_TIMEOUT="3600"
-export AUTH_DATABASE_URL="postgresql://user:pass@localhost/auth"
-```
-
-### Auth Service Customization
+The authentication service is configured through CLI flags, not environment
+variables:
 
 ```bash
-# Custom auth endpoints
-export AUTH_LOGIN_ENDPOINT="/custom/login"
-export AUTH_LOGOUT_ENDPOINT="/custom/logout"
-export AUTH_VERIFY_ENDPOINT="/custom/verify"
+# Enable authentication service
+merobox run --auth-service
 
-# Session management
-export AUTH_SESSION_COOKIE_NAME="calimero_session"
-export AUTH_SESSION_DOMAIN=".calimero.local"
-export AUTH_SESSION_SECURE="true"
+# Use custom auth service image
+merobox run --auth-service --auth-image ghcr.io/calimero-network/mero-auth:latest
 ```
 
 ## Network Configuration
 
-Customize network settings:
+Network settings are configured through CLI flags:
 
 ```bash
-# Custom network settings
-export CALIMERO_NETWORK_MODE="bridge"
-export CALIMERO_NETWORK_NAME="custom-calimero-network"
+# Custom base ports
+merobox run --base-port 3000 --base-rpc-port 4000
 
-# Port ranges
-export CALIMERO_PORT_RANGE_START="3000"
-export CALIMERO_PORT_RANGE_END="4000"
-
-# Network security
-export CALIMERO_NETWORK_ISOLATION="true"
-export CALIMERO_NETWORK_ENCRYPTION="true"
+# Use different port ranges
+merobox run --count 3 --base-port 3000 --base-rpc-port 4000
 ```
 
-### Advanced Network Settings
+## Development and Testing
+
+For development and testing, use CLI flags instead of environment variables:
 
 ```bash
-# Custom subnet configuration
-export CALIMERO_SUBNET="172.20.0.0/16"
-export CALIMERO_GATEWAY="172.20.0.1"
+# Development mode (if supported)
+merobox run --count 1 --verbose
 
-# DNS configuration
-export CALIMERO_DNS_SERVERS="8.8.8.8,8.8.4.4"
-export CALIMERO_DNS_SEARCH="calimero.local"
-
-# Network performance
-export CALIMERO_MTU="1500"
-export CALIMERO_BANDWIDTH="1000M"
-```
-
-## Development Configuration
-
-Settings for development environments:
-
-```bash
-# Development mode
-export CALIMERO_DEV_MODE="true"
-export CALIMERO_DEBUG="true"
-
-# Hot reloading
-export CALIMERO_WATCH="true"
-export CALIMERO_WATCH_INTERVAL="5"
-
-# Development tools
-export CALIMERO_PROFILING="true"
-export CALIMERO_METRICS="true"
-```
-
-### Testing Configuration
-
-```bash
-# Test environment
-export CALIMERO_TEST_MODE="true"
-export CALIMERO_TEST_DATA_DIR="/tmp/calimero-test"
-
-# Test isolation
-export CALIMERO_TEST_ISOLATION="true"
-export CALIMERO_TEST_CLEANUP="true"
-
-# Test reporting
-export CALIMERO_TEST_REPORT="junit"
-export CALIMERO_TEST_COVERAGE="true"
+# Testing with custom configuration
+merobox run --count 2 --prefix test-nodes
 ```
 
 ## Production Configuration
 
-Settings for production deployments:
+For production deployments, use CLI flags and workflow configuration:
 
 ```bash
-# Production mode
-export CALIMERO_PROD_MODE="true"
-export CALIMERO_SECURE="true"
+# Production deployment
+merobox run --count 5 --image ghcr.io/calimero-network/merod:latest
 
-# Performance tuning
-export CALIMERO_WORKERS="4"
-export CALIMERO_THREADS="8"
-export CALIMERO_MEMORY_LIMIT="2G"
-
-# Monitoring
-export CALIMERO_METRICS_ENDPOINT="/metrics"
-export CALIMERO_HEALTH_ENDPOINT="/health"
-```
-
-### Security Settings
-
-```bash
-# Security configuration
-export CALIMERO_SECURE_MODE="true"
-export CALIMERO_TLS_ENABLED="true"
-export CALIMERO_TLS_CERT="/path/to/cert.pem"
-export CALIMERO_TLS_KEY="/path/to/key.pem"
-
-# Access control
-export CALIMERO_AUTH_REQUIRED="true"
-export CALIMERO_RATE_LIMIT="1000"
-export CALIMERO_CORS_ORIGINS="https://myapp.com"
-```
-
-## Environment-Specific Configuration
-
-### Local Development
-
-```bash
-# .env.local
-CALIMERO_IMAGE="ghcr.io/calimero-network/merod:dev"
-LOG_LEVEL="DEBUG"
-CALIMERO_DEV_MODE="true"
-CALIMERO_WATCH="true"
-```
-
-### Staging Environment
-
-```bash
-# .env.staging
-CALIMERO_IMAGE="ghcr.io/calimero-network/merod:staging"
-LOG_LEVEL="INFO"
-CALIMERO_TEST_MODE="true"
-CALIMERO_METRICS="true"
-```
-
-### Production Environment
-
-```bash
-# .env.production
-CALIMERO_IMAGE="ghcr.io/calimero-network/merod:latest"
-LOG_LEVEL="WARNING"
-CALIMERO_PROD_MODE="true"
-CALIMERO_SECURE="true"
-CALIMERO_MONITORING="true"
-```
-
-## Configuration Validation
-
-Validate your environment configuration:
-
-```bash
-# Check configuration
-merobox config validate
-
-# List current settings
-merobox config list
-
-# Test configuration
-merobox config test
+# With authentication service
+merobox run --count 5 --auth-service --image ghcr.io/calimero-network/merod:latest
 ```
 
 ## Best Practices
 
 ### Environment Management
 
-1. **Use .env files**: Store environment-specific settings in `.env` files
-2. **Version control**: Track `.env.example` files, not actual `.env` files
-3. **Validation**: Always validate configuration before deployment
-4. **Documentation**: Document all custom environment variables
+1. **Use CLI flags**: Prefer CLI flags over environment variables when possible
+2. **Documentation**: Document all custom configurations
+3. **Testing**: Test configurations before deployment
 
 ### Security Considerations
 
-1. **Secrets**: Never store secrets in environment variables in version control
-2. **Access control**: Limit access to production environment variables
-3. **Rotation**: Regularly rotate sensitive configuration values
-4. **Auditing**: Log configuration changes for audit purposes
-
-### Performance Optimization
-
-1. **Resource limits**: Set appropriate resource limits for your environment
-2. **Caching**: Enable caching where appropriate
-3. **Monitoring**: Use monitoring to identify performance bottlenecks
-4. **Scaling**: Configure for horizontal scaling when needed
+1. **Secrets**: Never store secrets in version control
+2. **Access control**: Limit access to production configurations
+3. **Auditing**: Log configuration changes for audit purposes
 
 ## Next Steps
 
@@ -11001,6 +10002,8 @@ on your system:
 ### Required Software
 
 - **Python 3.8 or higher**: Merobox is a Python CLI tool
+- **pipx**: For installing Python applications in isolated environments
+  (required for Calimero development)
 - **Docker 20.10 or higher**: For running Calimero nodes in containers
 - **Docker Compose**: For managing multi-container applications
 - **Git**: For cloning repositories and version control
@@ -11021,6 +10024,10 @@ Check that all prerequisites are installed and working:
 python3 --version
 # Should output: Python 3.8.x or higher
 
+# Check pipx installation
+pipx --version
+# Should output: pipx version 1.x.x or higher
+
 # Check Docker installation
 docker --version
 # Should output: Docker version 20.10.x or higher
@@ -11036,50 +10043,40 @@ git --version
 
 ## Installation Methods
 
-### Method 1: Install from PyPI (Recommended)
+### Method 1: Install with pipx (Recommended)
 
-The easiest way to install Merobox is using pip:
+For Calimero development, install Merobox using pipx to ensure proper isolation:
+
+1. **Install pipx** using a package manager for your OS (see
+   [pipx installation guide](https://github.com/pypa/pipx?tab=readme-ov-file#install-pipx))
+
+2. **Install Merobox and dependencies:**
 
 ```bash
-pip install merobox
+# Install maturin (required dependency)
+pipx install maturin
+
+# Install Merobox
+pipx install merobox
 ```
 
-For Python 3.x specifically:
+### Method 3: Install from Source (For Merobox Development Only)
 
-```bash
-pip3 install merobox
-```
-
-### Method 2: Install from Source
-
-If you want to use the latest development version or contribute to the project:
+If you want to contribute to Merobox itself or use the latest development
+version:
 
 ```bash
 # Clone the repository
 git clone https://github.com/calimero-network/merobox.git
 cd merobox
 
-# Install in development mode
+# Install in development mode using pip (only for Merobox development)
 pip install -e .
 ```
 
-### Method 3: Install in Virtual Environment (Recommended for Development)
-
-For isolated development environments:
-
-```bash
-# Create virtual environment
-python3 -m venv merobox-env
-
-# Activate virtual environment
-# On Linux/macOS:
-source merobox-env/bin/activate
-# On Windows:
-# merobox-env\Scripts\activate
-
-# Install Merobox
-pip install merobox
-```
+:::warning Development Context The `pip` installation method above is **only**
+for developing Merobox itself. For Calimero app development, always use `pipx`
+as shown in Method 1. :::
 
 ## Verify Installation
 
@@ -11151,8 +10148,8 @@ docker run hello-world
 Merobox supports several environment variables for configuration:
 
 ```bash
-# Set Docker image for Calimero nodes
-export CALIMERO_IMAGE="ghcr.io/calimero-network/merod:edge"
+# Docker image is set through CLI flags
+# merobox run --image ghcr.io/calimero-network/merod:edge
 
 # Set Docker daemon connection
 export DOCKER_HOST="unix:///var/run/docker.sock"
@@ -11211,6 +10208,18 @@ merobox stop
 - On Ubuntu/Debian: `sudo apt install python3 python3-pip`
 - On macOS: `brew install python3`
 - On Windows: Download from Microsoft Store or python.org
+
+#### pipx Not Found
+
+```bash
+# Error: pipx: command not found
+```
+
+**Solution:**
+
+- Install pipx using a package manager for your OS (see
+  [pipx installation guide](https://github.com/pypa/pipx?tab=readme-ov-file#install-pipx))
+- Restart your terminal after installation
 
 #### Docker Not Running
 
@@ -11285,6 +10294,10 @@ Now that Merobox is installed and configured:
 
 ## Development Setup
 
+:::warning Merobox Development Only This section is **only** for contributing to
+Merobox itself. For Calimero development, use the pipx installation method
+above. :::
+
 If you plan to contribute to Merobox or run it from source:
 
 ### Clone and Setup
@@ -11346,408 +10359,173 @@ ruff merobox/
 
 # Network Configuration
 
-This guide covers advanced network configuration for Merobox, including custom
-Docker networks, port management, and network security.
+This guide covers basic network configuration for Merobox, including port
+management and network settings.
 
-## Custom Docker Networks
+## Port Configuration
 
-Create and use custom Docker networks for better isolation and control:
+Merobox provides basic port configuration for Calimero nodes:
+
+### Basic Port Settings
+
+Configure ports in workflow files:
 
 ```yaml
 # workflow.yml
-networks:
-  - name: calimero-custom
-    driver: bridge
-    options:
-      com.docker.network.bridge.name: calimero-br0
-      com.docker.network.driver.mtu: 1500
-
 nodes:
-  networks:
-    - calimero-custom
-    - default
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+  base_port: 2428 # Base P2P port (optional)
+  base_rpc_port: 2528 # Base RPC port (optional)
 ```
 
-### Network Types
+### CLI Port Configuration
 
-Choose the appropriate network driver for your use case:
+Set ports using command-line flags:
 
-```yaml
-# Bridge network (default)
-networks:
-  - name: calimero-bridge
-    driver: bridge
-    options:
-      com.docker.network.bridge.enable_icc: 'true'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
+```bash
+# Custom base ports
+merobox run --count 2 --base-port 2428 --base-rpc-port 2528
 
-# Host network (shares host networking)
-networks:
-  - name: calimero-host
-    driver: host
-
-# Overlay network (for multi-host)
-networks:
-  - name: calimero-overlay
-    driver: overlay
-    options:
-      encrypted: 'true'
+# Different port ranges
+merobox run --count 3 --base-port 3000 --base-rpc-port 4000
 ```
 
-### Network Configuration Options
+### Automatic Port Detection
 
-```yaml
-# Advanced network configuration
-networks:
-  - name: calimero-advanced
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
-          ip_range: 172.20.1.0/24
-    options:
-      com.docker.network.bridge.name: calimero-br0
-      com.docker.network.driver.mtu: 1500
-      com.docker.network.bridge.enable_icc: 'true'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
+Merobox automatically detects available ports:
+
+- **P2P Ports**: Starting from 2428, increments by 1 for each node
+- **RPC Ports**: Starting from 2528, increments by 1 for each node
+- **Conflict Resolution**: Automatically finds next available ports
+
+## Environment Variables
+
+Configure network settings using environment variables:
+
+### Network Configuration
+
+```bash
+# Network configuration is done through CLI flags
+# merobox run --base-port 3000 --base-rpc-port 4000
 ```
 
-## Port Management
+### Advanced Network Settings
 
-Advanced port configuration and management:
-
-### Basic Port Configuration
-
-```yaml
-nodes:
-  ports:
-    p2p: 2428
-    rpc: 2528
-    admin: 2628
-  port_mapping:
-    mode: host # host, bridge, none
-  expose_ports:
-    - 2428
-    - 2528
+```bash
+# Advanced network configuration is done through Docker
+# Create custom Docker networks if needed
+docker network create calimero-custom
 ```
 
-### Port Range Configuration
+## Docker Networks
 
-```yaml
-# Dynamic port allocation
-nodes:
-  port_range:
-    start: 3000
-    end: 4000
-    step: 10
-  port_mapping:
-    mode: bridge
-    host_ports:
-      - 2428:2428
-      - 2528:2528
+Merobox uses Docker's default networking:
+
+### Default Network Behavior
+
+- **Bridge Network**: Merobox uses Docker's default bridge network
+- **Automatic Management**: Networks are created and managed automatically
+- **Node Communication**: Nodes can communicate with each other by default
+
+### Network Management
+
+```bash
+# List Docker networks
+docker network ls
+
+# Inspect Merobox networks
+docker network inspect bridge
+
+# Check node network connectivity
+docker exec calimero-node-1 ping calimero-node-2
 ```
 
-### Port Security
-
-```yaml
-# Restrict port access
-nodes:
-  ports:
-    p2p: 2428
-    rpc: 2528
-  port_security:
-    allowed_ips:
-      - 192.168.1.0/24
-      - 10.0.0.0/8
-    blocked_ports:
-      - 22
-      - 23
-```
-
-## Network Security
-
-Configure network security and isolation:
-
-### Network Isolation
-
-```yaml
-networks:
-  - name: calimero-secure
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-    options:
-      com.docker.network.bridge.enable_icc: 'false'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
-```
-
-### Firewall Configuration
-
-```yaml
-# Custom firewall rules
-firewall:
-  enabled: true
-  rules:
-    - action: allow
-      source: 192.168.1.0/24
-      destination: 2428
-      protocol: tcp
-    - action: deny
-      source: 0.0.0.0/0
-      destination: 22
-      protocol: tcp
-```
-
-### Network Policies
-
-```yaml
-# Network access policies
-network_policies:
-  - name: calimero-policy
-    rules:
-      - from:
-          - namespace: calimero
-        ports:
-          - protocol: tcp
-            port: 2428
-      - from:
-          - namespace: monitoring
-        ports:
-          - protocol: tcp
-            port: 2528
-```
-
-## Load Balancing and Proxying
-
-### Traefik Configuration
-
-Custom Traefik proxy configuration:
-
-```yaml
-traefik:
-  image: traefik:v2.10
-  config:
-    entryPoints:
-      web:
-        address: ':80'
-      websecure:
-        address: ':443'
-    providers:
-      docker:
-        endpoint: 'unix:///var/run/docker.sock'
-        exposedByDefault: false
-    api:
-      dashboard: true
-      insecure: false
-```
-
-### Load Balancer Setup
-
-```yaml
-# Load balancer configuration
-load_balancer:
-  enabled: true
-  image: nginx:alpine
-  config:
-    upstream:
-      - server: calimero-node-1:2428
-      - server: calimero-node-2:2428
-      - server: calimero-node-3:2428
-    health_check:
-      path: /health
-      interval: 30s
-      timeout: 5s
-```
-
-### Reverse Proxy
-
-```yaml
-# Reverse proxy configuration
-reverse_proxy:
-  enabled: true
-  image: nginx:alpine
-  config:
-    server:
-      listen: 80
-      location:
-        - path: /api
-          proxy_pass: http://calimero-node-1:2528
-        - path: /admin
-          proxy_pass: http://calimero-node-1:2628
-```
-
-## Network Monitoring
-
-### Network Metrics
-
-```yaml
-# Network monitoring
-monitoring:
-  network:
-    enabled: true
-    metrics:
-      - bandwidth
-      - latency
-      - packet_loss
-      - connection_count
-    alerts:
-      - metric: bandwidth
-        threshold: 80%
-        action: scale_up
-      - metric: latency
-        threshold: 100ms
-        action: alert
-```
-
-### Network Diagnostics
-
-```yaml
-# Network diagnostic tools
-diagnostics:
-  enabled: true
-  tools:
-    - ping
-    - traceroute
-    - netstat
-    - ss
-  interval: 60s
-```
-
-## DNS Configuration
-
-### Custom DNS
-
-```yaml
-# Custom DNS configuration
-dns:
-  servers:
-    - 8.8.8.8
-    - 8.8.4.4
-    - 1.1.1.1
-  search:
-    - calimero.local
-    - internal.local
-  options:
-    - ndots: 2
-    - timeout: 2
-```
-
-### Service Discovery
-
-```yaml
-# Service discovery
-service_discovery:
-  enabled: true
-  provider: consul
-  config:
-    address: consul:8500
-    service_name: calimero
-    tags:
-      - calimero
-      - blockchain
-```
-
-## Network Troubleshooting
+## Troubleshooting
 
 ### Common Network Issues
 
+Check network connectivity and port availability:
+
 ```bash
-# Check network connectivity
-docker network ls
-docker network inspect calimero-web
+# Check port binding
+netstat -tulpn | grep -E "(2428|2528)"
 
 # Test connectivity between nodes
 docker exec calimero-node-1 ping calimero-node-2
 
-# Check port binding
-netstat -tulpn | grep -E "(2428|2528)"
+# Check Docker networks
+docker network ls
+docker network inspect bridge
 
-# Test DNS resolution
-docker exec calimero-node-1 nslookup calimero-node-2
+# Find processes using ports
+lsof -ti:2528
+```
+
+### Port Conflicts
+
+If ports are already in use:
+
+```bash
+# Kill process using port
+lsof -ti:2528 | xargs kill
+
+# Or use different ports
+merobox run --base-rpc-port 3000
+
+# Check all ports
+netstat -tulpn | grep -E "(2428|2528)"
 ```
 
 ### Network Debugging
 
+Enable debug logging for troubleshooting:
+
 ```bash
-# Enable network debugging
-export DOCKER_BUILDKIT=0
-export DOCKER_CLI_EXPERIMENTAL=enabled
+# Enable debug logging
+export LOG_LEVEL=DEBUG
 
-# Check network configuration
-docker network inspect calimero-web | jq '.[0].IPAM'
+# Run with verbose output
+merobox run --count 2 --verbose
 
-# Test network performance
-docker exec calimero-node-1 iperf3 -c calimero-node-2
-
-# Monitor network traffic
-docker exec calimero-node-1 tcpdump -i eth0
-```
-
-## Performance Optimization
-
-### Network Performance
-
-```yaml
-# Network performance tuning
-network_performance:
-  tcp_nodelay: true
-  tcp_keepalive: true
-  tcp_keepalive_time: 600
-  tcp_keepalive_interval: 60
-  tcp_keepalive_probes: 3
-```
-
-### Bandwidth Management
-
-```yaml
-# Bandwidth limits
-bandwidth:
-  enabled: true
-  limits:
-    - interface: eth0
-      rate: 100M
-      burst: 200M
-    - interface: eth1
-      rate: 50M
-      burst: 100M
+# Check node logs
+merobox logs calimero-node-1
 ```
 
 ## Best Practices
 
-### Network Design
+### Port Management
 
-1. **Segmentation**: Use separate networks for different purposes
-2. **Isolation**: Isolate sensitive services from public networks
-3. **Redundancy**: Implement redundant network paths
-4. **Monitoring**: Monitor network performance and health
+1. **Use Default Ports**: Stick to default ports (2428, 2528) when possible
+2. **Avoid Conflicts**: Check for port conflicts before starting nodes
+3. **Document Ports**: Keep track of custom port configurations
+4. **Test Connectivity**: Verify node communication after configuration changes
 
-### Security Considerations
+### Network Configuration
 
-1. **Firewall rules**: Implement appropriate firewall rules
-2. **Access control**: Control network access with policies
-3. **Encryption**: Use encrypted connections where possible
-4. **Auditing**: Log network access for audit purposes
+1. **Environment Variables**: Use environment variables for consistent
+   configuration
+2. **Port Ranges**: Use appropriate port ranges for different environments
+3. **DNS Settings**: Configure DNS for better name resolution
+4. **Network Isolation**: Use network isolation for security when needed
 
-### Performance Optimization
+### Troubleshooting
 
-1. **Bandwidth management**: Set appropriate bandwidth limits
-2. **Latency optimization**: Minimize network latency
-3. **Load balancing**: Distribute load across multiple nodes
-4. **Caching**: Implement network-level caching
+1. **Check Logs**: Always check node logs first when issues occur
+2. **Verify Ports**: Ensure ports are available and not conflicting
+3. **Test Connectivity**: Use ping and other tools to test connectivity
+4. **Docker Networks**: Check Docker network status and configuration
 
 ## Next Steps
 
-Now that you understand network configuration:
+Now that you understand basic network configuration:
 
-- [Authentication Service Integration](./auth-service-integration) - Auth
-  service configuration
-- [Resource Management](./resource-management) - Resource limits and monitoring
-- [Security Configuration](./security-configuration) - Security settings and
-  policies
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
 
 ---
 
@@ -12293,402 +11071,225 @@ Now that you understand node management:
 
 # Python Customization
 
-This guide covers advanced Python customization and extension capabilities for
-Merobox CLI, including custom commands, step types, and plugin development.
+This guide covers basic Python integration and testing capabilities for Merobox
+CLI.
 
 ## Overview
 
-Merobox provides extensive Python APIs for customization and extension:
+Merobox provides basic Python integration for testing and automation:
 
-- **Custom Commands**: Create new CLI commands for specific use cases
-- **Custom Step Types**: Implement custom workflow steps
-- **Plugin System**: Develop reusable plugins for Merobox
 - **Testing Integration**: Use Merobox in your Python test suites
+- **Basic Automation**: Automate Merobox workflows with Python scripts
+- **Environment Management**: Manage test environments programmatically
 
-## Custom Commands
+## Basic Python Integration
 
-Create custom Merobox commands for specific use cases:
-
-```python
-# custom_commands.py
-import click
-from merobox.commands.manager import CalimeroManager
-
-@click.command()
-@click.option('--custom-option', help='Custom option')
-def custom_command(custom_option):
-    """Custom command for specific use case."""
-    manager = CalimeroManager()
-    # Custom logic here
-    click.echo(f"Custom command executed with option: {custom_option}")
-```
-
-### Command Registration
-
-Register your custom commands with Merobox:
+### Using Merobox in Python Scripts
 
 ```python
-# main.py
-from merobox.cli import cli
-from custom_commands import custom_command
+# basic_integration.py
+import subprocess
+import json
 
-# Register custom command
-cli.add_command(custom_command)
+def run_merobox_command(command):
+    """Run a Merobox command and return the result."""
+    try:
+        result = subprocess.run(
+            ['merobox'] + command,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Error running merobox command: {e}")
+        return None
 
-if __name__ == '__main__':
-    cli()
-```
+# Example usage
+def start_nodes(count=2):
+    """Start Merobox nodes."""
+    output = run_merobox_command(['run', '--count', str(count)])
+    print(f"Started {count} nodes: {output}")
 
-### Command Examples
+def check_health():
+    """Check node health."""
+    output = run_merobox_command(['health'])
+    print(f"Health status: {output}")
 
-#### Database Management Command
-
-```python
-@click.command()
-@click.option('--backup', is_flag=True, help='Create database backup')
-@click.option('--restore', help='Restore from backup file')
-def db_manage(backup, restore):
-    """Manage Calimero node databases."""
-    manager = CalimeroManager()
-
-    if backup:
-        # Create backup
-        manager.backup_database()
-        click.echo("Database backup created")
-    elif restore:
-        # Restore from backup
-        manager.restore_database(restore)
-        click.echo(f"Database restored from {restore}")
-```
-
-#### Custom Health Check
-
-```python
-@click.command()
-@click.option('--detailed', is_flag=True, help='Show detailed health info')
-def health_check(detailed):
-    """Enhanced health check with custom metrics."""
-    manager = CalimeroManager()
-
-    # Basic health check
-    health = manager.check_health()
-
-    if detailed:
-        # Custom detailed health metrics
-        metrics = manager.get_custom_metrics()
-        click.echo(f"Custom metrics: {metrics}")
-
-    click.echo(f"Health status: {health['status']}")
-```
-
-## Custom Step Types
-
-Implement custom step types for specialized workflow operations:
-
-```python
-# custom_steps.py
-from merobox.commands.bootstrap.steps.base import BaseStep
-
-class CustomStep(BaseStep):
-    def _get_required_fields(self):
-        return ['custom_field']
-
-    def _get_exportable_variables(self):
-        return [('result', 'custom_result', 'Custom step result')]
-
-    def execute(self):
-        # Custom step logic
-        custom_field = self.config['custom_field']
-        # Process custom_field...
-        return {'result': 'custom_output'}
-```
-
-### Step Type Registration
-
-Register custom step types with the workflow executor:
-
-```python
-# workflow_executor.py
-from merobox.commands.bootstrap.run.executor import WorkflowExecutor
-from custom_steps import CustomStep
-
-# Register custom step type
-executor = WorkflowExecutor()
-executor.register_step_type('custom_step', CustomStep)
-```
-
-### Custom Step Examples
-
-#### Database Migration Step
-
-```python
-class DatabaseMigrationStep(BaseStep):
-    def _get_required_fields(self):
-        return ['migration_file', 'target_node']
-
-    def _get_exportable_variables(self):
-        return [('migration_id', 'migration_id', 'Migration identifier')]
-
-    def execute(self):
-        migration_file = self.config['migration_file']
-        target_node = self.config['target_node']
-
-        # Execute database migration
-        migration_id = self.run_migration(migration_file, target_node)
-
-        return {'migration_id': migration_id}
-```
-
-#### Custom Validation Step
-
-```python
-class ValidationStep(BaseStep):
-    def _get_required_fields(self):
-        return ['validation_rules', 'data_source']
-
-    def _get_exportable_variables(self):
-        return [('validation_result', 'is_valid', 'Validation result')]
-
-    def execute(self):
-        rules = self.config['validation_rules']
-        data_source = self.config['data_source']
-
-        # Perform custom validation
-        is_valid = self.validate_data(rules, data_source)
-
-        if not is_valid:
-            raise ValueError("Validation failed")
-
-        return {'is_valid': is_valid}
-```
-
-## Plugin System
-
-Create Merobox plugins for reusable functionality:
-
-```python
-# merobox_plugin.py
-from merobox.plugin import MeroboxPlugin
-
-class MyPlugin(MeroboxPlugin):
-    def register_commands(self, cli):
-        @cli.command()
-        def my_command():
-            """My custom command."""
-            pass
-
-    def register_steps(self, step_registry):
-        step_registry.register('custom_step', CustomStep)
-```
-
-### Plugin Structure
-
-Organize your plugin with proper structure:
-
-```
-my_merobox_plugin/
-├── __init__.py
-├── plugin.py
-├── commands/
-│   ├── __init__.py
-│   └── custom_commands.py
-├── steps/
-│   ├── __init__.py
-│   └── custom_steps.py
-└── setup.py
-```
-
-### Plugin Installation
-
-Install your plugin for use with Merobox:
-
-```python
-# setup.py
-from setuptools import setup, find_packages
-
-setup(
-    name='my-merobox-plugin',
-    version='1.0.0',
-    packages=find_packages(),
-    entry_points={
-        'merobox.plugins': [
-            'my_plugin = my_merobox_plugin.plugin:MyPlugin',
-        ],
-    },
-    install_requires=[
-        'merobox',
-    ],
-)
-```
-
-Install the plugin:
-
-```bash
-pip install -e .
+def stop_nodes():
+    """Stop all nodes."""
+    output = run_merobox_command(['stop', '--all'])
+    print(f"Stopped nodes: {output}")
 ```
 
 ## Testing Integration
 
-Use Merobox in your Python test suites:
-
-### Basic Testing
+### Basic Testing Setup
 
 ```python
-# test_my_app.py
+# test_merobox.py
 import pytest
-from merobox.testing import cluster
+import subprocess
+import time
 
-def test_my_application():
-    with cluster(count=2, prefix="test") as test_env:
-        # Get node endpoints
-        node1_endpoint = test_env["endpoints"]["test-1"]
-        node2_endpoint = test_env["endpoints"]["test-2"]
-
-        # Test your application
-        result = my_app_function(node1_endpoint)
-        assert result is not None
-```
-
-### Workflow Testing
-
-```python
-# test_workflow.py
-from merobox.testing import workflow
-
-def test_complex_workflow():
-    with workflow("my-workflow.yml", prefix="test") as env:
-        # Verify workflow results
-        assert env["workflow_result"] is True
-
-        # Test application functionality
-        endpoints = env["endpoints"]
-        result = test_my_app(endpoints)
-        assert result["status"] == "success"
-```
-
-### Pytest Integration
-
-```python
-# conftest.py
-import pytest
-from merobox.testing import pytest_cluster
-
-# Create pytest fixture
-merobox_cluster = pytest_cluster(count=2, scope="session")
-
-# test_example.py
-def test_with_cluster(merobox_cluster):
-    endpoints = merobox_cluster["endpoints"]
-    # Your test logic here
-```
-
-## Advanced Python Features
-
-### Custom Managers
-
-Extend the CalimeroManager for specialized functionality:
-
-```python
-# custom_manager.py
-from merobox.commands.manager import CalimeroManager
-
-class CustomCalimeroManager(CalimeroManager):
+class MeroboxTestHelper:
     def __init__(self):
-        super().__init__()
-        self.custom_config = {}
+        self.nodes = []
 
-    def setup_custom_environment(self, config):
-        """Setup custom environment configuration."""
-        self.custom_config = config
-        # Custom setup logic
+    def start_nodes(self, count=2):
+        """Start Merobox nodes for testing."""
+        result = subprocess.run(
+            ['merobox', 'run', '--count', str(count)],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            self.nodes = [f"calimero-node-{i+1}" for i in range(count)]
+            return True
+        return False
 
-    def get_custom_metrics(self):
-        """Get custom performance metrics."""
-        # Custom metrics collection
-        return {
-            'custom_metric_1': 'value1',
-            'custom_metric_2': 'value2'
-        }
+    def stop_nodes(self):
+        """Stop all test nodes."""
+        subprocess.run(['merobox', 'stop', '--all'])
+        self.nodes = []
+
+    def check_health(self):
+        """Check health of all nodes."""
+        result = subprocess.run(
+            ['merobox', 'health'],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+
+# Test fixture
+@pytest.fixture
+def merobox_helper():
+    helper = MeroboxTestHelper()
+    yield helper
+    helper.stop_nodes()
+
+def test_basic_functionality(merobox_helper):
+    """Test basic Merobox functionality."""
+    assert merobox_helper.start_nodes(2)
+    assert merobox_helper.check_health()
+    merobox_helper.stop_nodes()
 ```
 
-### Event Hooks
+## Workflow Automation
 
-Implement event hooks for workflow lifecycle:
-
-```python
-# event_hooks.py
-from merobox.events import WorkflowEvent, EventHandler
-
-class CustomEventHandler(EventHandler):
-    def on_workflow_start(self, event: WorkflowEvent):
-        """Called when workflow starts."""
-        print(f"Workflow {event.workflow_id} started")
-
-    def on_step_complete(self, event: WorkflowEvent):
-        """Called when a step completes."""
-        print(f"Step {event.step_name} completed")
-
-    def on_workflow_complete(self, event: WorkflowEvent):
-        """Called when workflow completes."""
-        print(f"Workflow {event.workflow_id} completed")
-```
-
-### Configuration Management
-
-Advanced configuration management:
+### Running Workflows from Python
 
 ```python
-# config_manager.py
-from merobox.config import ConfigManager
+# workflow_automation.py
+import subprocess
 import yaml
+import tempfile
+import os
 
-class CustomConfigManager(ConfigManager):
-    def load_custom_config(self, config_path):
-        """Load custom configuration from file."""
-        with open(config_path, 'r') as f:
-            config = yaml.safe_load(f)
+def create_workflow_file(workflow_config):
+    """Create a temporary workflow file."""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        yaml.dump(workflow_config, f)
+        return f.name
 
-        # Process custom configuration
-        self.merge_config(config)
+def run_workflow(workflow_config):
+    """Run a Merobox workflow from Python."""
+    workflow_file = create_workflow_file(workflow_config)
 
-    def validate_custom_config(self, config):
-        """Validate custom configuration."""
-        required_fields = ['custom_field1', 'custom_field2']
+    try:
+        result = subprocess.run(
+            ['merobox', 'bootstrap', 'run', workflow_file],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Workflow failed: {e}")
+        return None
+    finally:
+        os.unlink(workflow_file)
 
-        for field in required_fields:
-            if field not in config:
-                raise ValueError(f"Missing required field: {field}")
+# Example workflow configuration
+def create_test_workflow():
+    """Create a simple test workflow."""
+    return {
+        'description': 'Test workflow from Python',
+        'name': 'Python Test Workflow',
+        'nodes': {
+            'chain_id': 'testnet-1',
+            'count': 1,
+            'image': 'ghcr.io/calimero-network/merod:edge'
+        },
+        'steps': [
+            {
+                'name': 'Test Step',
+                'type': 'script',
+                'script': 'echo "Hello from Python workflow!"'
+            }
+        ],
+        'stop_all_nodes': True
+    }
+
+# Run the workflow
+workflow_config = create_test_workflow()
+result = run_workflow(workflow_config)
+print(f"Workflow result: {result}")
 ```
 
 ## Best Practices
 
-### Code Organization
+### Error Handling
 
-1. **Modular Design**: Keep commands, steps, and plugins in separate modules
-2. **Error Handling**: Implement proper error handling and logging
-3. **Documentation**: Document your custom code with docstrings
-4. **Testing**: Write comprehensive tests for your custom code
+```python
+# Always handle errors properly
+def safe_merobox_command(command):
+    """Run Merobox command with proper error handling."""
+    try:
+        result = subprocess.run(
+            ['merobox'] + command,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        print(f"Error output: {e.stderr}")
+        return None
+    except FileNotFoundError:
+        print("Merobox not found. Please install it first.")
+        return None
+```
 
-### Performance Considerations
+### Resource Cleanup
 
-1. **Resource Management**: Properly manage resources and connections
-2. **Caching**: Implement caching where appropriate
-3. **Async Operations**: Use async/await for I/O operations
-4. **Memory Management**: Be mindful of memory usage in long-running processes
+```python
+# Always clean up resources
+def test_with_cleanup():
+    """Test with proper cleanup."""
+    try:
+        # Start nodes
+        subprocess.run(['merobox', 'run', '--count', '2'])
 
-### Security
+        # Run tests
+        result = subprocess.run(['merobox', 'health'])
+        assert result.returncode == 0
 
-1. **Input Validation**: Validate all inputs to prevent security issues
-2. **Access Control**: Implement proper access controls
-3. **Secret Management**: Use secure methods for handling secrets
-4. **Audit Logging**: Log important operations for audit purposes
+    finally:
+        # Always cleanup
+        subprocess.run(['merobox', 'stop', '--all'])
+```
 
 ## Next Steps
 
-Now that you understand Python customization:
+Now that you understand basic Python integration with Merobox:
 
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
 - [Troubleshooting](./troubleshooting) - Common issues and solutions
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
 
 ---
 
@@ -13058,7 +11659,7 @@ Now that you've completed the quick start tutorials:
 # Real-World Examples
 
 These examples demonstrate how to use Merobox for common real-world scenarios,
-from multi-node testing to performance testing.
+from multi-node testing to basic performance testing.
 
 ## Example 1: Multi-Node Testing
 
@@ -13309,217 +11910,170 @@ steps:
 stop_all_nodes: true
 ```
 
-## Example 4: Database Integration
+## Example 4: Basic Error Handling
 
-Test applications that interact with databases.
+Implement basic error handling in your workflows.
 
 ```yaml
-description: Database integration testing
-name: Database Integration
+description: Error handling example
+name: Error Handling Test
 
 nodes:
   chain_id: testnet-1
   count: 1
   image: ghcr.io/calimero-network/merod:edge
-  prefix: db-node
-
-# Add database service
-services:
-  - name: postgres
-    image: postgres:15
-    environment:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpass
-    ports:
-      - 5432:5432
+  prefix: error-node
 
 steps:
-  - name: Wait for Database
-    type: wait
-    seconds: 10
-    message: 'Waiting for database to start...'
-
   - name: Install Application
     type: install_application
-    node: db-node-1
-    path: ./db-app.wasm
+    node: error-node-1
+    path: ./my-app.wasm
     dev: true
     outputs:
       app_id: applicationId
 
   - name: Create Context
     type: create_context
-    node: db-node-1
+    node: error-node-1
     application_id: '{{app_id}}'
     outputs:
       context_id: contextId
       member_key: memberPublicKey
 
-  - name: Test Database Connection
+  - name: Test Error Handling
     type: call
-    node: db-node-1
+    node: error-node-1
     context_id: '{{context_id}}'
     executor_public_key: '{{member_key}}'
-    method: test_db_connection
+    method: test_error_handling
     args:
-      host: postgres
-      port: 5432
-      database: testdb
-      username: testuser
-      password: testpass
+      should_fail: true
     outputs:
-      db_result: result
+      error_result: result
 
-  - name: Validate Database Connection
+  - name: Validate Error Response
     type: assert
     statements:
-      - "contains({{db_result}}, 'connected')"
+      - "contains({{error_result}}, 'error')"
+
+  - name: Recovery Test
+    type: call
+    node: error-node-1
+    context_id: '{{context_id}}'
+    executor_public_key: '{{member_key}}'
+    method: test_recovery
+    args:
+      should_succeed: true
+    outputs:
+      recovery_result: result
+
+  - name: Validate Recovery
+    type: assert
+    statements:
+      - "contains({{recovery_result}}, 'success')"
 
 stop_all_nodes: true
 ```
 
-## Example 5: Load Balancing
+## Example 5: Parallel Operations
 
-Test applications behind load balancers.
+Execute multiple operations in parallel for improved performance.
 
 ```yaml
-description: Load balancing testing
-name: Load Balancing Test
+description: Parallel operations example
+name: Parallel Operations
 
 nodes:
   chain_id: testnet-1
   count: 3
   image: ghcr.io/calimero-network/merod:edge
-  prefix: lb-node
-
-# Add load balancer
-services:
-  - name: nginx
-    image: nginx:alpine
-    ports:
-      - 8080:80
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+  prefix: parallel-node
 
 steps:
-  - name: Wait for Load Balancer
-    type: wait
-    seconds: 5
-    message: 'Waiting for load balancer to start...'
-
-  - name: Install Application on All Nodes
+  - name: Install Applications in Parallel
     type: parallel
     steps:
-      - name: Install on Node 1
+      - name: Install App 1
         type: install_application
-        node: lb-node-1
-        path: ./my-app.wasm
+        node: parallel-node-1
+        path: ./app1.wasm
         dev: true
         outputs:
           app_id_1: applicationId
 
-      - name: Install on Node 2
+      - name: Install App 2
         type: install_application
-        node: lb-node-2
-        path: ./my-app.wasm
+        node: parallel-node-2
+        path: ./app2.wasm
         dev: true
         outputs:
           app_id_2: applicationId
 
-      - name: Install on Node 3
+      - name: Install App 3
         type: install_application
-        node: lb-node-3
-        path: ./my-app.wasm
+        node: parallel-node-3
+        path: ./app3.wasm
         dev: true
         outputs:
           app_id_3: applicationId
 
-  - name: Test Load Balancer
-    type: script
-    script: |
-      echo "Testing load balancer..."
-      for i in {1..10}; do
-        echo "Request $i:"
-        curl -s http://localhost:8080/health
-        echo
-      done
-
-stop_all_nodes: true
-```
-
-## Example 6: Monitoring and Alerting
-
-Set up monitoring and alerting for your applications.
-
-```yaml
-description: Monitoring and alerting setup
-name: Monitoring Example
-
-nodes:
-  chain_id: testnet-1
-  count: 2
-  image: ghcr.io/calimero-network/merod:edge
-  prefix: monitor-node
-
-# Add monitoring stack
-services:
-  - name: prometheus
-    image: prom/prometheus:latest
-    ports:
-      - 9090:9090
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-
-  - name: grafana
-    image: grafana/grafana:latest
-    ports:
-      - 3000:3000
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
-
-steps:
-  - name: Wait for Monitoring Stack
-    type: wait
-    seconds: 15
-    message: 'Waiting for monitoring stack to start...'
-
-  - name: Install Application
-    type: install_application
-    node: monitor-node-1
-    path: ./monitored-app.wasm
-    dev: true
-    outputs:
-      app_id: applicationId
-
-  - name: Create Context
-    type: create_context
-    node: monitor-node-1
-    application_id: '{{app_id}}'
-    outputs:
-      context_id: contextId
-      member_key: memberPublicKey
-
-  - name: Generate Load
-    type: repeat
-    count: 50
+  - name: Create Contexts in Parallel
+    type: parallel
     steps:
-      - name: Call Application
-        type: call
-        node: monitor-node-1
-        context_id: '{{context_id}}'
-        executor_public_key: '{{member_key}}'
-        method: process_data
-        args:
-          data: 'load_test_{{iteration}}'
+      - name: Create Context 1
+        type: create_context
+        node: parallel-node-1
+        application_id: '{{app_id_1}}'
+        outputs:
+          context_id_1: contextId
+          member_key_1: memberPublicKey
 
-  - name: Check Monitoring
-    type: script
-    script: |
-      echo "Monitoring stack is running:"
-      echo "Prometheus: http://localhost:9090"
-      echo "Grafana: http://localhost:3000 (admin/admin)"
-      echo "Application metrics should be visible in Prometheus"
+      - name: Create Context 2
+        type: create_context
+        node: parallel-node-2
+        application_id: '{{app_id_2}}'
+        outputs:
+          context_id_2: contextId
+          member_key_2: memberPublicKey
+
+      - name: Create Context 3
+        type: create_context
+        node: parallel-node-3
+        application_id: '{{app_id_3}}'
+        outputs:
+          context_id_3: contextId
+          member_key_3: memberPublicKey
+
+  - name: Test All Applications
+    type: parallel
+    steps:
+      - name: Test App 1
+        type: call
+        node: parallel-node-1
+        context_id: '{{context_id_1}}'
+        executor_public_key: '{{member_key_1}}'
+        method: test_functionality
+        args:
+          test_data: 'app1_test'
+
+      - name: Test App 2
+        type: call
+        node: parallel-node-2
+        context_id: '{{context_id_2}}'
+        executor_public_key: '{{member_key_2}}'
+        method: test_functionality
+        args:
+          test_data: 'app2_test'
+
+      - name: Test App 3
+        type: call
+        node: parallel-node-3
+        context_id: '{{context_id_3}}'
+        executor_public_key: '{{member_key_3}}'
+        method: test_functionality
+        args:
+          test_data: 'app3_test'
 
 stop_all_nodes: true
 ```
@@ -13534,25 +12088,12 @@ nodes:
   image: ghcr.io/calimero-network/merod:edge
   environment:
     RUST_LOG: info
-    CALIMERO_CHAIN_ID: testnet-1
-    CALIMERO_NETWORK: testnet
 ```
 
-### 2. Resource Management
+### 2. Error Handling
 
 ```yaml
-# Set appropriate resource limits
-nodes:
-  resources:
-    memory: '2G'
-    cpus: '1.0'
-  count: 3 # Scale based on needs
-```
-
-### 3. Error Handling
-
-```yaml
-# Include comprehensive error handling
+# Include basic error handling
 steps:
   - name: Risky Operation
     type: call
@@ -13567,7 +12108,7 @@ steps:
         script: echo "Operation failed: {{error}}"
 ```
 
-### 4. Monitoring and Validation
+### 3. Validation
 
 ```yaml
 # Always validate results
@@ -13595,503 +12136,191 @@ Now that you've seen real-world examples:
 
 # Resource Management
 
-This guide covers resource management for Merobox, including memory and CPU
-limits, storage configuration, and resource monitoring.
+This guide covers basic resource configuration for Merobox nodes, including
+memory and CPU limits for Docker containers.
 
-## Memory and CPU Limits
+## Basic Resource Configuration
 
-Configure resource limits for nodes to ensure optimal performance and prevent
-resource exhaustion:
+Merobox supports basic resource limits for Docker containers running Calimero
+nodes:
 
-### Basic Resource Configuration
+### Memory and CPU Limits
 
 ```yaml
 nodes:
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  resources:
+    memory: '1G' # Memory limit
+    cpus: '0.5' # CPU limit
+```
+
+### Environment Variables
+
+Configure resource-related environment variables:
+
+```yaml
+nodes:
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  environment:
+    RUST_LOG: 'info'
+  resources:
+    memory: '2G'
+    cpus: '1.0'
+```
+
+## Node Configuration
+
+### Basic Node Setup
+
+Configure Calimero nodes with basic settings:
+
+```yaml
+nodes:
+  chain_id: testnet-1
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
+  base_port: 2428
+  base_rpc_port: 2528
   resources:
     memory: '1G'
-    memory_swap: '2G'
     cpus: '0.5'
-    cpu_quota: 50000
-    cpu_period: 100000
 ```
 
-### Advanced Resource Configuration
+### Multiple Node Configuration
+
+Set up multiple nodes with different resource allocations:
 
 ```yaml
-# Detailed resource configuration
 nodes:
+  chain_id: testnet-1
+  count: 3
+  image: ghcr.io/calimero-network/merod:edge
+  prefix: calimero-node
   resources:
-    # Memory settings
     memory: '2G'
-    memory_swap: '4G'
-    memory_reservation: '1G'
-    memory_swappiness: 10
-
-    # CPU settings
-    cpus: '1.5'
-    cpu_quota: 75000
-    cpu_period: 100000
-    cpu_shares: 1024
-
-    # I/O settings
-    blkio_weight: 300
-    blkio_weight_device:
-      - path: /dev/sda
-        weight: 200
-    device_read_bps:
-      - path: /dev/sda
-        rate: '10MB'
-    device_write_bps:
-      - path: /dev/sda
-        rate: '10MB'
+    cpus: '1.0'
 ```
 
-### Resource Limits per Node
+## Environment Variables
+
+Configure Merobox behavior using environment variables:
+
+### Core Configuration
+
+```bash
+# Docker daemon connection
+export DOCKER_HOST="unix:///var/run/docker.sock"
+
+# Logging level (if supported)
+export LOG_LEVEL="INFO"  # DEBUG, INFO, WARNING, ERROR
+```
+
+### Docker Configuration
+
+```bash
+# Docker daemon settings
+export DOCKER_HOST="unix:///var/run/docker.sock"
+
+# Docker build settings
+export DOCKER_BUILDKIT="1"
+export DOCKER_CLI_EXPERIMENTAL="enabled"
+```
+
+## Authentication Service
+
+Configure authentication service for Merobox nodes:
+
+### Basic Auth Service
 
 ```yaml
-# Different resource limits for different nodes
+# Enable authentication service
+auth_service: true
+auth_image: ghcr.io/calimero-network/mero-auth:edge
+
 nodes:
-  - name: calimero-node-1
-    resources:
-      memory: '4G'
-      cpus: '2.0'
-  - name: calimero-node-2
-    resources:
-      memory: '2G'
-      cpus: '1.0'
-  - name: calimero-node-3
-    resources:
-      memory: '1G'
-      cpus: '0.5'
-```
-
-## Storage Configuration
-
-Configure persistent storage for data persistence and performance:
-
-### Basic Volume Configuration
-
-```yaml
-nodes:
-  volumes:
-    - type: bind
-      source: ./data
-      target: /calimero/data
-    - type: volume
-      source: calimero-logs
-      target: /calimero/logs
-  tmpfs:
-    - /tmp: size=100M,noexec,nosuid,nodev
-```
-
-### Advanced Storage Configuration
-
-```yaml
-# Advanced storage setup
-nodes:
-  volumes:
-    # Bind mount for configuration
-    - type: bind
-      source: ./config
-      target: /calimero/config
-      read_only: true
-
-    # Named volume for data
-    - type: volume
-      source: calimero-data
-      target: /calimero/data
-      driver: local
-      driver_opts:
-        type: none
-        o: bind
-        device: /mnt/calimero-data
-
-    # External volume for logs
-    - type: volume
-      source: calimero-logs
-      target: /calimero/logs
-      external: true
-
-    # Tmpfs for temporary files
-    - type: tmpfs
-      target: /tmp
-      tmpfs:
-        size: 100M
-        mode: 1777
-        noexec: true
-        nosuid: true
-        nodev: true
-```
-
-### Storage Performance Optimization
-
-```yaml
-# Storage performance tuning
-storage:
-  optimization:
-    # Use SSD storage for better performance
-    device: /dev/nvme0n1
-    filesystem: ext4
-    mount_options:
-      - noatime
-      - nodiratime
-      - data=writeback
-      - commit=60
-
-  # Database storage optimization
-  database:
-    type: postgresql
-    storage:
-      device: /dev/nvme0n1p2
-      mount_point: /var/lib/postgresql
-      options:
-        - noatime
-        - nodiratime
-        - data=writeback
-```
-
-## Resource Monitoring
-
-Monitor resource usage to identify bottlenecks and optimize performance:
-
-### Basic Monitoring Configuration
-
-```yaml
-monitoring:
-  enabled: true
-  metrics:
-    - cpu_usage
-    - memory_usage
-    - disk_usage
-    - network_io
-  interval: 5
-```
-
-### Advanced Monitoring Setup
-
-```yaml
-# Comprehensive monitoring
-monitoring:
-  enabled: true
-  metrics:
-    # System metrics
-    - cpu_usage
-    - memory_usage
-    - disk_usage
-    - network_io
-    - load_average
-
-    # Application metrics
-    - request_count
-    - response_time
-    - error_rate
-    - active_connections
-
-    # Custom metrics
-    - blockchain_height
-    - consensus_participation
-    - transaction_throughput
-
-  # Monitoring intervals
-  intervals:
-    system: 5s
-    application: 10s
-    custom: 30s
-
-  # Alerting configuration
-  alerts:
-    - metric: memory_usage
-      threshold: 80
-      window: 60s
-      action: restart_node
-    - metric: cpu_usage
-      threshold: 90
-      window: 30s
-      action: scale_up
-    - metric: disk_usage
-      threshold: 85
-      window: 120s
-      action: cleanup_logs
-```
-
-### Prometheus Integration
-
-```yaml
-# Prometheus monitoring
-monitoring:
-  prometheus:
-    enabled: true
-    port: 9090
-    scrape_interval: 15s
-    targets:
-      - calimero-node-1:8080
-      - calimero-node-2:8080
-      - calimero-node-3:8080
-
-    # Custom metrics
-    custom_metrics:
-      - name: calimero_block_height
-        type: gauge
-        help: 'Current blockchain height'
-      - name: calimero_consensus_rounds
-        type: counter
-        help: 'Number of consensus rounds completed'
-```
-
-## Resource Optimization
-
-### CPU Optimization
-
-```yaml
-# CPU optimization settings
-cpu_optimization:
-  # CPU affinity
-  cpu_affinity:
-    - 0,1 # Use cores 0 and 1
-    - 2,3 # Use cores 2 and 3
-
-  # CPU governor
-  cpu_governor: performance
-
-  # CPU frequency scaling
-  cpu_scaling:
-    min_freq: 2.0GHz
-    max_freq: 3.5GHz
-
-  # Process priority
-  process_priority: -10 # High priority
-```
-
-### Memory Optimization
-
-```yaml
-# Memory optimization
-memory_optimization:
-  # Memory allocation strategy
-  allocation_strategy: jemalloc
-
-  # Memory pools
-  memory_pools:
-    - name: small_objects
-      size: 64MB
-      alignment: 8
-    - name: large_objects
-      size: 256MB
-      alignment: 64
-
-  # Garbage collection
-  gc:
-    enabled: true
-    threshold: 80%
-    interval: 30s
-    strategy: concurrent
-```
-
-### I/O Optimization
-
-```yaml
-# I/O optimization
-io_optimization:
-  # I/O scheduler
-  io_scheduler: mq-deadline
-
-  # Read-ahead
-  read_ahead: 1024
-
-  # Write caching
-  write_cache:
-    enabled: true
-    size: 256MB
-    sync_interval: 5s
-
-  # Disk I/O limits
-  disk_limits:
-    read_iops: 1000
-    write_iops: 1000
-    read_bps: 100MB
-    write_bps: 100MB
-```
-
-## Auto-Scaling
-
-### Horizontal Scaling
-
-```yaml
-# Auto-scaling configuration
-autoscaling:
-  enabled: true
-  min_nodes: 2
-  max_nodes: 10
-
-  # Scaling triggers
-  triggers:
-    - metric: cpu_usage
-      threshold: 70
-      scale_up: true
-      scale_down: false
-    - metric: memory_usage
-      threshold: 80
-      scale_up: true
-      scale_down: false
-    - metric: request_rate
-      threshold: 1000
-      scale_up: true
-      scale_down: false
-
-  # Scaling policies
-  policies:
-    scale_up:
-      step_size: 2
-      cooldown: 300s
-    scale_down:
-      step_size: 1
-      cooldown: 600s
-```
-
-### Vertical Scaling
-
-```yaml
-# Vertical scaling
-vertical_scaling:
-  enabled: true
-
-  # Resource scaling
+  count: 2
+  image: ghcr.io/calimero-network/merod:edge
   resources:
-    memory:
-      min: '1G'
-      max: '8G'
-      step: '1G'
-    cpus:
-      min: '0.5'
-      max: '4.0'
-      step: '0.5'
-
-  # Scaling triggers
-  triggers:
-    - metric: memory_usage
-      threshold: 85
-      action: increase_memory
-    - metric: cpu_usage
-      threshold: 90
-      action: increase_cpus
+    memory: '1G'
+    cpus: '0.5'
 ```
 
-## Resource Quotas
+### Auth Service Environment Variables
 
-### Namespace Quotas
-
-```yaml
-# Resource quotas
-quotas:
-  namespace: calimero
-
-  # Resource limits
-  limits:
-    cpu: '10'
-    memory: '20Gi'
-    pods: '20'
-    persistentvolumeclaims: '10'
-
-  # Resource requests
-  requests:
-    cpu: '5'
-    memory: '10Gi'
-    pods: '10'
-    persistentvolumeclaims: '5'
+```bash
+# Auth service is configured through CLI flags
+# merobox run --auth-service --auth-image ghcr.io/calimero-network/mero-auth:edge
 ```
 
-### Per-Node Quotas
-
-```yaml
-# Per-node resource quotas
-node_quotas:
-  - name: calimero-node-1
-    limits:
-      cpu: '2'
-      memory: '4Gi'
-    requests:
-      cpu: '1'
-      memory: '2Gi'
-
-  - name: calimero-node-2
-    limits:
-      cpu: '1'
-      memory: '2Gi'
-    requests:
-      cpu: '0.5'
-      memory: '1Gi'
-```
-
-## Resource Troubleshooting
+## Troubleshooting
 
 ### Common Resource Issues
 
+Check resource usage and node status:
+
 ```bash
-# Check resource usage
+# Check running Merobox nodes
+merobox list
+
+# Check node health
+merobox health
+
+# View node logs
+merobox logs calimero-node-1
+
+# Check Docker container resource usage
 docker stats $(docker ps -q --filter "name=calimero-")
-
-# Check memory usage
-docker exec calimero-node-1 free -h
-
-# Check CPU usage
-docker exec calimero-node-1 top
-
-# Check disk usage
-docker exec calimero-node-1 df -h
-
-# Check I/O usage
-docker exec calimero-node-1 iostat -x 1
 ```
 
 ### Resource Debugging
 
+Enable debug logging for troubleshooting:
+
 ```bash
-# Enable resource debugging
-export DOCKER_BUILDKIT=0
-export DOCKER_CLI_EXPERIMENTAL=enabled
+# Enable debug logging
+export LOG_LEVEL=DEBUG
 
-# Check container resource limits
-docker inspect calimero-node-1 | jq '.[0].HostConfig.Memory'
-docker inspect calimero-node-1 | jq '.[0].HostConfig.CpuQuota'
+# Run workflow with verbose output
+merobox bootstrap run workflow.yml --verbose
 
-# Monitor resource usage in real-time
-watch -n 1 'docker stats --no-stream $(docker ps -q --filter "name=calimero-")'
-
-# Check system resources
-htop
-iotop
+# Check Docker container details
+docker inspect calimero-node-1
 ```
 
 ## Best Practices
 
 ### Resource Planning
 
-1. **Capacity Planning**: Plan resources based on expected load
-2. **Monitoring**: Continuously monitor resource usage
-3. **Scaling**: Implement auto-scaling for dynamic workloads
-4. **Optimization**: Regularly optimize resource allocation
+1. **Start Small**: Begin with minimal resources and scale up as needed
+2. **Monitor Usage**: Use `docker stats` to monitor actual resource consumption
+3. **Test Workloads**: Test your applications with realistic data loads
+4. **Plan for Growth**: Consider future scaling requirements
 
-### Performance Optimization
+### Performance Tips
 
-1. **Right-sizing**: Use appropriately sized resources
-2. **Caching**: Implement caching to reduce resource usage
-3. **Load Balancing**: Distribute load across multiple nodes
-4. **Monitoring**: Use monitoring to identify bottlenecks
+1. **Memory Allocation**: Start with 1-2GB memory per node for most workloads
+2. **CPU Allocation**: Use 0.5-1.0 CPU cores per node for basic operations
+3. **Environment Variables**: Use appropriate `RUST_LOG` levels for debugging
+4. **Docker Images**: Use specific image tags instead of `latest` for stability
 
-### Cost Optimization
+### Troubleshooting Tips
 
-1. **Resource Efficiency**: Optimize resource utilization
-2. **Auto-scaling**: Scale resources based on demand
-3. **Spot Instances**: Use spot instances for non-critical workloads
-4. **Reserved Instances**: Use reserved instances for predictable workloads
+1. **Check Logs**: Always check node logs first when issues occur
+2. **Resource Limits**: Ensure Docker has sufficient resources available
+3. **Network Issues**: Verify port availability and network connectivity
+4. **Image Updates**: Keep Docker images updated for latest features
 
 ## Next Steps
 
-Now that you understand resource management:
+Now that you understand basic resource management:
 
-- [Security Configuration](./security-configuration) - Security settings and
-  policies
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
 
 ---
 
@@ -14099,586 +12328,148 @@ Now that you understand resource management:
 
 # Security Configuration
 
-This guide covers security configuration for Merobox, including container
-security, network security, and secrets management.
+This guide covers basic security configuration for Merobox deployments and best
+practices for secure usage.
 
-## Container Security
+## Basic Security Settings
 
-Configure container security settings to protect your Merobox deployment:
+Merobox provides basic security configuration through environment variables and
+Docker settings:
 
-### Basic Security Configuration
+### Environment Variables
 
-```yaml
-nodes:
-  security:
-    user: '1000:1000'
-    read_only: true
-    no_new_privileges: true
-    capabilities:
-      drop: ['ALL']
-      add: ['NET_BIND_SERVICE']
-  environment:
-    RUST_LOG: 'info'
-    CALIMERO_SECURE_MODE: 'true'
+```bash
+# Basic security environment variables
+export RUST_LOG="info"
+export DOCKER_HOST="unix:///var/run/docker.sock"
 ```
 
-### Advanced Security Settings
+### Docker Security
 
-```yaml
-# Comprehensive security configuration
-nodes:
-  security:
-    # User and group
-    user: '1000:1000'
-    group: '1000'
+Basic Docker security practices for Merobox:
 
-    # File system security
-    read_only: true
-    tmpfs:
-      - /tmp: size=100M,noexec,nosuid,nodev
-      - /var/tmp: size=50M,noexec,nosuid,nodev
+```bash
+# Run containers as non-root user when possible
+docker run --user 1000:1000 ghcr.io/calimero-network/merod:edge
 
-    # Process security
-    no_new_privileges: true
-    init: true
-    pid_limit: 100
+# Use read-only filesystem for additional security
+docker run --read-only ghcr.io/calimero-network/merod:edge
 
-    # Capabilities
-    capabilities:
-      drop: ['ALL']
-      add: ['NET_BIND_SERVICE', 'CHOWN', 'SETUID', 'SETGID']
-
-    # Security options
-    security_opt:
-      - 'no-new-privileges:true'
-      - 'seccomp:unconfined'
-      - 'apparmor:unconfined'
-
-    # Resource limits
-    ulimits:
-      - name: nofile
-        soft: 65536
-        hard: 65536
-      - name: nproc
-        soft: 32768
-        hard: 32768
-```
-
-### Security Profiles
-
-```yaml
-# Security profiles for different environments
-security_profiles:
-  development:
-    user: '1000:1000'
-    read_only: false
-    capabilities:
-      drop: ['ALL']
-      add: ['NET_BIND_SERVICE']
-
-  staging:
-    user: '1000:1000'
-    read_only: true
-    capabilities:
-      drop: ['ALL']
-      add: ['NET_BIND_SERVICE']
-    security_opt:
-      - 'no-new-privileges:true'
-
-  production:
-    user: '1000:1000'
-    read_only: true
-    no_new_privileges: true
-    capabilities:
-      drop: ['ALL']
-      add: ['NET_BIND_SERVICE']
-    security_opt:
-      - 'no-new-privileges:true'
-      - 'seccomp:unconfined'
-      - 'apparmor:unconfined'
+# Drop unnecessary capabilities
+docker run --cap-drop=ALL --cap-add=NET_BIND_SERVICE ghcr.io/calimero-network/merod:edge
 ```
 
 ## Network Security
 
-Configure network security and isolation:
+Basic network security practices for Merobox:
+
+### Port Management
+
+```bash
+# Check which ports are in use
+netstat -tulpn | grep -E "(2428|2528)"
+
+# Use different ports if conflicts exist
+merobox run --base-port 3000 --base-rpc-port 3001
+```
 
 ### Network Isolation
 
-```yaml
-networks:
-  - name: calimero-secure
-    driver: bridge
-    options:
-      com.docker.network.bridge.enable_icc: 'false'
-      com.docker.network.bridge.enable_ip_masquerade: 'true'
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
-```
+```bash
+# Create isolated Docker network
+docker network create calimero-isolated
 
-### Firewall Configuration
-
-```yaml
-# Firewall rules
-firewall:
-  enabled: true
-  rules:
-    # Allow internal communication
-    - action: allow
-      source: 172.20.0.0/16
-      destination: 2428
-      protocol: tcp
-    - action: allow
-      source: 172.20.0.0/16
-      destination: 2528
-      protocol: tcp
-
-    # Block external access to admin ports
-    - action: deny
-      source: 0.0.0.0/0
-      destination: 2628
-      protocol: tcp
-
-    # Allow HTTPS from specific sources
-    - action: allow
-      source: 192.168.1.0/24
-      destination: 443
-      protocol: tcp
-
-    # Block all other traffic
-    - action: deny
-      source: 0.0.0.0/0
-      destination: 0.0.0.0/0
-      protocol: all
-```
-
-### Network Policies
-
-```yaml
-# Network access policies
-network_policies:
-  - name: calimero-policy
-    rules:
-      # Allow internal communication
-      - from:
-          - namespace: calimero
-        ports:
-          - protocol: tcp
-            port: 2428
-          - protocol: tcp
-            port: 2528
-
-      # Allow monitoring access
-      - from:
-          - namespace: monitoring
-        ports:
-          - protocol: tcp
-            port: 8080
-
-      # Block external access
-      - from: []
-        ports: []
+# Run nodes on isolated network
+docker run --network calimero-isolated ghcr.io/calimero-network/merod:edge
 ```
 
 ## Secrets Management
 
-Manage sensitive configuration and credentials securely:
+Basic secrets management for Merobox:
 
-### Basic Secrets Configuration
+### Environment Variables
 
-```yaml
-secrets:
-  - name: calimero-secret
-    file: ./secrets/calimero.key
-  - name: auth-token
-    environment: AUTH_TOKEN
+```bash
+# Use environment variables for sensitive data (if supported)
+export API_KEY="your-api-key"
+export SECRET_KEY="your-secret-key"
 
-nodes:
-  secrets:
-    - calimero-secret
-  environment:
-    AUTH_TOKEN_FILE: /run/secrets/auth-token
+# Pass to Merobox (if supported)
+merobox run --count 1
 ```
 
-### Advanced Secrets Management
+### File-based Secrets
 
-```yaml
-# Comprehensive secrets management
-secrets:
-  # File-based secrets
-  - name: calimero-private-key
-    file: ./secrets/private.key
-    mode: 0600
-    owner: 1000
-    group: 1000
+```bash
+# Store secrets in files with proper permissions
+echo "your-secret" > secret.txt
+chmod 600 secret.txt
 
-  - name: calimero-certificate
-    file: ./secrets/certificate.pem
-    mode: 0644
-    owner: 1000
-    group: 1000
-
-  # Environment-based secrets
-  - name: database-password
-    environment: DATABASE_PASSWORD
-    required: true
-
-  - name: api-key
-    environment: API_KEY
-    required: true
-
-  # External secret management
-  - name: vault-secret
-    external: true
-    provider: vault
-    path: secret/calimero
-    key: api-key
-
-# Secret injection
-nodes:
-  secrets:
-    - calimero-private-key
-    - calimero-certificate
-    - database-password
-    - api-key
-
-  environment:
-    PRIVATE_KEY_FILE: /run/secrets/calimero-private-key
-    CERTIFICATE_FILE: /run/secrets/calimero-certificate
-    DATABASE_PASSWORD_FILE: /run/secrets/database-password
-    API_KEY_FILE: /run/secrets/api-key
+# Mount secrets as volumes
+docker run -v $(pwd)/secret.txt:/app/secret.txt ghcr.io/calimero-network/merod:edge
 ```
 
-### HashiCorp Vault Integration
+## Authentication
 
-```yaml
-# Vault integration
-vault:
-  enabled: true
-  address: 'https://vault.example.com'
-  token: '${VAULT_TOKEN}'
-  secrets:
-    - name: calimero-secrets
-      path: 'secret/calimero'
-      keys:
-        - api-key
-        - database-password
-        - encryption-key
+Basic authentication practices for Merobox:
 
-  # Auto-renewal
-  renewal:
-    enabled: true
-    interval: 3600 # 1 hour
-    threshold: 300 # 5 minutes
+### Auth Service Integration
+
+```bash
+# Enable authentication service
+merobox run --auth-service
+
+# Access nodes through auth service
+# Node URLs will be available at: http://node-name.127.0.0.1.nip.io
 ```
 
-## Authentication and Authorization
+### Basic Access Control
 
-### RBAC Configuration
+```bash
+# Use different node prefixes for different users
+merobox run --prefix user1-nodes
+merobox run --prefix user2-nodes
 
-```yaml
-# Role-based access control
-rbac:
-  enabled: true
-  roles:
-    - name: admin
-      permissions:
-        - 'calimero:admin:*'
-        - 'calimero:node:*'
-        - 'calimero:workflow:*'
-
-    - name: developer
-      permissions:
-        - 'calimero:node:read'
-        - 'calimero:workflow:create'
-        - 'calimero:workflow:read'
-
-    - name: viewer
-      permissions:
-        - 'calimero:node:read'
-        - 'calimero:workflow:read'
-
-  # User assignments
-  users:
-    - name: admin-user
-      roles: ['admin']
-    - name: dev-user
-      roles: ['developer']
-    - name: viewer-user
-      roles: ['viewer']
+# Stop nodes when not needed
+merobox stop --all
 ```
 
-### API Authentication
+## Basic Security Best Practices
 
-```yaml
-# API authentication
-api_auth:
-  enabled: true
-  methods:
-    - jwt
-    - api_key
-    - oauth2
+### 1. Use Non-Root Users
 
-  # JWT configuration
-  jwt:
-    secret: '${JWT_SECRET}'
-    algorithm: 'HS256'
-    expiration: 3600 # 1 hour
-    issuer: 'calimero-api'
-    audience: 'calimero-clients'
-
-  # API key configuration
-  api_key:
-    header: 'X-API-Key'
-    prefix: 'calimero_'
-    length: 32
-
-  # OAuth2 configuration
-  oauth2:
-    providers:
-      - name: google
-        client_id: '${GOOGLE_CLIENT_ID}'
-        client_secret: '${GOOGLE_CLIENT_SECRET}'
-        scopes: ['openid', 'email', 'profile']
+```bash
+# Run containers as non-root user
+docker run --user 1000:1000 ghcr.io/calimero-network/merod:edge
 ```
 
-## Encryption
+### 2. Read-Only Filesystems
 
-### Data Encryption
-
-```yaml
-# Data encryption configuration
-encryption:
-  enabled: true
-
-  # Encryption at rest
-  at_rest:
-    algorithm: 'AES-256-GCM'
-    key: '${ENCRYPTION_KEY}'
-    key_rotation: 86400 # 24 hours
-
-  # Encryption in transit
-  in_transit:
-    tls:
-      enabled: true
-      version: '1.3'
-      ciphers:
-        - 'TLS_AES_256_GCM_SHA384'
-        - 'TLS_CHACHA20_POLY1305_SHA256'
-      certificates:
-        cert: '/run/secrets/tls.crt'
-        key: '/run/secrets/tls.key'
-
-  # Database encryption
-  database:
-    enabled: true
-    algorithm: 'AES-256-GCM'
-    key: '${DATABASE_ENCRYPTION_KEY}'
+```bash
+# Use read-only filesystem when possible
+docker run --read-only ghcr.io/calimero-network/merod:edge
 ```
 
-### Key Management
+### 3. Drop Unnecessary Capabilities
 
-```yaml
-# Key management
-key_management:
-  provider: vault # vault, aws-kms, azure-keyvault
-
-  # Vault configuration
-  vault:
-    address: 'https://vault.example.com'
-    token: '${VAULT_TOKEN}'
-    key_path: 'secret/calimero/keys'
-
-  # Key rotation
-  rotation:
-    enabled: true
-    interval: 86400 # 24 hours
-    threshold: 3600 # 1 hour
-
-  # Key backup
-  backup:
-    enabled: true
-    location: 's3://calimero-backups/keys'
-    encryption: true
+```bash
+# Drop all capabilities and add only what's needed
+docker run --cap-drop=ALL --cap-add=NET_BIND_SERVICE ghcr.io/calimero-network/merod:edge
 ```
 
-## Audit Logging
+### 4. Resource Limits
 
-### Audit Configuration
-
-```yaml
-# Audit logging
-audit:
-  enabled: true
-
-  # Audit events
-  events:
-    - authentication
-    - authorization
-    - data_access
-    - configuration_changes
-    - security_events
-
-  # Audit destinations
-  destinations:
-    - type: file
-      path: '/var/log/calimero/audit.log'
-      format: 'json'
-      rotation:
-        size: '100MB'
-        count: 10
-
-    - type: syslog
-      address: 'udp://syslog.example.com:514'
-      facility: 'local0'
-      priority: 'info'
-
-    - type: elasticsearch
-      url: 'https://elasticsearch.example.com:9200'
-      index: 'calimero-audit'
-      username: '${ELASTICSEARCH_USERNAME}'
-      password: '${ELASTICSEARCH_PASSWORD}'
+```bash
+# Set memory and CPU limits
+docker run --memory=1g --cpus=0.5 ghcr.io/calimero-network/merod:edge
 ```
-
-### Security Monitoring
-
-```yaml
-# Security monitoring
-security_monitoring:
-  enabled: true
-
-  # Monitoring rules
-  rules:
-    - name: failed_login_attempts
-      condition: 'audit.event == "authentication" AND audit.result == "failure"'
-      threshold: 5
-      window: 300 # 5 minutes
-      action: alert
-
-    - name: privilege_escalation
-      condition: 'audit.event == "authorization" AND audit.action == "escalate"'
-      threshold: 1
-      window: 60
-      action: alert
-
-    - name: data_access_anomaly
-      condition: 'audit.event == "data_access" AND audit.volume > 1000'
-      threshold: 1
-      window: 300
-      action: alert
-
-  # Alerting
-  alerts:
-    - name: security_team
-      type: email
-      recipients: ['security@example.com']
-    - name: security_channel
-      type: slack
-      webhook: '${SLACK_WEBHOOK_URL}'
-```
-
-## Compliance
-
-### Security Standards
-
-```yaml
-# Compliance configuration
-compliance:
-  standards:
-    - name: SOC2
-      enabled: true
-      controls:
-        - access_control
-        - data_encryption
-        - audit_logging
-        - incident_response
-
-    - name: GDPR
-      enabled: true
-      controls:
-        - data_protection
-        - consent_management
-        - data_retention
-        - right_to_erasure
-
-    - name: HIPAA
-      enabled: true
-      controls:
-        - data_encryption
-        - access_control
-        - audit_logging
-        - data_integrity
-```
-
-### Security Scanning
-
-```yaml
-# Security scanning
-security_scanning:
-  enabled: true
-
-  # Vulnerability scanning
-  vulnerability_scanning:
-    enabled: true
-    schedule: '0 2 * * *' # Daily at 2 AM
-    tools:
-      - trivy
-      - snyk
-    severity_threshold: 'high'
-
-  # Container scanning
-  container_scanning:
-    enabled: true
-    images:
-      - 'ghcr.io/calimero-network/merod:latest'
-      - 'ghcr.io/calimero-network/mero-auth:latest'
-
-  # Dependency scanning
-  dependency_scanning:
-    enabled: true
-    languages:
-      - rust
-      - python
-      - javascript
-```
-
-## Security Best Practices
-
-### General Security
-
-1. **Principle of Least Privilege**: Grant minimum necessary permissions
-2. **Defense in Depth**: Implement multiple security layers
-3. **Regular Updates**: Keep all components updated
-4. **Monitoring**: Continuously monitor for security events
-
-### Container Security
-
-1. **Non-root Users**: Run containers as non-root users
-2. **Read-only Filesystems**: Use read-only filesystems where possible
-3. **Capability Dropping**: Drop unnecessary capabilities
-4. **Resource Limits**: Set appropriate resource limits
-
-### Network Security
-
-1. **Network Segmentation**: Isolate different network segments
-2. **Firewall Rules**: Implement strict firewall rules
-3. **TLS Encryption**: Use TLS for all communications
-4. **Access Control**: Control network access with policies
-
-### Data Protection
-
-1. **Encryption**: Encrypt data at rest and in transit
-2. **Key Management**: Secure key management practices
-3. **Data Classification**: Classify and protect data appropriately
-4. **Backup Security**: Secure backup data
 
 ## Troubleshooting Security Issues
 
 ### Common Security Issues
 
 ```bash
-# Check container security
+# Check container security settings
 docker inspect calimero-node-1 | jq '.[0].HostConfig.SecurityOpt'
 
 # Check user permissions
@@ -14695,24 +12486,51 @@ docker exec calimero-node-1 netstat -tulpn
 
 ```bash
 # Enable security debugging
-export CALIMERO_SECURITY_DEBUG=true
 export RUST_LOG=debug
 
 # Check security logs
 docker logs calimero-node-1 | grep -i security
 
-# Verify TLS certificates
-openssl x509 -in /run/secrets/tls.crt -text -noout
-
 # Test authentication
-curl -H "Authorization: Bearer " https://calimero.example.com/api/health
+curl -H "Authorization: Bearer " http://localhost:2528/health
 ```
+
+## Security Best Practices
+
+### General Security
+
+1. **Principle of Least Privilege**: Grant minimum necessary permissions
+2. **Regular Updates**: Keep all components updated
+3. **Monitoring**: Monitor for security events
+4. **Documentation**: Document security procedures
+
+### Container Security
+
+1. **Non-root Users**: Run containers as non-root users
+2. **Read-only Filesystems**: Use read-only filesystems where possible
+3. **Capability Dropping**: Drop unnecessary capabilities
+4. **Resource Limits**: Set appropriate resource limits
+
+### Network Security
+
+1. **Port Management**: Use appropriate ports and check for conflicts
+2. **Network Isolation**: Use isolated Docker networks
+3. **Access Control**: Control network access appropriately
+
+### Data Protection
+
+1. **Environment Variables**: Use environment variables for sensitive data
+2. **File Permissions**: Set proper file permissions for secrets
+3. **Cleanup**: Clean up sensitive data when done
 
 ## Next Steps
 
-Now that you understand security configuration:
+Now that you understand basic security configuration:
 
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
 
 ---
 
@@ -14720,473 +12538,283 @@ Now that you understand security configuration:
 
 # Testing Framework Integration
 
-This guide covers advanced testing configuration for Merobox, including custom
-testing utilities, performance testing, and integration with popular testing
-frameworks.
+This guide covers basic testing configuration for Merobox and integration with
+Python testing frameworks.
 
-## Advanced Testing Configuration
+## Basic Testing Setup
 
-Configure Merobox for complex testing scenarios:
+Configure Merobox for testing scenarios:
 
 ### Basic Testing Setup
 
 ```python
 # conftest.py
 import pytest
-from merobox.testing import cluster, workflow
+import subprocess
+import time
 
 @pytest.fixture(scope="session")
-def production_cluster():
-    """Production-like cluster for integration tests."""
-    with cluster(
-        count=3,
-        prefix="prod",
-        image="ghcr.io/calimero-network/merod:latest",
-        chain_id="mainnet-1",
-        wait_for_ready=True
-    ) as test_env:
-        yield test_env
+def merobox_cluster():
+    """Basic Merobox cluster for testing."""
+    # Start nodes
+    subprocess.run(['merobox', 'run', '--count', '2'])
+    time.sleep(10)  # Wait for nodes to start
+
+    yield
+
+    # Cleanup
+    subprocess.run(['merobox', 'stop', '--all'])
 
 @pytest.fixture(scope="function")
-def test_workflow():
-    """Run a complex workflow for each test."""
-    with workflow(
-        "workflows/test-setup.yml",
-        prefix="test",
-        scope="function"
-    ) as env:
-        yield env
+def test_environment():
+    """Test environment for each test."""
+    # Start fresh nodes for each test
+    subprocess.run(['merobox', 'run', '--count', '1'])
+    time.sleep(5)
+
+    yield
+
+    # Cleanup
+    subprocess.run(['merobox', 'stop', '--all'])
 ```
 
-### Advanced Cluster Configuration
+### Basic Test Examples
 
 ```python
-# Advanced cluster setup
-@pytest.fixture(scope="session")
-def advanced_cluster():
-    """Advanced cluster with custom configuration."""
-    with cluster(
-        count=5,
-        prefix="advanced",
-        image="ghcr.io/calimero-network/merod:edge",
-        chain_id="testnet-1",
-        wait_for_ready=True,
-        resources={
-            "memory": "2G",
-            "cpus": "1.0"
-        },
-        environment={
-            "RUST_LOG": "debug",
-            "CALIMERO_TEST_MODE": "true"
-        },
-        networks=["calimero-test", "calimero-internal"],
-        volumes={
-            "test-data": "/calimero/test-data"
-        }
-    ) as test_env:
-        yield test_env
+# test_basic.py
+import pytest
+import subprocess
+
+def test_merobox_health(merobox_cluster):
+    """Test that Merobox nodes are healthy."""
+    result = subprocess.run(['merobox', 'health'], capture_output=True, text=True)
+    assert result.returncode == 0
+    assert "healthy" in result.stdout.lower()
+
+def test_merobox_list(merobox_cluster):
+    """Test that we can list running nodes."""
+    result = subprocess.run(['merobox', 'list'], capture_output=True, text=True)
+    assert result.returncode == 0
+    assert "calimero-node" in result.stdout
+
+def test_workflow_execution(test_environment):
+    """Test basic workflow execution."""
+    # Create a simple workflow
+    workflow_content = """
+description: Test workflow
+name: Test Workflow
+nodes:
+  chain_id: testnet-1
+  count: 1
+  image: ghcr.io/calimero-network/merod:edge
+steps:
+  - name: Test Step
+    type: script
+    script: echo "Hello from test workflow"
+stop_all_nodes: true
+"""
+
+    with open("test_workflow.yml", "w") as f:
+        f.write(workflow_content)
+
+    try:
+        result = subprocess.run(
+            ['merobox', 'bootstrap', 'run', 'test_workflow.yml'],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0
+    finally:
+        import os
+        os.remove("test_workflow.yml")
 ```
 
-### Multi-Environment Testing
+## Test Helper Classes
+
+### Basic Test Helper
 
 ```python
-# Multi-environment testing
-@pytest.fixture(params=["development", "staging", "production"])
-def environment_cluster(request):
-    """Test against different environments."""
-    env_config = {
-        "development": {
-            "image": "ghcr.io/calimero-network/merod:dev",
-            "count": 2,
-            "resources": {"memory": "1G", "cpus": "0.5"}
+# test_helpers.py
+import subprocess
+import time
+import tempfile
+import os
+
+class MeroboxTestHelper:
+    def __init__(self):
+        self.nodes = []
+        self.workflow_files = []
+
+    def start_nodes(self, count=2):
+        """Start Merobox nodes for testing."""
+        result = subprocess.run(
+            ['merobox', 'run', '--count', str(count)],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            self.nodes = [f"calimero-node-{i+1}" for i in range(count)]
+            time.sleep(10)  # Wait for nodes to start
+            return True
+        return False
+
+    def stop_nodes(self):
+        """Stop all test nodes."""
+        subprocess.run(['merobox', 'stop', '--all'])
+        self.nodes = []
+
+    def check_health(self):
+        """Check health of all nodes."""
+        result = subprocess.run(
+            ['merobox', 'health'],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+
+    def create_workflow(self, workflow_config):
+        """Create a temporary workflow file."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+            import yaml
+            yaml.dump(workflow_config, f)
+            self.workflow_files.append(f.name)
+            return f.name
+
+    def run_workflow(self, workflow_file):
+        """Run a Merobox workflow."""
+        result = subprocess.run(
+            ['merobox', 'bootstrap', 'run', workflow_file],
+            capture_output=True,
+            text=True
+        )
+        return result
+
+    def cleanup(self):
+        """Clean up all resources."""
+        self.stop_nodes()
+        for file in self.workflow_files:
+            if os.path.exists(file):
+                os.unlink(file)
+        self.workflow_files = []
+
+# Usage in tests
+@pytest.fixture
+def merobox_helper():
+    helper = MeroboxTestHelper()
+    yield helper
+    helper.cleanup()
+
+def test_with_helper(merobox_helper):
+    """Test using the helper class."""
+    assert merobox_helper.start_nodes(2)
+    assert merobox_helper.check_health()
+
+    # Create and run a workflow
+    workflow_config = {
+        'description': 'Test workflow',
+        'name': 'Test Workflow',
+        'nodes': {
+            'chain_id': 'testnet-1',
+            'count': 1,
+            'image': 'ghcr.io/calimero-network/merod:edge'
         },
-        "staging": {
-            "image": "ghcr.io/calimero-network/merod:staging",
-            "count": 3,
-            "resources": {"memory": "2G", "cpus": "1.0"}
-        },
-        "production": {
-            "image": "ghcr.io/calimero-network/merod:latest",
-            "count": 5,
-            "resources": {"memory": "4G", "cpus": "2.0"}
-        }
+        'steps': [
+            {
+                'name': 'Test Step',
+                'type': 'script',
+                'script': 'echo "Hello from test"'
+            }
+        ],
+        'stop_all_nodes': True
     }
 
-    config = env_config[request.param]
-    with cluster(
-        count=config["count"],
-        prefix=request.param,
-        image=config["image"],
-        resources=config["resources"],
-        wait_for_ready=True
-    ) as test_env:
-        test_env["environment"] = request.param
-        yield test_env
-```
-
-## Custom Test Utilities
-
-Create custom testing utilities for your specific needs:
-
-### Basic Test Utilities
-
-```python
-# test_utils.py
-from merobox.testing import cluster
-from merobox.commands.utils import get_node_rpc_url
-import time
-import requests
-
-class TestEnvironment:
-    def __init__(self, node_count=2):
-        self.node_count = node_count
-        self.cluster = None
-
-    def __enter__(self):
-        self.cluster = cluster(count=self.node_count)
-        return self.cluster.__enter__()
-
-    def __exit__(self, *args):
-        if self.cluster:
-            self.cluster.__exit__(*args)
-
-    def get_node_endpoint(self, node_name):
-        """Get the RPC endpoint for a specific node."""
-        return get_node_rpc_url(node_name, self.cluster["manager"])
-
-    def wait_for_node_ready(self, node_name, timeout=60):
-        """Wait for a node to be ready."""
-        endpoint = self.get_node_endpoint(node_name)
-        start_time = time.time()
-
-        while time.time() - start_time  0
-
-    def test_application_installation(self, merobox_cluster, test_data):
-        """Test application installation."""
-        # Install test application
-        # Your installation logic here
-        pass
-
-    def test_performance_requirements(self, merobox_cluster):
-        """Test performance requirements."""
-        # Performance testing logic
-        pass
-
-    @pytest.mark.asyncio
-    async def test_async_operations(self, merobox_cluster):
-        """Test async operations."""
-        # Async testing logic
-        pass
-```
-
-### Continuous Integration
-
-```yaml
-# .github/workflows/test.yml
-name: Test
-
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install merobox
-
-      - name: Run tests
-        run: |
-          pytest tests/ -v --cov=merobox
-
-      - name: Run performance tests
-        run: |
-          pytest tests/performance/ -v -m performance
+    workflow_file = merobox_helper.create_workflow(workflow_config)
+    result = merobox_helper.run_workflow(workflow_file)
+    assert result.returncode == 0
 ```
 
 ## Best Practices
 
-### Test Organization
-
-1. **Modular Tests**: Organize tests into logical modules
-2. **Test Data**: Use consistent test data management
-3. **Fixtures**: Create reusable test fixtures
-4. **Documentation**: Document test cases and their purpose
-
-### Performance Testing
-
-1. **Baseline Metrics**: Establish baseline performance metrics
-2. **Load Patterns**: Test various load patterns and scenarios
-3. **Resource Monitoring**: Monitor resource usage during tests
-4. **Regression Testing**: Detect performance regressions
-
 ### Error Handling
 
-1. **Test Failures**: Handle test failures gracefully
-2. **Cleanup**: Ensure proper cleanup after tests
-3. **Debugging**: Provide good debugging information
-4. **Retry Logic**: Implement retry logic for flaky tests
+```python
+# Always handle errors properly
+def safe_merobox_command(command):
+    """Run Merobox command with proper error handling."""
+    try:
+        result = subprocess.run(
+            ['merobox'] + command,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e}")
+        print(f"Error output: {e.stderr}")
+        return None
+    except FileNotFoundError:
+        print("Merobox not found. Please install it first.")
+        return None
+```
 
-## Next Steps
-
-Now that you understand testing framework integration:
-
-- [Resource Management](./resource-management) - Resource limits and monitoring
-- [Security Configuration](./security-configuration) - Security settings and
-  policies
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
-
----
-
-## Testing Integration Examples
-
-# Testing Integration Examples
-
-These examples show how to integrate Merobox with popular testing frameworks and
-CI/CD pipelines for automated testing.
-
-## Example 1: Python Testing with Merobox
-
-Use Merobox in your Python test suite.
-
-### Basic Test Setup
+### Resource Cleanup
 
 ```python
-# test_my_app.py
-import pytest
-from merobox.testing import cluster, workflow
-from my_app.client import MyAppClient
+# Always clean up resources
+def test_with_cleanup():
+    """Test with proper cleanup."""
+    try:
+        # Start nodes
+        subprocess.run(['merobox', 'run', '--count', '2'])
 
-@pytest.fixture(scope="function")
-def test_cluster():
-    """Create a test cluster for each test."""
-    with cluster(count=2, prefix="test") as env:
-        yield env
+        # Run tests
+        result = subprocess.run(['merobox', 'health'])
+        assert result.returncode == 0
 
-def test_basic_functionality(test_cluster):
-    """Test basic application functionality."""
-    # Get node endpoints
-    node1_endpoint = test_cluster["endpoints"]["test-1"]
-    node2_endpoint = test_cluster["endpoints"]["test-2"]
-
-    # Create clients
-    client1 = MyAppClient(node1_endpoint)
-    client2 = MyAppClient(node2_endpoint)
-
-    # Test functionality
-    result = client1.health_check()
-    assert result is not None
-
-    # Test cross-node communication
-    client1.set_data("key", "value")
-    value = client2.get_data("key")
-    assert value == "value"
-
-@pytest.fixture(scope="session")
-def app_workflow():
-    """Run a complex workflow for session-scoped tests."""
-    with workflow("workflows/app-setup.yml", prefix="session") as env:
-        yield env
-
-def test_complex_scenario(app_workflow):
-    """Test complex application scenario."""
-    # Use pre-configured workflow environment
-    nodes = app_workflow["nodes"]
-    context_id = app_workflow["dynamic_values"]["context_id"]
-
-    # Test with pre-configured environment
-    assert context_id is not None
-    assert len(nodes) > 0
+    finally:
+        # Always cleanup
+        subprocess.run(['merobox', 'stop', '--all'])
 ```
 
-### Advanced Test Configuration
+### Test Isolation
 
 ```python
-# conftest.py
-import pytest
-from merobox.testing import cluster, workflow
+# Use different prefixes for different tests
+def test_isolated():
+    """Test with isolated environment."""
+    try:
+        # Start nodes with unique prefix
+        subprocess.run(['merobox', 'run', '--count', '1', '--prefix', 'test-isolated'])
 
-@pytest.fixture(scope="session")
-def production_cluster():
-    """Production-like cluster for integration tests."""
-    with cluster(
-        count=3,
-        prefix="prod",
-        image="ghcr.io/calimero-network/merod:latest",
-        chain_id="mainnet-1",
-        wait_for_ready=True
-    ) as test_env:
-        yield test_env
+        # Run test
+        result = subprocess.run(['merobox', 'health'])
+        assert result.returncode == 0
 
-@pytest.fixture(scope="function")
-def test_workflow():
-    """Run a complex workflow for each test."""
-    with workflow(
-        "workflows/test-setup.yml",
-        prefix="test",
-        scope="function"
-    ) as env:
-        yield env
-
-@pytest.fixture
-def test_data():
-    """Provide test data for tests."""
-    return {
-        "test_app": "test-application.wasm",
-        "test_config": {"setting": "value"},
-        "test_params": ["param1", "param2"]
-    }
+    finally:
+        # Cleanup
+        subprocess.run(['merobox', 'stop', '--all'])
 ```
 
-### Performance Testing
+## Running Tests
 
-```python
-# test_performance.py
-import pytest
-import time
-from merobox.testing import cluster
+### Basic Test Execution
 
-@pytest.fixture
-def performance_cluster():
-    """High-performance cluster for performance tests."""
-    with cluster(
-        count=5,
-        prefix="perf",
-        image="ghcr.io/calimero-network/merod:edge",
-        resources={"memory": "2G", "cpus": "1.0"}
-    ) as env:
-        yield env
+```bash
+# Run all tests
+pytest
 
-def test_performance_under_load(performance_cluster):
-    """Test application performance under load."""
-    endpoints = performance_cluster["endpoints"]
+# Run specific test file
+pytest test_merobox.py
 
-    # Create multiple clients
-    clients = []
-    for i in range(5):
-        endpoint = endpoints[f"perf-{i+1}"]
-        clients.append(MyAppClient(endpoint))
+# Run with verbose output
+pytest -v
 
-    # Run performance test
-    start_time = time.time()
-
-    # Simulate load
-    for i in range(100):
-        client = clients[i % len(clients)]
-        result = client.process_data(f"load_test_{i}")
-        assert result is not None
-
-    end_time = time.time()
-    duration = end_time - start_time
-
-    # Assert performance requirements
-    assert duration < 10.0  # Should complete within 10 seconds
-    print(f"Performance test completed in {duration:.2f} seconds")
+# Run with coverage
+pytest --cov=my_app
 ```
 
-## Example 2: Workflow-based Test Setup
-
-Use workflows to set up complex test environments.
-
-### Test Setup Workflow
-
-```yaml
-# workflows/test-setup.yml
-description: Test environment setup
-name: Test Setup
-
-nodes:
-  chain_id: testnet-1
-  count: 3
-  image: ghcr.io/calimero-network/merod:edge
-  prefix: test-node
-
-steps:
-  - name: Install Application
-    type: install_application
-    node: test-node-1
-    path: ./test-app.wasm
-    dev: true
-    outputs:
-      app_id: applicationId
-
-  - name: Create Context
-    type: create_context
-    node: test-node-1
-    application_id: '{{app_id}}'
-    outputs:
-      context_id: contextId
-      member_key: memberPublicKey
-
-  - name: Setup Test Data
-    type: call
-    node: test-node-1
-    context_id: '{{context_id}}'
-    executor_public_key: '{{member_key}}'
-    method: setup_test_data
-    args:
-      test_cases: 100
-
-  - name: Create Test Identities
-    type: create_identity
-    node: test-node-2
-    outputs:
-      test_user1: publicKey
-
-  - name: Create Another Identity
-    type: create_identity
-    node: test-node-3
-    outputs:
-      test_user2: publicKey
-
-stop_all_nodes: false # Keep nodes running for tests
-```
-
-### Using Test Setup in Tests
-
-```python
-# test_with_workflow.py
-import pytest
-from merobox.testing import workflow
-
-@pytest.fixture(scope="session")
-def test_environment():
-    """Set up test environment using workflow."""
-    with workflow("workflows/test-setup.yml", prefix="test") as env:
-        yield env
-
-def test_application_functionality(test_environment):
-    """Test application with pre-configured environment."""
-    # Get configuration from workflow
-    context_id = test_environment["dynamic_values"]["context_id"]
-    member_key = test_environment["dynamic_values"]["member_key"]
-    test_user1 = test_environment["dynamic_values"]["test_user1"]
-    test_user2 = test_environment["dynamic_values"]["test_user2"]
-
-    # Test application functionality
-    assert context_id is not None
-    assert member_key is not None
-    assert test_user1 is not None
-    assert test_user2 is not None
-
-    # Add your test logic here
-    print(f"Testing with context: {context_id}")
-```
-
-## Example 3: CI/CD Integration
-
-Integrate Merobox with CI/CD pipelines.
-
-### GitHub Actions
+### Continuous Integration
 
 ```yaml
 # .github/workflows/test.yml
@@ -15213,15 +12841,183 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest tests/ -v --cov=my_app
+          pytest tests/ -v
+```
 
-      - name: Run integration tests
-        run: |
-          pytest tests/integration/ -v
+## Next Steps
 
-      - name: Run performance tests
+Now that you understand basic testing integration:
+
+- [Node Management](./node-management) - Complete node management guide
+- [Workflows](./workflows) - Workflow system and automation
+- [Environment Variables](./environment-variables) - Configuration options
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
+
+---
+
+## Testing Integration Examples
+
+# Testing Integration Examples
+
+These examples show how to integrate Merobox with popular testing frameworks
+using subprocess calls for automated testing.
+
+## Example 1: Python Testing with Merobox
+
+Use Merobox in your Python test suite with subprocess calls.
+
+### Basic Test Setup
+
+```python
+# test_my_app.py
+import pytest
+import subprocess
+import time
+import tempfile
+import os
+
+class MeroboxTestHelper:
+    def __init__(self):
+        self.nodes = []
+        self.workflow_files = []
+
+    def start_nodes(self, count=2, prefix="test"):
+        """Start Merobox nodes for testing."""
+        result = subprocess.run(
+            ['merobox', 'run', '--count', str(count), '--prefix', prefix],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            self.nodes = [f"{prefix}-{i+1}" for i in range(count)]
+            time.sleep(10)  # Wait for nodes to start
+            return True
+        return False
+
+    def stop_nodes(self):
+        """Stop all test nodes."""
+        subprocess.run(['merobox', 'stop', '--all'])
+        self.nodes = []
+
+    def check_health(self):
+        """Check health of all nodes."""
+        result = subprocess.run(
+            ['merobox', 'health'],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+
+    def create_workflow(self, workflow_config):
+        """Create a temporary workflow file."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+            import yaml
+            yaml.dump(workflow_config, f)
+            self.workflow_files.append(f.name)
+            return f.name
+
+    def run_workflow(self, workflow_file):
+        """Run a Merobox workflow."""
+        result = subprocess.run(
+            ['merobox', 'bootstrap', 'run', workflow_file],
+            capture_output=True,
+            text=True
+        )
+        return result
+
+    def cleanup(self):
+        """Clean up all resources."""
+        self.stop_nodes()
+        for file in self.workflow_files:
+            if os.path.exists(file):
+                os.unlink(file)
+        self.workflow_files = []
+
+@pytest.fixture(scope="function")
+def merobox_helper():
+    """Create a Merobox test helper for each test."""
+    helper = MeroboxTestHelper()
+    yield helper
+    helper.cleanup()
+
+def test_basic_functionality(merobox_helper):
+    """Test basic Merobox functionality."""
+    assert merobox_helper.start_nodes(2)
+    assert merobox_helper.check_health()
+
+    # Test basic operations
+    result = subprocess.run(['merobox', 'list'], capture_output=True, text=True)
+    assert result.returncode == 0
+    assert "test-1" in result.stdout
+
+def test_workflow_execution(merobox_helper):
+    """Test workflow execution."""
+    workflow_config = {
+        'description': 'Test workflow',
+        'name': 'Test Workflow',
+        'nodes': {
+            'chain_id': 'testnet-1',
+            'count': 1,
+            'image': 'ghcr.io/calimero-network/merod:edge'
+        },
+        'steps': [
+            {
+                'name': 'Test Step',
+                'type': 'script',
+                'script': 'echo "Hello from test workflow"'
+            }
+        ],
+        'stop_all_nodes': True
+    }
+
+    workflow_file = merobox_helper.create_workflow(workflow_config)
+    result = merobox_helper.run_workflow(workflow_file)
+    assert result.returncode == 0
+```
+
+## Example 2: CI/CD Pipeline Integration
+
+Integrate Merobox into CI/CD pipelines.
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/test.yml
+name: Test with Merobox
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
         run: |
-          pytest tests/performance/ -v -m performance
+          pip install -r requirements.txt
+          pip install merobox
+
+      - name: Start Merobox nodes
+        run: |
+          merobox run --count 2
+          sleep 10
+          merobox health
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v
+
+      - name: Cleanup
+        if: always()
+        run: |
+          merobox stop --all
 ```
 
 ### GitLab CI
@@ -15230,290 +13026,108 @@ jobs:
 # .gitlab-ci.yml
 stages:
   - test
-  - integration
-  - performance
 
 test:
   stage: test
   image: python:3.9
-  script:
+  before_script:
     - pip install -r requirements.txt
     - pip install merobox
+  script:
+    - merobox run --count 2
+    - sleep 10
+    - merobox health
     - pytest tests/ -v
-
-integration:
-  stage: integration
-  image: python:3.9
-  script:
-    - pip install -r requirements.txt
-    - pip install merobox
-    - pytest tests/integration/ -v
-
-performance:
-  stage: performance
-  image: python:3.9
-  script:
-    - pip install -r requirements.txt
-    - pip install merobox
-    - pytest tests/performance/ -v
+  after_script:
+    - merobox stop --all
 ```
 
-### Jenkins Pipeline
+## Example 3: Docker-based Testing
 
-```groovy
-// Jenkinsfile
-pipeline {
-    agent any
+Use Docker for isolated testing environments.
 
-    stages {
-        stage('Test') {
-            steps {
-                sh 'pip install -r requirements.txt'
-                sh 'pip install merobox'
-                sh 'pytest tests/ -v'
-            }
-        }
+### Dockerfile for Testing
 
-        stage('Integration Test') {
-            steps {
-                sh 'pytest tests/integration/ -v'
-            }
-        }
+```dockerfile
+# Dockerfile.test
+FROM python:3.9
 
-        stage('Performance Test') {
-            steps {
-                sh 'pytest tests/performance/ -v'
-            }
-        }
-    }
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
 
-    post {
-        always {
-            cleanWs()
-        }
-    }
-}
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+RUN pip install merobox
+
+# Copy test files
+COPY tests/ /app/tests/
+COPY . /app/
+
+WORKDIR /app
+
+# Run tests
+CMD ["pytest", "tests/", "-v"]
 ```
 
-## Example 4: Parallel Test Execution
+## Best Practices
 
-Run tests in parallel for faster execution.
-
-### Parallel Test Configuration
-
-```python
-# conftest.py
-import pytest
-from merobox.testing import cluster
-
-@pytest.fixture(scope="session")
-def shared_cluster():
-    """Shared cluster for parallel tests."""
-    with cluster(count=5, prefix="shared") as env:
-        yield env
-
-# Mark tests for parallel execution
-pytestmark = pytest.mark.parallel
-
-def test_parallel_1(shared_cluster):
-    """First parallel test."""
-    # Test logic here
-    pass
-
-def test_parallel_2(shared_cluster):
-    """Second parallel test."""
-    # Test logic here
-    pass
-
-def test_parallel_3(shared_cluster):
-    """Third parallel test."""
-    # Test logic here
-    pass
-```
-
-### Running Parallel Tests
-
-```bash
-# Run tests in parallel
-pytest -n 4 tests/  # Use 4 workers
-
-# Run specific parallel tests
-pytest -n 4 -m parallel tests/
-
-# Run with specific cluster configuration
-pytest -n 4 --cluster-count=3 tests/
-```
-
-## Example 5: Test Data Management
-
-Manage test data effectively across tests.
-
-### Test Data Fixtures
-
-```python
-# test_data.py
-import pytest
-from merobox.testing import cluster
-
-@pytest.fixture
-def test_data():
-    """Provide test data for tests."""
-    return {
-        "users": [
-            {"id": 1, "name": "Alice", "role": "admin"},
-            {"id": 2, "name": "Bob", "role": "user"},
-            {"id": 3, "name": "Charlie", "role": "user"}
-        ],
-        "config": {
-            "timeout": 30,
-            "retries": 3,
-            "debug": True
-        },
-        "test_cases": [
-            {"input": "test1", "expected": "result1"},
-            {"input": "test2", "expected": "result2"},
-            {"input": "test3", "expected": "result3"}
-        ]
-    }
-
-@pytest.fixture
-def test_cluster_with_data(test_data):
-    """Cluster with pre-loaded test data."""
-    with cluster(count=2, prefix="data") as env:
-        # Load test data into cluster
-        for user in test_data["users"]:
-            # Load user data
-            pass
-        yield env
-```
-
-### Dynamic Test Data Generation
-
-```python
-# test_dynamic_data.py
-import pytest
-import random
-from merobox.testing import cluster
-
-@pytest.fixture
-def random_test_data():
-    """Generate random test data."""
-    return {
-        "random_string": f"test_{random.randint(1000, 9999)}",
-        "random_number": random.randint(1, 100),
-        "random_list": [random.randint(1, 10) for _ in range(5)]
-    }
-
-def test_with_random_data(random_test_data):
-    """Test with randomly generated data."""
-    assert random_test_data["random_string"].startswith("test_")
-    assert 1 <= random_test_data["random_number"] <= 100
-    assert len(random_test_data["random_list"]) == 5
-```
-
-## Example 6: Test Reporting and Coverage
-
-Generate comprehensive test reports and coverage.
-
-### Coverage Configuration
-
-```python
-# pytest.ini
-[tool:pytest]
-addopts = --cov=my_app --cov-report=html --cov-report=xml
-markers =
-    slow: marks tests as slow
-    integration: marks tests as integration tests
-    performance: marks tests as performance tests
-```
-
-### Test Reporting
-
-```python
-# test_reporting.py
-import pytest
-from merobox.testing import cluster
-
-@pytest.fixture(autouse=True)
-def test_reporting():
-    """Generate test reports."""
-    yield
-    # Generate custom reports
-    print("Test completed - generating reports...")
-
-def test_with_reporting():
-    """Test that generates reports."""
-    with cluster(count=2, prefix="report") as env:
-        # Test logic here
-        pass
-```
-
-## Best Practices for Testing Integration
-
-### 1. Test Isolation
-
-```python
-# Use separate prefixes for different tests
-@pytest.fixture
-def isolated_test():
-    with cluster(count=1, prefix="isolated") as env:
-        yield env
-```
-
-### 2. Resource Cleanup
+### 1. Resource Management
 
 ```python
 # Always clean up resources
-@pytest.fixture
-def clean_test():
-    with cluster(count=2, prefix="clean") as env:
-        try:
-            yield env
-        finally:
-            # Cleanup logic
-            pass
+def test_with_cleanup():
+    helper = MeroboxTestHelper()
+    try:
+        helper.start_nodes(2)
+        # Run tests
+        assert helper.check_health()
+    finally:
+        helper.cleanup()
 ```
 
-### 3. Error Handling
+### 2. Error Handling
 
 ```python
-# Handle test failures gracefully
+# Handle errors gracefully
 def test_with_error_handling():
+    helper = MeroboxTestHelper()
     try:
-        with cluster(count=1, prefix="error") as env:
-            # Test logic
-            pass
+        result = helper.start_nodes(2)
+        if not result:
+            pytest.skip("Failed to start nodes")
+        # Continue with test
     except Exception as e:
         pytest.fail(f"Test failed: {e}")
+    finally:
+        helper.cleanup()
 ```
 
-### 4. Performance Monitoring
+### 3. Parallel Testing
 
 ```python
-# Monitor test performance
-import time
+# Use different prefixes for parallel tests
+def test_parallel_1():
+    helper = MeroboxTestHelper()
+    helper.start_nodes(1, prefix="test1")
+    # Run test
+    helper.cleanup()
 
-def test_with_performance_monitoring():
-    start_time = time.time()
-
-    with cluster(count=2, prefix="perf") as env:
-        # Test logic
-        pass
-
-    end_time = time.time()
-    duration = end_time - start_time
-
-    # Assert performance requirements
-    assert duration < 30.0  # Should complete within 30 seconds
+def test_parallel_2():
+    helper = MeroboxTestHelper()
+    helper.start_nodes(1, prefix="test2")
+    # Run test
+    helper.cleanup()
 ```
 
 ## Next Steps
 
 Now that you understand testing integration:
 
-- [Advanced Examples](./advanced-examples) - Complex workflows and advanced
-  features
 - [Best Practices](./best-practices) - Guidelines for effective Merobox usage
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
 
 ---
 
@@ -16049,108 +13663,12 @@ Now that you understand troubleshooting:
 
 # Workflow Advanced Features
 
-This guide covers advanced workflow features in Merobox, including conditional
-execution, parallel step execution, error handling, and custom step types.
-
-## Conditional Execution
-
-Execute steps conditionally based on variables, environment, or previous step
-results:
-
-### Basic Conditional Execution
-
-```yaml
-steps:
-  - name: Check Condition
-    type: script
-    script: |
-      if [ "$ENVIRONMENT" = "production" ]; then
-        echo "true" > /tmp/condition
-      else
-        echo "false" > /tmp/condition
-      fi
-    outputs:
-      condition: output
-
-  - name: Production Step
-    type: call
-    node: calimero-node-1
-    condition: "{{condition}} == 'true'"
-    method: production_method
-    args:
-      - 'production_value'
-```
-
-### Advanced Conditional Logic
-
-```yaml
-steps:
-  - name: Environment Check
-    type: script
-    script: |
-      case "$ENVIRONMENT" in
-        "production")
-          echo "prod" > /tmp/env_type
-          echo "true" > /tmp/use_ssl
-          ;;
-        "staging")
-          echo "staging" > /tmp/env_type
-          echo "true" > /tmp/use_ssl
-          ;;
-        "development")
-          echo "dev" > /tmp/env_type
-          echo "false" > /tmp/use_ssl
-          ;;
-        *)
-          echo "unknown" > /tmp/env_type
-          echo "false" > /tmp/use_ssl
-          ;;
-      esac
-    outputs:
-      env_type: output
-      use_ssl: output
-
-  - name: Configure SSL
-    type: script
-    condition: "{{use_ssl}} == 'true'"
-    script: |
-      echo "Configuring SSL for {{env_type}} environment"
-      # SSL configuration logic here
-
-  - name: Configure Development
-    type: script
-    condition: "{{env_type}} == 'dev'"
-    script: |
-      echo "Configuring development settings"
-      # Development configuration logic here
-```
-
-### Complex Conditions
-
-```yaml
-steps:
-  - name: Multi-Condition Check
-    type: script
-    script: |
-      # Check multiple conditions
-      if [ "$ENVIRONMENT" = "production" ] && [ "$FEATURE_FLAG" = "enabled" ]; then
-        echo "true" > /tmp/complex_condition
-      else
-        echo "false" > /tmp/complex_condition
-      fi
-    outputs:
-      complex_condition: output
-
-  - name: Complex Step
-    type: call
-    node: calimero-node-1
-    condition: "{{complex_condition}} == 'true'"
-    method: complex_method
-```
+This guide covers advanced workflow features in Merobox, including parallel step
+execution and custom scripts.
 
 ## Parallel Step Execution
 
-Execute multiple steps in parallel for improved performance:
+Execute multiple steps simultaneously for improved performance:
 
 ### Basic Parallel Execution
 
@@ -16163,485 +13681,262 @@ steps:
         type: install_application
         node: calimero-node-1
         path: ./app1.wasm
+        dev: true
+        outputs:
+          app_id_1: applicationId
+
       - name: Install App 2
         type: install_application
         node: calimero-node-2
         path: ./app2.wasm
+        dev: true
+        outputs:
+          app_id_2: applicationId
+
       - name: Create Identity
         type: create_identity
         node: calimero-node-3
+        outputs:
+          public_key: publicKey
 ```
 
-### Parallel with Dependencies
+### Parallel with Repeat
 
 ```yaml
 steps:
-  - name: Setup Phase
+  - name: Parallel Repeat Operations
     type: parallel
     steps:
-      - name: Create Node 1
-        type: create_node
-        name: calimero-node-1
-      - name: Create Node 2
-        type: create_node
-        name: calimero-node-2
-      - name: Create Node 3
-        type: create_node
-        name: calimero-node-3
-
-  - name: Configuration Phase
-    type: parallel
-    depends_on: [Setup Phase]
-    steps:
-      - name: Configure Node 1
-        type: configure_node
-        node: calimero-node-1
-      - name: Configure Node 2
-        type: configure_node
-        node: calimero-node-2
-      - name: Configure Node 3
-        type: configure_node
-        node: calimero-node-3
+      - name: Install Multiple Apps
+        type: repeat
+        count: 3
+        outputs:
+          iteration: iteration
+        steps:
+          - name: Install App {{iteration}}
+            type: install_application
+            node: calimero-node-{{iteration}}
+            path: ./app{{iteration}}.wasm
+            dev: true
+            outputs:
+              app_id: applicationId
 ```
 
-### Parallel with Limits
+## Custom Scripts
+
+Use custom scripts for complex operations:
+
+### Basic Script Execution
 
 ```yaml
 steps:
-  - name: Parallel with Limits
-    type: parallel
-    max_concurrent: 3
-    steps:
-      - name: Install App 1
-        type: install_application
-        node: calimero-node-1
-        path: ./app1.wasm
-      - name: Install App 2
-        type: install_application
-        node: calimero-node-2
-        path: ./app2.wasm
-      - name: Install App 3
-        type: install_application
-        node: calimero-node-3
-        path: ./app3.wasm
-      - name: Install App 4
-        type: install_application
-        node: calimero-node-4
-        path: ./app4.wasm
+  - name: Custom Setup Script
+    type: script
+    script: |
+      echo "Setting up custom environment..."
+      mkdir -p /tmp/custom-data
+      echo "custom_value" > /tmp/custom-data/sample.txt
+      echo "Setup complete"
+    outputs:
+      setup_result: output
+
+  - name: Use Script Output
+    type: call
+    node: calimero-node-1
+    context_id: '{{context_id}}'
+    method: process_data
+    args:
+      data: '{{setup_result}}'
 ```
 
-## Error Handling and Recovery
+### Script with Variables
 
-Implement robust error handling and recovery mechanisms:
+```yaml
+steps:
+  - name: Process Data Script
+    type: script
+    script: |
+      echo "Processing data for context: {{context_id}}"
+      echo "Using public key: {{public_key}}"
+      # Process the data
+      echo "processed_data" > /tmp/result.txt
+      echo "Processing complete"
+    outputs:
+      processed_data: output
+```
 
-### Basic Error Handling
+## Error Handling
+
+Implement basic error handling in workflows:
+
+### Try-Catch Pattern
 
 ```yaml
 steps:
   - name: Risky Operation
     type: call
     node: calimero-node-1
+    context_id: '{{context_id}}'
     method: risky_method
-    retry:
-      attempts: 3
-      delay: 5
-      backoff: exponential
-    on_error:
-      - name: Log Error
-        type: script
-        script: echo "Operation failed: {{error}}"
-      - name: Cleanup
-        type: script
-        script: echo "Cleaning up..."
-```
-
-### Advanced Error Handling
-
-```yaml
-steps:
-  - name: Complex Operation
-    type: call
-    node: calimero-node-1
-    method: complex_method
-    retry:
-      attempts: 5
-      delay: 10
-      backoff: exponential
-      max_delay: 300
-    on_error:
-      - name: Log Error Details
-        type: script
-        script: |
-          echo "Error: {{error}}"
-          echo "Node: {{node}}"
-          echo "Method: {{method}}"
-          echo "Timestamp: $(date)"
-        outputs:
-          error_log: output
-      - name: Notify Admin
-        type: script
-        condition: "{{error_log}} contains 'critical'"
-        script: |
-          echo "Critical error detected, notifying admin"
-          # Send notification
-      - name: Rollback
-        type: script
-        condition: "{{error_log}} contains 'rollback'"
-        script: |
-          echo "Rolling back changes"
-          # Rollback logic
-```
-
-### Error Recovery Strategies
-
-```yaml
-steps:
-  - name: Operation with Recovery
-    type: call
-    node: calimero-node-1
-    method: operation_with_recovery
-    retry:
-      attempts: 3
-      delay: 5
-      backoff: linear
-    on_error:
-      - name: Check Node Health
-        type: script
-        script: |
-          if ! docker exec calimero-node-1 curl -f http://localhost:2428/health; then
-            echo "Node is unhealthy, restarting..."
-            docker restart calimero-node-1
-            sleep 30
-          fi
-        outputs:
-          node_restarted: output
-      - name: Retry Operation
-        type: call
-        condition: "{{node_restarted}} == 'true'"
-        node: calimero-node-1
-        method: operation_with_recovery
-```
-
-## Custom Step Types
-
-Define custom step types for specialized operations:
-
-### Basic Custom Step
-
-```yaml
-# custom-steps.yml
-step_types:
-  custom_deploy:
-    required_fields: [node, application, environment]
-    optional_fields: [config, timeout]
-    execute: |
-      # Custom deployment logic
-      echo "Deploying {{application}} to {{environment}} on {{node}}"
-
-      # Set timeout if provided
-      if [ -n "{{timeout}}" ]; then
-        timeout {{timeout}} deploy_command
-      else
-        deploy_command
-      fi
-    outputs:
-      deployment_id: '{{deployment_id}}'
-      status: '{{deployment_status}}'
-```
-
-### Advanced Custom Step
-
-```yaml
-# advanced-custom-steps.yml
-step_types:
-  database_migration:
-    required_fields: [node, migration_file, target_database]
-    optional_fields: [rollback_file, backup_before, dry_run]
-    validate:
-      - field: migration_file
-        type: file
-        exists: true
-        extension: [.sql, .migration]
-      - field: target_database
-        type: string
-        pattern: '^[a-zA-Z0-9_-]+$'
-    execute: |
-      # Validate migration file
-      if [ ! -f "{{migration_file}}" ]; then
-        echo "Migration file not found: {{migration_file}}"
-        exit 1
-      fi
-
-      # Create backup if requested
-      if [ "{{backup_before}}" = "true" ]; then
-        echo "Creating backup of {{target_database}}"
-        backup_command --database {{target_database}}
-      fi
-
-      # Run migration
-      if [ "{{dry_run}}" = "true" ]; then
-        echo "Dry run: Would execute {{migration_file}}"
-        echo "migration_id=dry_run_{{timestamp}}"
-        echo "status=dry_run"
-      else
-        echo "Executing migration: {{migration_file}}"
-        migration_result=$(migrate_command --file {{migration_file}} --database {{target_database}})
-        echo "migration_id={{migration_result.id}}"
-        echo "status={{migration_result.status}}"
-      fi
-    outputs:
-      migration_id: '{{migration_id}}'
-      status: '{{status}}'
-      backup_file: '{{backup_file}}'
-```
-
-### Custom Step with Dependencies
-
-```yaml
-# custom-step-with-deps.yml
-step_types:
-  conditional_deploy:
-    required_fields: [node, application]
-    optional_fields: [condition, environment, config]
-    dependencies: [check_condition, validate_environment]
-    execute: |
-      # Check if condition is met
-      if [ "{{condition}}" != "true" ]; then
-        echo "Condition not met, skipping deployment"
-        echo "status=skipped"
-        exit 0
-      fi
-
-      # Validate environment
-      if [ -n "{{environment}}" ]; then
-        if [ "{{environment}}" != "production" ] && [ "{{environment}}" != "staging" ]; then
-          echo "Invalid environment: {{environment}}"
-          exit 1
-        fi
-      fi
-
-      # Deploy application
-      echo "Deploying {{application}} to {{node}}"
-      deploy_result=$(deploy_command --app {{application}} --node {{node}} --env {{environment}})
-      echo "deployment_id={{deploy_result.id}}"
-      echo "status={{deploy_result.status}}"
-    outputs:
-      deployment_id: '{{deployment_id}}'
-      status: '{{status}}'
-```
-
-## Dynamic Variables and Templating
-
-### Variable Substitution
-
-```yaml
-steps:
-  - name: Generate Dynamic Values
-    type: script
-    script: |
-      # Generate timestamp
-      echo "$(date +%s)" > /tmp/timestamp
-
-      # Generate random ID
-      echo "$(uuidgen)" > /tmp/random_id
-
-      # Generate environment-specific values
-      case "$ENVIRONMENT" in
-        "production")
-          echo "prod" > /tmp/env_prefix
-          echo "1000" > /tmp/timeout
-          ;;
-        "staging")
-          echo "staging" > /tmp/env_prefix
-          echo "500" > /tmp/timeout
-          ;;
-        *)
-          echo "dev" > /tmp/env_prefix
-          echo "100" > /tmp/timeout
-          ;;
-      esac
-    outputs:
-      timestamp: output
-      random_id: output
-      env_prefix: output
-      timeout: output
-
-  - name: Use Dynamic Values
-    type: call
-    node: calimero-node-1
-    method: dynamic_method
     args:
-      - '{{env_prefix}}_{{random_id}}'
-      - '{{timestamp}}'
-      - '{{timeout}}'
-```
+      should_fail: false
+    outputs:
+      result: result
 
-### Template Processing
-
-```yaml
-steps:
-  - name: Process Template
+  - name: Handle Success
     type: script
     script: |
-      # Process configuration template
-      envsubst  config.yml
+      echo "Operation succeeded: {{result}}"
+    condition: '{{result}} != null'
 
-      # Replace placeholders
-      sed -i "s/{{NODE_NAME}}/calimero-node-1/g" config.yml
-      sed -i "s/{{ENVIRONMENT}}/$ENVIRONMENT/g" config.yml
-      sed -i "s/{{TIMESTAMP}}/$(date +%s)/g" config.yml
-    outputs:
-      config_file: 'config.yml'
+  - name: Handle Error
+    type: script
+    script: |
+      echo "Operation failed, continuing..."
+    condition: '{{result}} == null'
 ```
 
-## Workflow Composition
-
-### Sub-workflows
+### Validation Steps
 
 ```yaml
-# main-workflow.yml
 steps:
-  - name: Setup Infrastructure
-    type: workflow
-    file: workflows/setup-infrastructure.yml
-    inputs:
-      node_count: 3
-      environment: '{{ENVIRONMENT}}'
-    outputs:
-      node_endpoints: output
+  - name: Validate Input
+    type: assert
+    statements:
+      - 'is_set({{context_id}})'
+      - 'is_set({{public_key}})'
 
-  - name: Deploy Applications
-    type: workflow
-    file: workflows/deploy-applications.yml
-    depends_on: [Setup Infrastructure]
-    inputs:
-      node_endpoints: '{{node_endpoints}}'
-      applications: ['app1', 'app2', 'app3']
-    outputs:
-      deployment_status: output
-
-  - name: Run Tests
-    type: workflow
-    file: workflows/run-tests.yml
-    depends_on: [Deploy Applications]
-    inputs:
-      node_endpoints: '{{node_endpoints}}'
-      test_suite: 'integration'
-```
-
-### Workflow Inheritance
-
-```yaml
-# base-workflow.yml
-name: Base Workflow
-description: Common workflow steps
-
-steps:
-  - name: Common Setup
-    type: script
-    script: echo "Common setup logic"
-
-  - name: Common Cleanup
-    type: script
-    script: echo "Common cleanup logic"
-
-# specialized-workflow.yml
-name: Specialized Workflow
-extends: base-workflow.yml
-
-steps:
-  - name: Specialized Step
+  - name: Execute Operation
     type: call
     node: calimero-node-1
-    method: specialized_method
-    # Inserted between Common Setup and Common Cleanup
+    context_id: '{{context_id}}'
+    method: safe_method
+    args:
+      key: '{{public_key}}'
 ```
 
 ## Performance Optimization
 
-### Workflow Optimization
+### Resource Management
 
 ```yaml
-# Optimized workflow
-steps:
-  - name: Parallel Setup
-    type: parallel
-    max_concurrent: 4
-    steps:
-      - name: Setup Node 1
-        type: create_node
-        name: calimero-node-1
-      - name: Setup Node 2
-        type: create_node
-        name: calimero-node-2
-      - name: Setup Node 3
-        type: create_node
-        name: calimero-node-3
-      - name: Setup Node 4
-        type: create_node
-        name: calimero-node-4
+# Use appropriate node counts
+nodes:
+  count: 3 # Scale based on needs
+  image: ghcr.io/calimero-network/merod:edge
 
-  - name: Optimized Deployment
+steps:
+  - name: Efficient Operations
     type: parallel
-    max_concurrent: 2
+    max_concurrent: 2 # Limit concurrent operations
     steps:
-      - name: Deploy to Nodes 1-2
-        type: parallel
-        steps:
-          - name: Deploy App 1
-            type: install_application
-            node: calimero-node-1
-            path: ./app1.wasm
-          - name: Deploy App 2
-            type: install_application
-            node: calimero-node-2
-            path: ./app2.wasm
-      - name: Deploy to Nodes 3-4
-        type: parallel
-        steps:
-          - name: Deploy App 3
-            type: install_application
-            node: calimero-node-3
-            path: ./app3.wasm
-          - name: Deploy App 4
-            type: install_application
-            node: calimero-node-4
-            path: ./app4.wasm
+      - name: Operation 1
+        type: call
+        # ... operation details
+      - name: Operation 2
+        type: call
+        # ... operation details
+```
+
+### Caching and Reuse
+
+```yaml
+steps:
+  - name: Create Reusable Data
+    type: script
+    script: |
+      echo "Creating reusable data..."
+      echo "shared_data" > /tmp/shared.txt
+    outputs:
+      shared_data: output
+
+  - name: Use Shared Data
+    type: call
+    node: calimero-node-1
+    method: use_shared_data
+    args:
+      data: '{{shared_data}}'
+
+  - name: Use Shared Data Again
+    type: call
+    node: calimero-node-2
+    method: use_shared_data
+    args:
+      data: '{{shared_data}}'
 ```
 
 ## Best Practices
 
-### Workflow Design
+### 1. Use Parallel Execution
 
-1. **Modularity**: Break complex workflows into smaller, reusable components
-2. **Error Handling**: Implement comprehensive error handling and recovery
-3. **Performance**: Use parallel execution where possible
-4. **Testing**: Test workflows thoroughly before production use
+```yaml
+# Good: Use parallel execution for independent operations
+steps:
+  - name: Parallel Setup
+    type: parallel
+    steps:
+      - name: Setup Node 1
+        type: install_application
+        # ... setup details
+      - name: Setup Node 2
+        type: install_application
+        # ... setup details
+```
 
-### Step Organization
+### 2. Implement Error Handling
 
-1. **Logical Grouping**: Group related steps together
-2. **Dependencies**: Clearly define step dependencies
-3. **Outputs**: Use meaningful output names and descriptions
-4. **Documentation**: Document complex custom steps
+```yaml
+# Good: Include error handling
+steps:
+  - name: Validate Before Execution
+    type: assert
+    statements:
+      - 'is_set({{required_variable}})'
 
-### Error Recovery
+  - name: Execute Operation
+    type: call
+    # ... operation details
+```
 
-1. **Retry Logic**: Implement appropriate retry mechanisms
-2. **Rollback**: Plan for rollback scenarios
-3. **Monitoring**: Monitor workflow execution and failures
-4. **Alerting**: Set up alerts for critical failures
+### 3. Use Appropriate Resources
+
+```yaml
+# Good: Scale resources appropriately
+nodes:
+  count: 3 # Use appropriate number of nodes
+  image: ghcr.io/calimero-network/merod:edge
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### Parallel Execution Failures
+
+```bash
+# Check node health
+merobox health --verbose
+
+# Check logs
+merobox logs calimero-node-1
+```
+
+#### Script Execution Errors
+
+```bash
+# Run with verbose output
+merobox bootstrap run workflow.yml --verbose
+
+# Check script output
+merobox logs calimero-node-1 | grep "script"
+```
 
 ## Next Steps
 
-Now that you understand workflow advanced features:
+Now that you understand advanced workflow features:
 
-- [Testing Framework Integration](./testing-framework-integration) - Testing
-  with Merobox
-- [Resource Management](./resource-management) - Resource limits and monitoring
-- [Security Configuration](./security-configuration) - Security settings and
-  policies
-- [Advanced Configuration](./advanced-configuration) - Other advanced features
+- [Best Practices](./best-practices) - Guidelines for effective Merobox usage
+- [Troubleshooting](./troubleshooting) - Common issues and solutions
 
 ---
 
