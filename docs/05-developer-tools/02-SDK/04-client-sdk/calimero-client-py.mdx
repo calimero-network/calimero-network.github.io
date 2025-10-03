@@ -24,7 +24,7 @@ automation, or integration with existing Python ecosystems.
 - **🔒 Type Safety**: Strongly typed Python bindings with full IDE support.
 - **⚡ Synchronous Interface**: Clean synchronous API with Rust-powered backend.
 - **🌐 Multi-Protocol**: Support for NEAR, Ethereum, ICP, and Starknet networks.
-- **📦 Easy Installation**: Simple `pip install` with no complex dependencies.
+- **📦 Easy Installation**: Simple `pipx install` with no complex dependencies.
 - **🔧 Comprehensive API**: Full access to all Calimero Network functionality.
 
 ## Supported Protocols
@@ -223,73 +223,6 @@ The client provides comprehensive access to Calimero functionality:
   identity alias
 - `resolve_application_alias(alias: str)`: Resolve application alias
 
-## Integration Examples
-
-### With Merobox
-
-```python
-import calimero
-from merobox import Cluster
-
-def deploy_with_merobox():
-    # Start Merobox cluster
-    with Cluster() as cluster:
-        # Get node URL
-        node_url = cluster.get_node_url("node-1")
-
-        # Create Calimero client
-        connection = calimero.create_connection(node_url)
-        client = calimero.create_client(connection)
-
-        # Deploy application
-        app = client.install_application(
-            url="https://example.com/app.wasm",
-            metadata=b'{"name": "My App"}'
-        )
-
-        print(f"Deployed app: {app['application_id']}")
-```
-
-### With FastAPI
-
-```python
-from fastapi import FastAPI
-import calimero
-
-app = FastAPI()
-
-# Global client instance
-connection = calimero.create_connection("http://localhost:2428")
-client = calimero.create_client(connection)
-
-@app.get("/contexts")
-def get_contexts():
-    return client.list_contexts()
-
-@app.post("/contexts")
-def create_context(application_id: str, protocol: str):
-    return client.create_context(application_id, protocol)
-```
-
-### With Jupyter Notebooks
-
-```python
-# Perfect for data analysis and exploration
-import pandas as pd
-import calimero
-
-# Create client
-connection = calimero.create_connection("http://localhost:2428")
-client = calimero.create_client(connection)
-
-# Get contexts data
-contexts = client.list_contexts()
-
-# Convert to DataFrame for analysis
-df = pd.DataFrame(contexts)
-print(df.describe())
-```
-
 ## Error Handling
 
 The client provides comprehensive error handling:
@@ -349,7 +282,7 @@ pip install target/wheels/calimero_client_py-*.whl
 Before installing the Python client, ensure you have:
 
 - **Python 3.9+** (3.11+ recommended for best performance).
-- **pip** (Python package manager).
+- **pipx** (recommended) or **pip** package manager.
 - **Rust toolchain** (only needed for building from source).
 
 ### PyPI Installation (Recommended)
@@ -528,6 +461,8 @@ The client provides comprehensive access to Calimero functionality:
   identity alias
 - `resolve_application_alias(alias: str)`: Resolve application alias
 
+### Error Handling
+
 ```python
 import calimero
 
@@ -573,105 +508,6 @@ if __name__ == "__main__":
     main()
 ```
 
-### With Merobox
-
-```python
-import calimero
-from merobox import Cluster
-
-def deploy_with_merobox():
-    # Start Merobox cluster
-    with Cluster() as cluster:
-        # Get node URL
-        node_url = cluster.get_node_url("node-1")
-
-        # Create Calimero client
-        connection = calimero.create_connection(node_url)
-        client = calimero.create_client(connection)
-
-        # Deploy application
-        app = client.install_application(
-            url="https://example.com/app.wasm",
-            metadata=b'{"name": "My App"}'
-        )
-
-        print(f"Deployed app: {app['application_id']}")
-```
-
-### With FastAPI
-
-```python
-from fastapi import FastAPI
-import calimero
-
-app = FastAPI()
-
-# Global client instance
-connection = calimero.create_connection("http://localhost:2428")
-client = calimero.create_client(connection)
-
-@app.get("/contexts")
-def get_contexts():
-    return client.list_contexts()
-
-@app.post("/contexts")
-def create_context(application_id: str, protocol: str):
-    return client.create_context(application_id, protocol)
-```
-
-## Advanced Usage
-
-### Performance Optimization
-
-```python
-import time
-import calimero
-
-def benchmark():
-    connection = calimero.create_connection("http://localhost:2428")
-    client = calimero.create_client(connection)
-
-    start = time.time()
-
-    # Execute multiple operations
-    for _ in range(100):
-        contexts = client.list_contexts()
-
-    end = time.time()
-    print(f"100 operations completed in {end - start:.2f} seconds")
-
-benchmark()
-```
-
-### Custom Error Handling
-
-```python
-import calimero
-import logging
-
-logger = logging.getLogger(__name__)
-
-def robust_operation(client, operation, *args, **kwargs):
-    """Execute operation with robust error handling and retries."""
-    max_retries = 3
-    retry_delay = 1
-
-    for attempt in range(max_retries):
-        try:
-            return operation(*args, **kwargs)
-        except calimero.ClientError as e:
-            if attempt < max_retries - 1:
-                logger.warning(f"Client error, retrying in {retry_delay}s: {e}")
-                time.sleep(retry_delay)
-                retry_delay *= 2
-            else:
-                logger.error(f"Client error after {max_retries} attempts: {e}")
-                raise
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-            raise
-```
-
 ## Resources
 
 - **GitHub Repository**:
@@ -697,7 +533,6 @@ Ready to get started with the Python client?
 1. **Follow the Installation section above** to set up your environment
 2. **Explore the API Reference section** to understand available methods
 3. **Check out the Examples section** for practical usage patterns
-4. **Read the Advanced Usage section** for optimization techniques
 
 The Python client brings the power and performance of Calimero Network to the
 Python ecosystem, enabling you to build sophisticated decentralized applications

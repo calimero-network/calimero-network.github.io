@@ -115,8 +115,8 @@ def error_handling_example():
         context = client.get_context("non-existent-context")
         print(f"Context: {context}")
 
-except RuntimeError as e:
-    print(f"Client error: {e}")
+    except RuntimeError as e:
+        print(f"Client error: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
 
@@ -260,67 +260,6 @@ if __name__ == "__main__":
     context_management_example()
 ```
 
-### Context Invitations and Joining
-
-```python
-# context_invitations.py
-import calimero
-
-def context_invitations_example():
-    """Example of context invitations and joining."""
-    connection = calimero.create_connection("http://localhost:2428")
-    client = calimero.create_client(connection)
-
-    print("=== Context Invitations Example ===")
-
-    # Install application
-    app = client.install_application(
-        url="https://example.com/my-app.wasm",
-        metadata=b'{"name": "Invitation Test App"}'
-    )
-    app_id = app["application_id"]
-
-    try:
-        # Create context
-        context = client.create_context(app_id, "near")
-        context_id = context["context_id"]
-        print(f"✓ Created context: {context_id}")
-
-        # Generate identities
-        inviter_identity = client.generate_context_identity()
-        invitee_identity = client.generate_context_identity()
-        print(f"✓ Generated identities")
-
-        # Invite to context
-        print("Creating invitation...")
-        invitation = client.invite_to_context(
-            context_id=context_id,
-            inviter_id=inviter_identity["identity_id"],
-            invitee_id=invitee_identity["identity_id"]
-        )
-        print(f"✓ Created invitation: {invitation}")
-
-        # Join context
-        print("Joining context...")
-        join_result = client.join_context(
-            context_id=context_id,
-            invitee_id=invitee_identity["identity_id"],
-            invitation_payload=invitation["invitation_payload"]
-        )
-        print(f"✓ Join result: {join_result}")
-
-        return context_id
-
-    finally:
-        # Clean up
-        client.delete_context(context_id)
-        client.uninstall_application(app_id)
-        print("✓ Cleanup completed")
-
-if __name__ == "__main__":
-    context_invitations_example()
-```
-
 ## Step 5: Function Execution
 
 ### Execute Smart Contract Functions
@@ -386,26 +325,145 @@ if __name__ == "__main__":
     function_execution_example()
 ```
 
-### Batch Function Execution
+## Step 6: Best Practices
+
+### Connection Management
 
 ```python
-# batch_execution.py
+# connection_management.py
+import calimero
+
+class CalimeroClientWrapper:
+    """Wrapper class for better connection management."""
+
+    def __init__(self, api_url: str, node_name: str = None):
+        self.connection = calimero.create_connection(api_url, node_name)
+        self.client = calimero.create_client(self.connection)
+
+    def get_connection_info(self):
+        """Get connection information."""
+        return {
+            "api_url": self.client.get_api_url(),
+            "peers_count": self.client.get_peers_count()
+        }
+
+    def health_check(self):
+        """Perform a health check."""
+        try:
+            contexts = self.client.list_contexts()
+            return {"status": "healthy", "contexts_count": len(contexts)}
+        except Exception as e:
+            return {"status": "unhealthy", "error": str(e)}
+
+# Usage example
+def connection_management_example():
+    """Example of proper connection management."""
+    wrapper = CalimeroClientWrapper("http://localhost:2428", "my-node")
+
+    # Get connection info
+    info = wrapper.get_connection_info()
+    print(f"Connection info: {info}")
+
+    # Health check
+    health = wrapper.health_check()
+    print(f"Health status: {health}")
+
+if __name__ == "__main__":
+    connection_management_example()
+```
+
+### Error Handling Patterns
+
+```python
+# error_patterns.py
 import calimero
 import time
 
-def batch_execution_example():
-    """Example of batch function execution."""
+def robust_client_operation(client, operation, *args, max_retries=3, **kwargs):
+    """Execute operation with retry logic."""
+    last_error = None
+
+    for attempt in range(max_retries):
+        try:
+            return operation(*args, **kwargs)
+        except RuntimeError as e:
+            last_error = e
+            if attempt < max_retries - 1:
+                print(f"Attempt {attempt + 1} failed, retrying in 2s: {e}")
+                time.sleep(2)
+            else:
+                print(f"All {max_retries} attempts failed")
+                break
+
+    raise last_error
+
+def error_patterns_example():
+    """Example of robust error handling patterns."""
     connection = calimero.create_connection("http://localhost:2428")
     client = calimero.create_client(connection)
 
-    print("=== Batch Execution Example ===")
+    # Use robust operation wrapper
+    try:
+        contexts = robust_client_operation(client, client.list_contexts)
+        print(f"Successfully retrieved {len(contexts)} contexts")
+    except RuntimeError as e:
+        print(f"Failed to retrieve contexts: {e}")
+
+if __name__ == "__main__":
+    error_patterns_example()
+```
+
+## Step 7: Testing
+
+### Basic Testing
+
+```python
+# test_basic.py
+import calimero
+
+def test_basic_operations():
+    """Test basic client operations."""
+    connection = calimero.create_connection("http://localhost:2428")
+    client = calimero.create_client(connection)
+
+    # Test connection
+    api_url = client.get_api_url()
+    assert api_url == "http://localhost:2428"
+
+    # Test peers count
+    peers = client.get_peers_count()
+    assert isinstance(peers, (int, dict))
+
+    # Test contexts listing
+    contexts = client.list_contexts()
+    assert isinstance(contexts, (list, dict))
+
+    print("✓ All basic tests passed")
+
+if __name__ == "__main__":
+    test_basic_operations()
+```
+
+### Integration Testing
+
+```python
+# test_integration.py
+import calimero
+
+def test_full_workflow():
+    """Test complete workflow."""
+    connection = calimero.create_connection("http://localhost:2428")
+    client = calimero.create_client(connection)
+
+    print("=== Integration Test ===")
 
     # Install application
     app = client.install_application(
-        url="https://example.com/my-app.wasm",
-        metadata=b'{"name": "Batch Test App"}'
+        url="https://example.com/test.wasm",
+        metadata=b'{"name": "Test App"}'
     )
     app_id = app["application_id"]
+    print(f"✓ Installed app: {app_id}")
 
     try:
         # Create context
@@ -413,550 +471,27 @@ def batch_execution_example():
         context_id = context["context_id"]
         print(f"✓ Created context: {context_id}")
 
-        # Generate executor identity
-        executor_identity = client.generate_context_identity()
-        executor_public_key = executor_identity["public_key"]
+        # Generate identity
+        identity = client.generate_context_identity()
+        print(f"✓ Generated identity")
 
-        # Define batch operations
-        operations = [
-            {
-                "context_id": context_id,
-                "method": "initialize",
-                "args": "{}",
-                "executor_public_key": executor_public_key
-            },
-            {
-                "context_id": context_id,
-                "method": "set_value",
-                "args": '{"key": "test", "value": "hello"}',
-                "executor_public_key": executor_public_key
-            },
-            {
-                "context_id": context_id,
-                "method": "get_value",
-                "args": '{"key": "test"}',
-                "executor_public_key": executor_public_key
-            }
-        ]
+        # Execute function
+        result = client.execute_function(
+            context_id, "test", "{}", identity["public_key"]
+        )
+        print(f"✓ Function executed: {result}")
 
-        # Execute batch operations
-        print("Executing batch operations...")
-        results = []
-        for i, op in enumerate(operations):
-            result = client.execute_function(**op)
-            results.append(result)
-            print(f"  Operation {i + 1}: {result}")
-
-        print(f"✓ Batch execution completed: {len(results)} operations")
-        return context_id
+        print("✓ Integration test completed successfully")
 
     finally:
-        # Clean up
+        # Cleanup
         client.delete_context(context_id)
         client.uninstall_application(app_id)
         print("✓ Cleanup completed")
 
 if __name__ == "__main__":
-    batch_execution_example()
+    test_full_workflow()
 ```
-
-## Step 6: Advanced Patterns
-
-### Custom Client Wrapper
-
-```python
-# custom_client.py
-import calimero
-import time
-from typing import Optional, Dict, Any
-
-class CustomCalimeroClient:
-    """Custom wrapper with additional functionality."""
-
-    def __init__(self, api_url: str, node_name: Optional[str] = None):
-        self.connection = calimero.create_connection(api_url, node_name)
-        self.client = calimero.create_client(self.connection)
-        self._context_cache = {}
-        self._app_cache = {}
-
-    def get_or_create_context(self, application_id: str, protocol: str, params: str = None) -> Dict[str, Any]:
-        """Get existing context or create new one."""
-        # Check cache first
-        cache_key = f"{application_id}:{protocol}"
-        if cache_key in self._context_cache:
-            return self._context_cache[cache_key]
-
-        # Try to find existing context
-        contexts = self.client.list_contexts()
-        for context in contexts:
-            if (context.get("application_id") == application_id and
-                context.get("protocol") == protocol):
-                self._context_cache[cache_key] = context
-                return context
-
-        # Create new context
-        context = self.client.create_context(application_id, protocol, params)
-        self._context_cache[cache_key] = context
-        return context
-
-    def safe_execute_function(self, context_id: str, method: str, args: str, executor_public_key: str, max_retries: int = 3) -> Dict[str, Any]:
-        """Execute function with safety checks and retries."""
-        # Validate context exists
-        try:
-            context = self.client.get_context(context_id)
-        except RuntimeError:
-            raise ValueError(f"Context {context_id} not found")
-
-        # Execute with retries
-        last_error = None
-        for attempt in range(max_retries):
-            try:
-                return self.client.execute_function(context_id, method, args, executor_public_key)
-            except RuntimeError as e:
-                last_error = e
-                if attempt < max_retries - 1:
-                    time.sleep(2 ** attempt)  # Exponential backoff
-                else:
-                    break
-
-        raise last_error
-
-    def clear_cache(self):
-        """Clear internal caches."""
-        self._context_cache.clear()
-        self._app_cache.clear()
-
-# Usage example
-def custom_client_example():
-    """Example of using the custom client wrapper."""
-    client = CustomCalimeroClient("http://localhost:2428")
-
-    # Get or create context
-    context = client.get_or_create_context("app-123", "near")
-    print(f"Context: {context['context_id']}")
-
-    # Safe function execution
-    result = client.safe_execute_function(
-        context["context_id"], "test", "{}", "key-123"
-    )
-    print(f"Result: {result}")
-
-if __name__ == "__main__":
-    custom_client_example()
-```
-
-### Monitoring and Health Checks
-
-```python
-# monitoring.py
-import calimero
-import time
-
-class CalimeroMonitor:
-    """Monitor Calimero node health and performance."""
-
-    def __init__(self, api_url="http://localhost:2428"):
-        self.connection = calimero.create_connection(api_url)
-        self.client = calimero.create_client(self.connection)
-        self.metrics = []
-
-    def collect_metrics(self):
-        """Collect node metrics."""
-        try:
-            # Get basic metrics
-            peers_count = self.client.get_peers_count()
-            contexts = self.client.list_contexts()
-            apps = self.client.list_applications()
-
-            metrics = {
-                "timestamp": time.time(),
-                "peers_count": peers_count,
-                "contexts_count": len(contexts),
-                "applications_count": len(apps),
-                "status": "healthy"
-            }
-
-            self.metrics.append(metrics)
-            return metrics
-
-        except Exception as e:
-            error_metrics = {
-                "timestamp": time.time(),
-                "status": "error",
-                "error": str(e)
-            }
-            self.metrics.append(error_metrics)
-            return error_metrics
-
-    def start_monitoring(self, interval=60):
-        """Start monitoring with specified interval."""
-        print(f"Starting monitoring (interval: {interval}s)")
-
-        while True:
-            metrics = self.collect_metrics()
-            print(f"Metrics: {metrics}")
-
-            # Check for alerts
-            if metrics["status"] == "error":
-                print("ALERT: Node is unhealthy!")
-
-            time.sleep(interval)
-
-    def get_metrics_summary(self):
-        """Get summary of collected metrics."""
-        if not self.metrics:
-            return "No metrics collected"
-
-        healthy_metrics = [m for m in self.metrics if m["status"] == "healthy"]
-        error_metrics = [m for m in self.metrics if m["status"] == "error"]
-
-        return {
-            "total_samples": len(self.metrics),
-            "healthy_samples": len(healthy_metrics),
-            "error_samples": len(error_metrics),
-            "uptime_percentage": len(healthy_metrics) / len(self.metrics) * 100
-        }
-
-# Usage example
-def monitoring_example():
-    """Example of using the monitoring system."""
-    monitor = CalimeroMonitor()
-
-    # Run monitoring for 5 minutes
-    try:
-        monitor.start_monitoring(10)
-    except KeyboardInterrupt:
-        print("Monitoring stopped")
-        print(f"Summary: {monitor.get_metrics_summary()}")
-
-if __name__ == "__main__":
-    monitoring_example()
-```
-
-## Step 7: Integration with Web Frameworks
-
-### FastAPI Integration
-
-```python
-# fastapi_integration.py
-from fastapi import FastAPI, HTTPException
-import calimero
-
-app = FastAPI(title="Calimero API Wrapper")
-
-# Global client instance
-connection = calimero.create_connection("http://localhost:2428")
-client = calimero.create_client(connection)
-
-@app.get("/contexts")
-def get_contexts():
-    """Get all contexts."""
-    try:
-        contexts = client.list_contexts()
-        return {"contexts": contexts}
-    except calimero.ClientError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/contexts/{context_id}")
-def get_context(context_id: str):
-    """Get specific context."""
-    try:
-        context = client.get_context(context_id)
-        return context
-    except calimero.ClientError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-@app.post("/contexts")
-def create_context(application_id: str, protocol: str, params: str = None):
-    """Create a new context."""
-    try:
-        context = client.create_context(application_id, protocol, params)
-        return context
-    except calimero.ClientError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/contexts/{context_id}/execute")
-def execute_function(
-    context_id: str,
-    method: str,
-    args: str,
-    executor_public_key: str
-):
-    """Execute a function in a context."""
-    try:
-        result = client.execute_function(
-            context_id, method, args, executor_public_key
-        )
-        return result
-    except calimero.ClientError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-```
-
-### Django Integration
-
-```python
-# django_integration.py
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-import calimero
-
-# Global client instance
-connection = calimero.create_connection("http://localhost:2428")
-client = calimero.create_client(connection)
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def list_contexts(request):
-    """List all contexts."""
-    try:
-        contexts = client.list_contexts()
-        return JsonResponse({"contexts": contexts})
-    except calimero.ClientError as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def create_context(request):
-    """Create a new context."""
-    try:
-        data = request.json
-        context = client.create_context(
-            data["application_id"],
-            data["protocol"],
-            data.get("params")
-        )
-        return JsonResponse(context)
-    except calimero.ClientError as e:
-        return JsonResponse({"error": str(e)}, status=400)
-```
-
-## Step 8: Testing
-
-### Unit Testing
-
-```python
-# test_calimero_client.py
-import pytest
-from unittest.mock import MagicMock
-import calimero
-
-class TestCalimeroClient:
-    """Test suite for Calimero client."""
-
-    @pytest.fixture
-    def mock_client(self):
-        """Create a mock client for testing."""
-        connection = calimero.create_connection("http://localhost:2428")
-        client = calimero.create_client(connection)
-
-        # Mock the client methods
-        client.list_contexts = MagicMock(return_value=[
-            {"context_id": "ctx-1", "application_id": "app-1"},
-            {"context_id": "ctx-2", "application_id": "app-2"}
-        ])
-
-        client.create_context = MagicMock(return_value={
-            "context_id": "ctx-3", "application_id": "app-3"
-        })
-
-        return client
-
-    def test_list_contexts(self, mock_client):
-        """Test listing contexts."""
-        contexts = mock_client.list_contexts()
-        assert len(contexts) == 2
-        assert contexts[0]["context_id"] == "ctx-1"
-
-    def test_create_context(self, mock_client):
-        """Test creating context."""
-        context = mock_client.create_context("app-3", "near")
-        assert context["context_id"] == "ctx-3"
-        assert context["application_id"] == "app-3"
-
-# Run tests
-if __name__ == "__main__":
-    pytest.main([__file__])
-```
-
-### Integration Testing
-
-```python
-# test_integration.py
-import pytest
-import calimero
-
-class TestCalimeroIntegration:
-    """Integration tests for Calimero client."""
-
-    @pytest.fixture
-    def client(self):
-        """Create a real client for integration testing."""
-        connection = calimero.create_connection("http://localhost:2428")
-        client = calimero.create_client(connection)
-        return client
-
-    def test_full_workflow(self, client):
-        """Test complete workflow."""
-        # Install application
-        app = client.install_application(
-            url="https://example.com/test.wasm",
-            metadata=b'{"name": "Test App"}'
-        )
-        app_id = app["application_id"]
-
-        try:
-            # Create context
-            context = client.create_context(app_id, "near")
-            context_id = context["context_id"]
-
-            # Execute function
-            result = client.execute_function(
-                context_id, "test", "{}", "test-key"
-            )
-
-            assert result is not None
-
-        finally:
-            # Cleanup
-            client.delete_context(context_id)
-            client.uninstall_application(app_id)
-
-# Run integration tests
-if __name__ == "__main__":
-    pytest.main([__file__, "-m", "integration"])
-```
-
-## Step 9: Production Deployment
-
-### Environment Configuration
-
-```python
-# config.py
-import os
-import calimero
-
-class CalimeroConfig:
-    """Configuration for Calimero client."""
-
-    def __init__(self):
-        self.api_url = os.getenv("CALIMERO_API_URL", "http://localhost:2428")
-        self.node_name = os.getenv("CALIMERO_NODE_NAME", "production-node")
-        self.max_retries = int(os.getenv("CALIMERO_MAX_RETRIES", "3"))
-        self.timeout = int(os.getenv("CALIMERO_TIMEOUT", "30"))
-
-    def get_connection_params(self):
-        """Get connection parameters."""
-        return {
-            "api_url": self.api_url,
-            "node_name": self.node_name
-        }
-```
-
-### Production Client
-
-```python
-# production_client.py
-import calimero
-import logging
-import time
-
-class ProductionCalimeroClient:
-    """Production-ready Calimero client."""
-
-    def __init__(self, config: CalimeroConfig):
-        self.config = config
-        self.connection = calimero.create_connection(**config.get_connection_params())
-        self.client = calimero.create_client(self.connection)
-        self.logger = logging.getLogger(__name__)
-
-    def execute_with_retry(self, operation, *args, **kwargs):
-        """Execute operation with retry logic."""
-        last_error = None
-
-        for attempt in range(self.config.max_retries):
-            try:
-                return operation(*args, **kwargs)
-            except RuntimeError as e:
-                last_error = e
-                self.logger.warning(f"Attempt {attempt + 1} failed: {e}")
-
-                if attempt < self.config.max_retries - 1:
-                    time.sleep(2 ** attempt)  # Exponential backoff
-                else:
-                    break
-
-        self.logger.error(f"All {self.config.max_retries} attempts failed")
-        raise last_error
-
-    def safe_list_contexts(self):
-        """Safely list contexts with retry."""
-        return self.execute_with_retry(self.client.list_contexts)
-
-    def safe_create_context(self, application_id: str, protocol: str, params: str = None):
-        """Safely create context with retry."""
-        return self.execute_with_retry(
-            self.client.create_context, application_id, protocol, params
-        )
-
-# Usage
-def main():
-    config = CalimeroConfig()
-    client = ProductionCalimeroClient(config)
-
-    contexts = client.safe_list_contexts()
-    print(f"Found {len(contexts)} contexts")
-
-if __name__ == "__main__":
-    main()
-```
-
-## Step 10: Best Practices and Tips
-
-### 1. Connection Management
-
-- Reuse client instances when possible
-- Use connection pooling for high-throughput applications
-- Implement proper cleanup in finally blocks
-
-### 2. Error Handling
-
-- Use specific exception types (ClientError)
-- Implement retry logic with exponential backoff
-- Log errors for debugging and monitoring
-
-### 3. Performance
-
-- Use synchronous operations efficiently
-- Implement caching for frequently accessed data
-- Monitor memory usage for large datasets
-
-### 4. Testing
-
-- Write unit tests with mocked clients
-- Implement integration tests with real servers
-- Use fixtures for test setup and cleanup
-
-### 5. Monitoring
-
-- Implement logging and metrics collection
-- Use circuit breakers for fault tolerance
-- Monitor performance and error rates
-
-## Next Steps
-
-Now that you've completed this tutorial, you can:
-
-1. **Explore the
-   [Python Client Documentation](/developer-tools/SDK/client-sdk/calimero-client-py)**
-   for complete method documentation, examples, and advanced usage
-2. **Check out the Examples section** for more practical patterns
-3. **Read the Advanced Usage section** for optimization techniques
-4. **Review the Migration Guide section** if coming from other clients
 
 ## Resources
 
