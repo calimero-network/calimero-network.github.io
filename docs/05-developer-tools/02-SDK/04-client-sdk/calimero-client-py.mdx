@@ -22,9 +22,9 @@ automation, or integration with existing Python ecosystems.
 
 - **🚀 High Performance**: Built with Rust and PyO3 for optimal performance.
 - **🔒 Type Safety**: Strongly typed Python bindings with full IDE support.
-- **⚡ Async Support**: Built-in async/await support for concurrent operations.
+- **⚡ Synchronous Interface**: Clean synchronous API with Rust-powered backend.
 - **🌐 Multi-Protocol**: Support for NEAR, Ethereum, ICP, and Starknet networks.
-- **📦 Easy Installation**: Simple `pip install` with no complex dependencies.
+- **📦 Easy Installation**: Simple `pipx install` with no complex dependencies.
 - **🔧 Comprehensive API**: Full access to all Calimero Network functionality.
 
 ## Supported Protocols
@@ -41,66 +41,72 @@ automation, or integration with existing Python ecosystems.
 Install the Python client from PyPI:
 
 ```bash
-pip install calimero-client-py
+pipx install calimero-client-py
+pipx ensurepath
 ```
 
 ### Basic Usage
 
 ```python
-import asyncio
-from calimero_client_py import create_connection, create_client, AuthMode
+import calimero
 
-async def main():
+def main():
     # Create a connection
-    connection = create_connection(
-        base_url="http://localhost:2528",
-        auth_mode=AuthMode.NONE
+    connection = calimero.create_connection(
+        api_url="http://localhost:2428",
+        node_name="example-node"
     )
 
     # Create a client
-    client = create_client(connection)
+    client = calimero.create_client(connection)
 
     # List available contexts
-    contexts = await client.list_contexts()
+    contexts = client.list_contexts()
     print(f"Found {len(contexts)} contexts")
 
     # List applications
-    apps = await client.list_applications()
+    apps = client.list_applications()
     print(f"Found {len(apps)} applications")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 ### CLI Usage
 
-The Python client also includes a command-line interface:
+The Python client includes a command-line interface:
 
 ```bash
 # Install the CLI
-pip install calimero-client-py
+pipx install calimero-client-py
+pipx ensurepath
 
-# Use the CLI
+# Use the CLI (requires a running Calimero node)
 calimero-client-py --help
-calimero-client-py list-contexts --url http://localhost:2528
+calimero-client-py --version
+calimero-client-py --base-url http://localhost:2428 list-contexts
 ```
+
+**Note**: The CLI requires a running Calimero node to function properly. If no
+node is running, you'll get connection errors.
 
 ## Architecture
 
-### Async-First Design
+### Synchronous Interface
 
-The client is designed with async/await in mind:
+The client provides a clean synchronous interface with high performance:
 
 ```python
-# All operations are async
-async def example():
-    client = create_client(connection)
+import calimero
 
-    # Concurrent operations
-    contexts_task = client.list_contexts()
-    apps_task = client.list_applications()
+def example():
+    connection = calimero.create_connection("http://localhost:2428")
+    client = calimero.create_client(connection)
 
-    contexts, apps = await asyncio.gather(contexts_task, apps_task)
+    # All operations are synchronous
+    contexts = client.list_contexts()
+    apps = client.list_applications()
+
     return contexts, apps
 ```
 
@@ -109,120 +115,132 @@ async def example():
 ### Connection Management
 
 ```python
-from calimero_client_py import create_connection, AuthMode
+import calimero
 
 # Basic connection
-connection = create_connection(
-    base_url="http://localhost:2528",
-    auth_mode=AuthMode.NONE
+connection = calimero.create_connection(
+    api_url="http://localhost:2428",
+    node_name="my-node"
 )
 
-# Authenticated connection
-connection = create_connection(
-    base_url="http://localhost:2528",
-    auth_mode=AuthMode.REQUIRED,
-    jwt_token="your-jwt-token"
-)
+# Create client
+client = calimero.create_client(connection)
 ```
 
 ### Client Operations
 
 The client provides comprehensive access to Calimero functionality:
 
-- **Application Management**: Install, list, and manage applications.
-- **Context Operations**: Create, sync, and manage contexts.
-- **Function Execution**: Call smart contract functions.
-- **Identity Management**: Generate and manage identities.
-- **Permission Control**: Grant and revoke permissions.
+#### Connection Management
 
-## Integration Examples
+- `get_api_url()`: Get the API URL for this client
+- `get_peers_count()`: Get the number of connected peers
 
-### With Merobox
+#### Application Management
 
-```python
-import asyncio
-from calimero_client_py import create_connection, create_client
-from merobox import Cluster
+- `get_application(app_id: str)`: Get information about a specific application
+- `list_applications()`: List all available applications
+- `install_application(url: str, hash: Optional[str], metadata: Optional[bytes])`:
+  Install application from URL
+- `install_dev_application(path: str, metadata: Optional[bytes])`: Install
+  development application from local path
+- `uninstall_application(app_id: str)`: Uninstall an application
 
-async def deploy_with_merobox():
-    # Start Merobox cluster
-    with Cluster() as cluster:
-        # Get node URL
-        node_url = cluster.get_node_url("node-1")
+#### Context Management
 
-        # Create Calimero client
-        connection = create_connection(node_url)
-        client = create_client(connection)
+- `get_context(context_id: str)`: Get information about a specific context
+- `list_contexts()`: List all available contexts
+- `create_context(application_id: str, protocol: str, params: Optional[str])`:
+  Create a new context
+- `delete_context(context_id: str)`: Delete a context
+- `sync_context(context_id: str)`: Sync a specific context
+- `sync_all_contexts()`: Sync all contexts
 
-        # Deploy application
-        app = await client.install_application(
-            url="https://example.com/app.wasm",
-            metadata=b'{"name": "My App"}'
-        )
+#### Context Operations
 
-        print(f"Deployed app: {app['application_id']}")
-```
+- `get_context_storage(context_id: str)`: Get context storage information
+- `get_context_identities(context_id: str)`: Get identities associated with a
+  context
+- `get_context_client_keys(context_id: str)`: Get client keys for a context
+- `invite_to_context(context_id: str, inviter_id: str, invitee_id: str)`: Invite
+  someone to a context
+- `join_context(context_id: str, invitee_id: str, invitation_payload: str)`:
+  Join a context using invitation
+- `update_context_application(context_id: str, application_id: str, executor_public_key: str)`:
+  Update context application
 
-### With FastAPI
+#### Function Execution
 
-```python
-from fastapi import FastAPI
-from calimero_client_py import create_connection, create_client
+- `execute_function(context_id: str, method: str, args: str, executor_public_key: str)`:
+  Execute a function call via JSON-RPC
 
-app = FastAPI()
+#### Permission Management
 
-# Global client instance
-connection = create_connection("http://localhost:2528")
-client = create_client(connection)
+- `grant_permissions(context_id: str, permissions: str)`: Grant permissions to
+  users in a context
+- `revoke_permissions(context_id: str, permissions: str)`: Revoke permissions
+  from users in a context
 
-@app.get("/contexts")
-async def get_contexts():
-    return await client.list_contexts()
+#### Proposal Management
 
-@app.post("/contexts")
-async def create_context(application_id: str, protocol: str):
-    return await client.create_context(application_id, protocol)
-```
+- `get_proposal(context_id: str, proposal_id: str)`: Get proposal information
+- `get_proposal_approvers(context_id: str, proposal_id: str)`: Get proposal
+  approvers
+- `list_proposals(context_id: str, args: Optional[str])`: List proposals in a
+  context
 
-### With Jupyter Notebooks
+#### Identity Management
 
-```python
-# Perfect for data analysis and exploration
-import pandas as pd
-from calimero_client_py import create_connection, create_client
+- `generate_context_identity()`: Generate a new context identity
 
-# Create client
-connection = create_connection("http://localhost:2528")
-client = create_client(connection)
+#### Blob Management
 
-# Get contexts data
-contexts = await client.list_contexts()
+- `list_blobs()`: List all blobs
+- `get_blob_info(blob_id: str)`: Get information about a specific blob
+- `delete_blob(blob_id: str)`: Delete a blob
 
-# Convert to DataFrame for analysis
-df = pd.DataFrame(contexts)
-print(df.describe())
-```
+#### Alias Management
+
+- `create_context_identity_alias(context_id: str, alias: str, public_key: str)`:
+  Create context identity alias
+- `create_context_alias(alias: str, context_id: str)`: Create context alias
+- `create_application_alias(alias: str, application_id: str)`: Create
+  application alias
+- `delete_context_alias(alias: str)`: Delete context alias
+- `delete_context_identity_alias(alias: str, context_id: str)`: Delete context
+  identity alias
+- `delete_application_alias(alias: str)`: Delete application alias
+- `list_context_aliases()`: List context aliases
+- `list_context_identity_aliases(context_id: str)`: List context identity
+  aliases
+- `list_application_aliases()`: List application aliases
+- `lookup_context_alias(alias: str)`: Lookup context alias
+- `lookup_context_identity_alias(alias: str, context_id: str)`: Lookup context
+  identity alias
+- `lookup_application_alias(alias: str)`: Lookup application alias
+- `resolve_context_alias(alias: str)`: Resolve context alias
+- `resolve_context_identity_alias(alias: str, context_id: str)`: Resolve context
+  identity alias
+- `resolve_application_alias(alias: str)`: Resolve application alias
 
 ## Error Handling
 
 The client provides comprehensive error handling:
 
 ```python
-from calimero_client_py import ClientError, AuthError, NetworkError
+import calimero
 
 try:
-    result = await client.execute_function(
+    result = client.execute_function(
         context_id="context-123",
         method="transfer",
         args='{"amount": 100}',
         executor_public_key="key-123"
     )
-except AuthError as e:
-    print(f"Authentication failed: {e}")
-except NetworkError as e:
-    print(f"Network error: {e}")
-except ClientError as e:
+except RuntimeError as e:
     print(f"Client error: {e}")
+except Exception as e:
+    print(f"Unexpected error: {e}")
 ```
 
 ## Development Workflow
@@ -264,7 +282,7 @@ pip install target/wheels/calimero_client_py-*.whl
 Before installing the Python client, ensure you have:
 
 - **Python 3.9+** (3.11+ recommended for best performance).
-- **pip** (Python package manager).
+- **pipx** (recommended) or **pip** package manager.
 - **Rust toolchain** (only needed for building from source).
 
 ### PyPI Installation (Recommended)
@@ -272,17 +290,18 @@ Before installing the Python client, ensure you have:
 The easiest way to install the Python client is from PyPI:
 
 ```bash
-pip install calimero-client-py
+pipx install calimero-client-py
+pipx ensurepath
 ```
 
 #### Verify Installation
 
 ```python
 # Test the installation
-python -c "import calimero_client_py; print('Installation successful!')"
+python -c "import calimero; print('Installation successful!')"
 
 # Check version
-python -c "import calimero_client_py; print(calimero_client_py.__version__)"
+python -c "import calimero; print(calimero.__version__)"
 ```
 
 ### Virtual Environment (Recommended for Development)
@@ -301,6 +320,13 @@ source calimero-env/bin/activate
 
 # Install the client
 pip install calimero-client-py
+```
+
+**Alternative**: Use `pipx` for a cleaner installation:
+
+```bash
+pipx install calimero-client-py
+pipx ensurepath
 ```
 
 ### Building from Source
@@ -327,50 +353,130 @@ pip install target/wheels/calimero_client_py-*.whl
 ### Connection Management
 
 ```python
-from calimero_client_py import create_connection, AuthMode
+import calimero
 
 # Basic connection
-connection = create_connection(
-    base_url="http://localhost:2528",
-    auth_mode=AuthMode.NONE
+connection = calimero.create_connection(
+    api_url="http://localhost:2428",
+    node_name="my-node"
 )
 
-# Authenticated connection
-connection = create_connection(
-    base_url="http://localhost:2528",
-    auth_mode=AuthMode.REQUIRED,
-    jwt_token="your-jwt-token"
-)
+# Create client
+client = calimero.create_client(connection)
 ```
 
 ### Client Operations
 
 The client provides comprehensive access to Calimero functionality:
 
-- **Application Management**: Install, list, and manage applications.
-- **Context Operations**: Create, sync, and manage contexts.
-- **Function Execution**: Call smart contract functions.
-- **Identity Management**: Generate and manage identities.
-- **Permission Control**: Grant and revoke permissions.
+#### Connection Management
+
+- `get_api_url()`: Get the API URL for this client
+- `get_peers_count()`: Get the number of connected peers
+
+#### Application Management
+
+- `get_application(app_id: str)`: Get information about a specific application
+- `list_applications()`: List all available applications
+- `install_application(url: str, hash: Optional[str], metadata: Optional[bytes])`:
+  Install application from URL
+- `install_dev_application(path: str, metadata: Optional[bytes])`: Install
+  development application from local path
+- `uninstall_application(app_id: str)`: Uninstall an application
+
+#### Context Management
+
+- `get_context(context_id: str)`: Get information about a specific context
+- `list_contexts()`: List all available contexts
+- `create_context(application_id: str, protocol: str, params: Optional[str])`:
+  Create a new context
+- `delete_context(context_id: str)`: Delete a context
+- `sync_context(context_id: str)`: Sync a specific context
+- `sync_all_contexts()`: Sync all contexts
+
+#### Context Operations
+
+- `get_context_storage(context_id: str)`: Get context storage information
+- `get_context_identities(context_id: str)`: Get identities associated with a
+  context
+- `get_context_client_keys(context_id: str)`: Get client keys for a context
+- `invite_to_context(context_id: str, inviter_id: str, invitee_id: str)`: Invite
+  someone to a context
+- `join_context(context_id: str, invitee_id: str, invitation_payload: str)`:
+  Join a context using invitation
+- `update_context_application(context_id: str, application_id: str, executor_public_key: str)`:
+  Update context application
+
+#### Function Execution
+
+- `execute_function(context_id: str, method: str, args: str, executor_public_key: str)`:
+  Execute a function call via JSON-RPC
+
+#### Permission Management
+
+- `grant_permissions(context_id: str, permissions: str)`: Grant permissions to
+  users in a context
+- `revoke_permissions(context_id: str, permissions: str)`: Revoke permissions
+  from users in a context
+
+#### Proposal Management
+
+- `get_proposal(context_id: str, proposal_id: str)`: Get proposal information
+- `get_proposal_approvers(context_id: str, proposal_id: str)`: Get proposal
+  approvers
+- `list_proposals(context_id: str, args: Optional[str])`: List proposals in a
+  context
+
+#### Identity Management
+
+- `generate_context_identity()`: Generate a new context identity
+
+#### Blob Management
+
+- `list_blobs()`: List all blobs
+- `get_blob_info(blob_id: str)`: Get information about a specific blob
+- `delete_blob(blob_id: str)`: Delete a blob
+
+#### Alias Management
+
+- `create_context_identity_alias(context_id: str, alias: str, public_key: str)`:
+  Create context identity alias
+- `create_context_alias(alias: str, context_id: str)`: Create context alias
+- `create_application_alias(alias: str, application_id: str)`: Create
+  application alias
+- `delete_context_alias(alias: str)`: Delete context alias
+- `delete_context_identity_alias(alias: str, context_id: str)`: Delete context
+  identity alias
+- `delete_application_alias(alias: str)`: Delete application alias
+- `list_context_aliases()`: List context aliases
+- `list_context_identity_aliases(context_id: str)`: List context identity
+  aliases
+- `list_application_aliases()`: List application aliases
+- `lookup_context_alias(alias: str)`: Lookup context alias
+- `lookup_context_identity_alias(alias: str, context_id: str)`: Lookup context
+  identity alias
+- `lookup_application_alias(alias: str)`: Lookup application alias
+- `resolve_context_alias(alias: str)`: Resolve context alias
+- `resolve_context_identity_alias(alias: str, context_id: str)`: Resolve context
+  identity alias
+- `resolve_application_alias(alias: str)`: Resolve application alias
 
 ### Error Handling
 
 ```python
-from calimero_client_py import ClientError, AuthError, NetworkError
+import calimero
 
 try:
-    result = await client.execute_function(
+    result = client.execute_function(
         context_id="context-123",
         method="transfer",
         args='{"amount": 100}',
         executor_public_key="key-123"
     )
-except AuthError as e:
-    print(f"Authentication failed: {e}")
-except NetworkError as e:
-    print(f"Network error: {e}")
-except ClientError as e:
+except RuntimeError as e:
     print(f"Client error: {e}")
+except Exception as e:
+    print(f"Unexpected error: {e}")
 ```
 
 ## Examples
@@ -378,133 +484,28 @@ except ClientError as e:
 ### Basic Usage
 
 ```python
-import asyncio
-from calimero_client_py import create_connection, create_client, AuthMode
+import calimero
 
-async def main():
+def main():
     # Create a connection
-    connection = create_connection(
-        base_url="http://localhost:2528",
-        auth_mode=AuthMode.NONE
+    connection = calimero.create_connection(
+        api_url="http://localhost:2428",
+        node_name="example-node"
     )
 
     # Create a client
-    client = create_client(connection)
+    client = calimero.create_client(connection)
 
     # List available contexts
-    contexts = await client.list_contexts()
+    contexts = client.list_contexts()
     print(f"Found {len(contexts)} contexts")
 
     # List applications
-    apps = await client.list_applications()
+    apps = client.list_applications()
     print(f"Found {len(apps)} applications")
 
 if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-### With Merobox
-
-```python
-import asyncio
-from calimero_client_py import create_connection, create_client
-from merobox import Cluster
-
-async def deploy_with_merobox():
-    # Start Merobox cluster
-    with Cluster() as cluster:
-        # Get node URL
-        node_url = cluster.get_node_url("node-1")
-
-        # Create Calimero client
-        connection = create_connection(node_url)
-        client = create_client(connection)
-
-        # Deploy application
-        app = await client.install_application(
-            url="https://example.com/app.wasm",
-            metadata=b'{"name": "My App"}'
-        )
-
-        print(f"Deployed app: {app['application_id']}")
-```
-
-### With FastAPI
-
-```python
-from fastapi import FastAPI
-from calimero_client_py import create_connection, create_client
-
-app = FastAPI()
-
-# Global client instance
-connection = create_connection("http://localhost:2528")
-client = create_client(connection)
-
-@app.get("/contexts")
-async def get_contexts():
-    return await client.list_contexts()
-
-@app.post("/contexts")
-async def create_context(application_id: str, protocol: str):
-    return await client.create_context(application_id, protocol)
-```
-
-## Advanced Usage
-
-### Performance Optimization
-
-```python
-import asyncio
-import time
-from calimero_client_py import create_connection, create_client
-
-async def benchmark():
-    connection = create_connection("http://localhost:2528")
-    client = create_client(connection)
-
-    start = time.time()
-
-    # Execute 100 concurrent operations
-    tasks = [client.list_contexts() for _ in range(100)]
-    await asyncio.gather(*tasks)
-
-    end = time.time()
-    print(f"100 operations completed in {end - start:.2f} seconds")
-
-asyncio.run(benchmark())
-```
-
-### Custom Error Handling
-
-```python
-from calimero_client_py import ClientError, AuthError, NetworkError
-import logging
-
-logger = logging.getLogger(__name__)
-
-async def robust_operation(client, operation, *args, **kwargs):
-    """Execute operation with robust error handling and retries."""
-    max_retries = 3
-    retry_delay = 1
-
-    for attempt in range(max_retries):
-        try:
-            return await operation(*args, **kwargs)
-        except NetworkError as e:
-            if attempt < max_retries - 1:
-                logger.warning(f"Network error, retrying in {retry_delay}s: {e}")
-                await asyncio.sleep(retry_delay)
-                retry_delay *= 2
-            else:
-                logger.error(f"Network error after {max_retries} attempts: {e}")
-                raise
-        except AuthError as e:
-            logger.error(f"Authentication error: {e}")
-            raise
-        except ClientError as e:
-            logger.error(f"Client error: {e}")
-            raise
+    main()
 ```
 
 ## Resources
@@ -532,7 +533,6 @@ Ready to get started with the Python client?
 1. **Follow the Installation section above** to set up your environment
 2. **Explore the API Reference section** to understand available methods
 3. **Check out the Examples section** for practical usage patterns
-4. **Read the Advanced Usage section** for optimization techniques
 
 The Python client brings the power and performance of Calimero Network to the
 Python ecosystem, enabling you to build sophisticated decentralized applications

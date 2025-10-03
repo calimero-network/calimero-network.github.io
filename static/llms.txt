@@ -6,89 +6,122 @@ Calimero Network provides a comprehensive development framework for building dec
 
 ## Introduction
 
-- [What is Calimero](https://calimero-network.github.io/docs/01-introduction/01-what-is-calimero): A development framework for building peer-to-peer Self-Sovereign applications focusing on data ownership and verified off-chain computing
-- [Use Cases](https://calimero-network.github.io/docs/01-introduction/02-use-cases): Explore various applications and scenarios where Calimero Network can be effectively utilized
-- [Key Features](https://calimero-network.github.io/docs/01-introduction/03-key-features): Discover the core capabilities including decentralized networks, WASM applications, and privacy-focused architecture
+- [What is Calimero](https://calimero-network.github.io/docs/01-introduction/01-what-is-calimero): Development framework for peer-to-peer Self-Sovereign applications
+- [Use Cases](https://calimero-network.github.io/docs/01-introduction/02-use-cases): Applications and scenarios where Calimero Network can be utilized
+- [Key Features](https://calimero-network.github.io/docs/01-introduction/03-key-features): Core capabilities including decentralized networks and WASM applications
 
 ## Getting Started
 
-- [Setup](https://calimero-network.github.io/docs/02-getting-started/01-setup): Complete setup guide for getting Calimero Network running on your system
-- [Packaged Installation](https://calimero-network.github.io/docs/02-getting-started/02-packaged): Quick installation using pre-built packages for easy deployment
-- [Build From Source](https://calimero-network.github.io/docs/02-getting-started/03-build-from-source): Step-by-step guide to building Calimero Network from source code
+- [Setup](https://calimero-network.github.io/docs/02-getting-started/01-setup): Complete setup guide for Calimero Network
+- [Packaged Installation](https://calimero-network.github.io/docs/02-getting-started/02-packaged): Quick installation using pre-built packages
+- [Build From Source](https://calimero-network.github.io/docs/02-getting-started/03-build-from-source): Step-by-step guide to building from source
+- [Run as a systemd service](https://calimero-network.github.io/docs/02-getting-started/04-run-as-systemd-service): Running Calimero node continuously on servers
 
 ## Core Concepts
 
-- [Terminology](https://calimero-network.github.io/docs/03-core-concepts/01-terminology): Essential vocabulary and concepts for understanding Calimero Network architecture
-- [Identity](https://calimero-network.github.io/docs/03-core-concepts/03-identity): Decentralized identity framework providing secure authentication and user management
-- [Contexts](https://calimero-network.github.io/docs/03-core-concepts/04-context): Application-specific networks enabling direct communication between users
-- [Applications](https://calimero-network.github.io/docs/03-core-concepts/05-applications): Core logic governing how peers interact within the network
-- [Blockchain Integration](https://calimero-network.github.io/docs/03-core-concepts/06-blockchain-integration): How Calimero integrates with existing blockchain networks
-- [Encryption](https://calimero-network.github.io/docs/03-core-concepts/07-encryption): Security features ensuring data privacy and secure communication
-- [Specialized Nodes](https://calimero-network.github.io/docs/03-core-concepts/08-specialized-nodes): Third-party nodes providing additional services like encrypted storage and delegated execution
+- [Terminology](https://calimero-network.github.io/docs/03-core-concepts/01-terminology): Essential vocabulary for Calimero Network architecture
+- [Identity](https://calimero-network.github.io/docs/03-core-concepts/03-identity): Decentralized identity framework for secure authentication
+- [Contexts](https://calimero-network.github.io/docs/03-core-concepts/04-context): Application-specific networks for direct communication
+- [Applications](https://calimero-network.github.io/docs/03-core-concepts/05-applications): Core logic governing peer interactions
+- [Blockchain Integration](https://calimero-network.github.io/docs/03-core-concepts/06-blockchain-integration): Integration with existing blockchain networks
+- [Encryption](https://calimero-network.github.io/docs/03-core-concepts/07-encryption): Security features for data privacy
+- [Specialized Nodes](https://calimero-network.github.io/docs/03-core-concepts/08-specialized-nodes): Third-party nodes providing additional services
+- [Node](https://calimero-network.github.io/docs/03-core-concepts/_02-node): Node architecture and components
+- [State Reconciliation](https://calimero-network.github.io/docs/03-core-concepts/_09-state-reconciliation): State synchronization mechanisms
 
 ## Architecture
 
-- [System Overview](https://calimero-network.github.io/docs/04-architecture/01-system-overview): High-level architecture and system design principles
-- [Client Node](https://calimero-network.github.io/docs/04-architecture/03-node/01-client-node): Runtime environment and capabilities of client nodes
-- [Runtime](https://calimero-network.github.io/docs/04-architecture/03-node/02-runtime): Execution environment managing applications and state synchronization
-- [Server](https://calimero-network.github.io/docs/04-architecture/03-node/03-server): Server components for node interaction and management
+- [System Overview](https://calimero-network.github.io/docs/04-architecture/01-system-overview): High-level architecture and design principles
+- [Client Node](https://calimero-network.github.io/docs/04-architecture/03-node/01-client-node): Runtime environment and capabilities
+- [Runtime](https://calimero-network.github.io/docs/04-architecture/03-node/02-runtime): Execution environment for applications
+- [Server](https://calimero-network.github.io/docs/04-architecture/03-node/03-server): Server components for node interaction
 - [Storage](https://calimero-network.github.io/docs/04-architecture/03-node/04-storage): Data management and storage capabilities
 - [Network](https://calimero-network.github.io/docs/04-architecture/03-node/05-network): Networking components and peer-to-peer communication
 
 ## Developer Tools
 
+- [Developer Tools Overview](https://calimero-network.github.io/docs/05-developer-tools/00-overview): Tools for building decentralized applications
 - [Merod](https://calimero-network.github.io/docs/05-developer-tools/01-CLI/01-merod): Command-line tool for managing Calimero nodes
-- [Meroctl](https://calimero-network.github.io/docs/05-developer-tools/01-CLI/02-meroctl): Control utility for node operations and management
-- [Protocol SDK](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/03-protocol-sdk/01-protocol-sdk): Foundation tools for building application logic in Rust
-- [Client SDK](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/04-client-sdk/calimero-client-js): TypeScript SDK for creating user interfaces and handling authentication
-- [Admin Dashboard](https://calimero-network.github.io/docs/05-developer-tools/03-apps/05-admin-dashboard): Web-based interface for node management and monitoring
-- [Desktop App](https://calimero-network.github.io/docs/05-developer-tools/03-apps/06-desktop-app): Desktop application for managing Calimero nodes
+- [Meroctl](https://calimero-network.github.io/docs/05-developer-tools/01-CLI/02-meroctl): Control utility for node operations
+- [Protocol SDK](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/03-protocol-sdk/01-protocol-sdk): Foundation tools for building application logic
+- [Rust Protocol SDK](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/03-protocol-sdk/02-protocol-rs-sdk): Essential macros and functions reference
+- [Rust SDK Deep Dive](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/03-protocol-sdk/03-rust-sdk-deep-dive): Advanced usage of Calimero Rust SDK
+- [Calimero Collections Reference](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/03-protocol-sdk/04-calimero-collections): Available collections in Calimero SDK
+- [External Functions and Proposals](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/03-protocol-sdk/05-external-functions-and-proposals): External proposal system for blockchain interactions
+- [TypeScript Client SDK](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/04-client-sdk/calimero-client-js): TypeScript SDK for user interfaces
+- [Python Client SDK](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/04-client-sdk/calimero-client-py): High-performance Python client library
+- [Client SDKs](https://calimero-network.github.io/docs/05-developer-tools/02-SDK/04-client-sdk): Client SDKs for different languages
+- [Admin Dashboard](https://calimero-network.github.io/docs/05-developer-tools/03-apps/05-admin-dashboard): Web-based interface for node management
+- [Desktop App](https://calimero-network.github.io/docs/05-developer-tools/03-apps/06-desktop-app): Desktop application for managing nodes
+- [Admin API Reference](https://calimero-network.github.io/docs/05-developer-tools/04-admin-api): Programmatic access to node management
+- [ABI Generation](https://calimero-network.github.io/docs/05-developer-tools/abi-generation): Automatic generation of Application Binary Interfaces
+- [ABI Configuration](https://calimero-network.github.io/docs/05-developer-tools/abi-generation/02-configuration): Configuration options for ABI generation
+- [ABI Build Process](https://calimero-network.github.io/docs/05-developer-tools/abi-generation/build-process): How ABI generation works
+
+## Merobox CLI Tool
+
+- [Merobox Overview](https://calimero-network.github.io/docs/05-developer-tools/merobox): CLI tool for managing Calimero nodes and workflows
+- [Installation and Setup](https://calimero-network.github.io/docs/05-developer-tools/merobox/installation): Complete guide to installing Merobox CLI
+- [Node Management](https://calimero-network.github.io/docs/05-developer-tools/merobox/node-management): Managing Calimero nodes with Merobox
+- [Network Configuration](https://calimero-network.github.io/docs/05-developer-tools/merobox/network-configuration): Network configuration and port management
+- [Advanced Configuration](https://calimero-network.github.io/docs/05-developer-tools/merobox/advanced-configuration): Advanced features and configuration options
+- [Workflow System](https://calimero-network.github.io/docs/05-developer-tools/merobox/workflows): Creating and managing workflows with YAML
+- [Advanced Examples](https://calimero-network.github.io/docs/05-developer-tools/merobox/advanced-examples): Complex workflows for power users
+- [Best Practices](https://calimero-network.github.io/docs/05-developer-tools/merobox/best-practices): Guidelines for effective Merobox usage
+- [Troubleshooting](https://calimero-network.github.io/docs/05-developer-tools/merobox/troubleshooting): Common issues and solutions
 
 ## Tutorials
 
-- [Near Wallet Integration](https://calimero-network.github.io/docs/06-tutorials/01-login-with-wallets/01-near-wallet): Authenticate users via NEAR wallet for secure access
+- [Tutorials Overview](https://calimero-network.github.io/docs/06-tutorials/00-overview): Welcome to Calimero Network tutorials
+- [Near Wallet Integration](https://calimero-network.github.io/docs/06-tutorials/01-login-with-wallets/01-near-wallet): Authenticate users via NEAR wallet
 - [Starknet Wallet Integration](https://calimero-network.github.io/docs/06-tutorials/01-login-with-wallets/02-starknet-wallet): Integrate Starknet wallet authentication
-- [ICP Wallet Integration](https://calimero-network.github.io/docs/06-tutorials/01-login-with-wallets/03-icp-wallet): Internet Identity authentication integration
-- [Create Context](https://calimero-network.github.io/docs/06-tutorials/02-create-context): Step-by-step guide to creating application contexts
-- [Key-Value Store Tutorial](https://calimero-network.github.io/docs/06-tutorials/04-build-app): Build applications using the Calimero SDK for Rust
-- [Publish App](https://calimero-network.github.io/docs/06-tutorials/05-publish-app): Deploy and publish your applications to the network
-- [Install Application](https://calimero-network.github.io/docs/06-tutorials/06-install-application): Install and run applications on your Calimero node
+- [ICP Wallet Integration](https://calimero-network.github.io/docs/06-tutorials/01-login-with-wallets/03-icp-wallet): Internet Identity authentication
+- [Ethereum Wallet Integration](https://calimero-network.github.io/docs/06-tutorials/01-login-with-wallets/04-ethereum-wallet): Ethereum wallet authentication
+- [Create Context](https://calimero-network.github.io/docs/06-tutorials/02-create-context): Step-by-step guide to creating contexts
+- [Invitations and Joinings](https://calimero-network.github.io/docs/06-tutorials/03-invitations-and-joinings): Context invitation and joining process
+- [Key-Value Store Tutorial](https://calimero-network.github.io/docs/06-tutorials/04-build-app): Build applications using Calimero SDK
+- [Publish App](https://calimero-network.github.io/docs/06-tutorials/05-publish-app): Deploy and publish applications
+- [Install Application](https://calimero-network.github.io/docs/06-tutorials/06-install-application): Install and run applications
+- [Python Client Integration](https://calimero-network.github.io/docs/06-tutorials/08-python-client-integration): Integrating Python client SDK
 
 ## Example Projects
 
 - [Only Peers](https://calimero-network.github.io/docs/06-tutorials/07-awesome-projects/01-only-peers): Decentralized social networking application
-- [Private DAO](https://calimero-network.github.io/docs/06-tutorials/07-awesome-projects/02-demo-blockchain-integration): Example application connecting to Calimero Proxy Contract
+- [Private DAO](https://calimero-network.github.io/docs/06-tutorials/07-awesome-projects/02-demo-blockchain-integration): Example connecting to Calimero Proxy Contract
+- [Building with ICP](https://calimero-network.github.io/docs/06-tutorials/07-awesome-projects/03-building-with-icp): Internet Computer integration tutorial
+- [Building with Stellar](https://calimero-network.github.io/docs/06-tutorials/07-awesome-projects/04-building-with-stellar): Stellar blockchain integration
+- [Building with Ethereum](https://calimero-network.github.io/docs/06-tutorials/07-awesome-projects/05-building-with-ethereum): Ethereum blockchain integration
 - [Rock Paper Scissors](https://calimero-network.github.io/docs/06-tutorials/07-awesome-projects/_03-rock-paper-scissors): Online multiplayer game with enforced rules
 - [Blockchain Integration](https://calimero-network.github.io/docs/06-tutorials/07-proxy-contract-interaction): Cross-chain interactions through proxy contracts
 
 ## Resources
 
-- [Data Sovereignty Manifesto](https://calimero-network.github.io/docs/07-resources/01-manifesto): Vision for a digital world where users control their data
+- [Data Sovereignty Manifesto](https://calimero-network.github.io/docs/07-resources/01-manifesto): Vision for user-controlled data
 - [ELI5](https://calimero-network.github.io/docs/07-resources/02-eli5): Simple explanations of complex concepts
 - [Changelog](https://calimero-network.github.io/docs/07-resources/_02-changelog): Version history and updates
-- [Versioning](https://calimero-network.github.io/docs/07-resources/_03-versioning): Version management and compatibility information
+- [Versioning](https://calimero-network.github.io/docs/07-resources/_03-versioning): Version management and compatibility
 
 ## Troubleshooting
 
 - [General Issues](https://calimero-network.github.io/docs/08-throubleshooting/01-overview): Common problems and solutions
-- [SSL/TLS Configuration](https://calimero-network.github.io/docs/08-throubleshooting/02-ssl): Secure access configuration for external connections
-- [Limitations](https://calimero-network.github.io/docs/08-throubleshooting/_02-limitations): Current framework limitations and constraints
+- [SSL/TLS Configuration](https://calimero-network.github.io/docs/08-throubleshooting/02-ssl): Secure access configuration
+- [Limitations](https://calimero-network.github.io/docs/08-throubleshooting/_02-limitations): Current framework limitations
 
 ## Contributing
 
 - [GitHub Workflow](https://calimero-network.github.io/docs/09-contributing/01-github): How to contribute to the project
 - [Hackathons](https://calimero-network.github.io/docs/09-contributing/02-hackathons): Innovation and collaboration opportunities
-- [Bounty Program](https://calimero-network.github.io/docs/09-contributing/03-bounty-program): Rewards for contributions and improvements
+- [Bounty Program](https://calimero-network.github.io/docs/09-contributing/03-bounty-program): Rewards for contributions
 
 ## Support
 
-- [Community and Support](https://calimero-network.github.io/docs/10-support/01-community-and-support): Get help from the Calimero community
+- [Community and Support](https://calimero-network.github.io/docs/10-support/01-community-and-support): Get help from the community
 - [Learning Resources](https://calimero-network.github.io/docs/10-support/02-learning): Additional materials and references
 
 ## External Resources
 
-- [Calimero Network Website](https://www.calimero.network/): Official website with additional information and resources
-- [GitHub Repository](https://github.com/calimero-network/core): Main source code repository and development hub
+- [Calimero Network Website](https://www.calimero.network/): Official website with additional information
+- [GitHub Repository](https://github.com/calimero-network/core): Main source code repository
 
 ## Optional
 
