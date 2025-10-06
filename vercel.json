@@ -1,6 +1,7 @@
 {
-  "buildCommand": "pnpm install && pnpm build",
+  "buildCommand": "pnpm run build",
   "outputDirectory": "build",
+  "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,
-  "installCommand": "pnpm install --frozen-lockfile"
+  "nodeVersion": "22.x"
 }
