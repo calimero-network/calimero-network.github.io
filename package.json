@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build && node scripts/replace-llms.js",
     "swizzle": "docusaurus swizzle",
@@ -55,6 +54,6 @@
     ]
   },
   "engines": {
-    "node": ">=20.13"
+    "node": ">=22.0"
   }
 }
