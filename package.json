@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@docsearch/react": "^3.8.0",
+    "@docusaurus/cli": "^3.9.1",
     "@docusaurus/core": "^3.9.1",
     "@docusaurus/plugin-content-docs": "^3.9.1",
     "@docusaurus/preset-classic": "^3.9.1",
@@ -54,6 +55,6 @@
     ]
   },
   "engines": {
-    "node": ">=22.0"
+    "node": ">=18.0"
   }
 }
