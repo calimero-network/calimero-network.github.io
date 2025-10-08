@@ -7,7 +7,7 @@ const config: Config = {
   tagline:
     "Calimero Network is a framework which enables building fully decentralized applications, ensuring everyone's data privacy.",
   favicon: 'img/favicon.ico',
-  url: 'https://calimero-network.github.io',
+  url: 'https://docs.calimero.network',
   baseUrl: '/',
   organizationName: 'calimero-network',
   projectName: 'calimero-network',
