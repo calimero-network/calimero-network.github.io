@@ -78,5 +78,17 @@
   "sidebar.tutorialSidebar.category.Merobox": {
     "message": "Merobox",
     "description": "The label for category Merobox in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.ABI Generation": {
+    "message": "ABI Generation",
+    "description": "The label for category ABI Generation in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.developer-tools-abi-generation": {
+    "message": "ABI Generation",
+    "description": "The label for category ABI Generation in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.tutorials-abi-generation": {
+    "message": "ABI Generation",
+    "description": "The label for category ABI Generation in sidebar tutorialSidebar"
   }
 }
