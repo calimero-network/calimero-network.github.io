@@ -7,12 +7,16 @@ const config: Config = {
   tagline:
     "Calimero Network is a framework which enables building fully decentralized applications, ensuring everyone's data privacy.",
   favicon: 'img/favicon.ico',
-  url: 'https://calimero-network.github.io',
+  url: 'https://docs.calimero.network',
   baseUrl: '/',
   organizationName: 'calimero-network',
   projectName: 'calimero-network',
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
@@ -49,26 +53,6 @@ const config: Config = {
             '0.7.0': {
               label: 'Stable (0.7.0)',
               path: '0.7.0',
-              badge: false,
-            },
-            '0.6.0': {
-              label: 'Stable (0.6.0)',
-              path: '0.6.0',
-              badge: false,
-            },
-            '0.5.0': {
-              label: 'Stable (0.5.0)',
-              path: '0.5.0',
-              badge: false,
-            },
-            '0.4.0': {
-              label: 'Stable (0.4.0)',
-              path: '0.4.0',
-              badge: false,
-            },
-            '0.3.0': {
-              label: 'Legacy (0.3.0)',
-              path: '0.3.0',
               badge: false,
             },
           },
