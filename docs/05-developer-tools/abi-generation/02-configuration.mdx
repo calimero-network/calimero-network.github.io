@@ -1,0 +1,672 @@
+---
+title: Configuration
+description:
+  Configure ABI generation for your Calimero application with protocol-specific
+  settings.
+sidebar_position: 2
+---
+
+# ABI Configuration
+
+This guide explains how to configure ABI generation for your Calimero
+application, including protocol-specific settings, build configuration, and
+advanced options.
+
+## Basic Configuration
+
+### 1.1 Cargo.toml Setup
+
+Add the ABI generation dependency to your `Cargo.toml`:
+
+```toml
+[package]
+name = "my-calimero-app"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+calimero-abi-emitter = "0.1.0"
+
+[dependencies]
+calimero-abi-emitter = "0.1.0"
+# Other dependencies...
+```
+
+### 1.2 Build Script Configuration
+
+Create a `build.rs` file in your project root:
+
+```rust
+// build.rs
+use calimero_abi_emitter::emit_manifest;
+
+fn main() {
+    emit_manifest().expect("Failed to generate ABI manifest");
+}
+```
+
+### 1.3 Application Setup
+
+Mark your application with the `#[calimero_app]` attribute:
+
+```rust
+// src/lib.rs
+use calimero_abi_emitter::calimero_app;
+
+#[calimero_app]
+pub struct MyApp {
+    // Your application state
+}
+
+impl MyApp {
+    // Your application methods
+}
+```
+
+## Protocol Configuration
+
+### 2.1 Single Protocol
+
+Configure ABI generation for a single protocol:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol};
+
+#[calimero_app(protocol = Protocol::Ethereum)]
+pub struct EthereumApp {
+    // Ethereum-specific application
+}
+```
+
+### 2.2 Multiple Protocols
+
+Configure ABI generation for multiple protocols:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol};
+
+#[calimero_app(protocols = [Protocol::Ethereum, Protocol::NEAR, Protocol::ICP])]
+pub struct MultiProtocolApp {
+    // Multi-protocol application
+}
+```
+
+### 2.3 Protocol-Specific Features
+
+Enable protocol-specific features:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolFeatures};
+
+#[calimero_app(
+    protocol = Protocol::Ethereum,
+    features = [
+        ProtocolFeatures::GasOptimization,
+        ProtocolFeatures::EventLogging
+    ]
+)]
+pub struct OptimizedEthereumApp {
+    // Optimized Ethereum application
+}
+```
+
+## Advanced Configuration
+
+### 3.1 Custom Build Script
+
+Create a custom build script with advanced configuration:
+
+```rust
+// build.rs
+use calimero_abi_emitter::{
+    emit_manifest_with_config,
+    AbiConfig,
+    Protocol,
+    OutputFormat,
+    TypeNormalization
+};
+
+fn main() {
+    let config = AbiConfig {
+        // Protocol configuration
+        protocols: vec![
+            Protocol::Ethereum,
+            Protocol::NEAR,
+            Protocol::ICP,
+            Protocol::Starknet
+        ],
+
+        // Output configuration
+        output_format: OutputFormat::Json,
+        output_file: Some("abi.json".to_string()),
+
+        // Type configuration
+        type_normalization: TypeNormalization::Strict,
+        include_private_types: false,
+        include_generic_types: true,
+
+        // Event configuration
+        generate_events: true,
+        event_prefix: Some("App".to_string()),
+
+        // Validation configuration
+        validate_types: true,
+        strict_validation: false,
+
+        // Debug configuration
+        debug_mode: false,
+        verbose_logging: false,
+    };
+
+    emit_manifest_with_config(config)
+        .expect("Failed to generate ABI manifest");
+}
+```
+
+### 3.2 Environment-Based Configuration
+
+Configure ABI generation based on environment variables:
+
+```rust
+// build.rs
+use std::env;
+
+fn main() {
+    let config = match env::var("ABI_PROTOCOL") {
+        Ok(protocol) => {
+            match protocol.as_str() {
+                "ethereum" => create_ethereum_config(),
+                "near" => create_near_config(),
+                "icp" => create_icp_config(),
+                "stellar" => create_stellar_config(),
+                _ => create_default_config(),
+            }
+        }
+        Err(_) => create_default_config(),
+    };
+
+    emit_manifest_with_config(config)
+        .expect("Failed to generate ABI manifest");
+}
+
+fn create_ethereum_config() -> AbiConfig {
+    AbiConfig {
+        protocols: vec![Protocol::Ethereum],
+        type_normalization: TypeNormalization::EthereumCompatible,
+        generate_events: true,
+        // Ethereum-specific configuration
+    }
+}
+```
+
+## Type Configuration
+
+### 4.1 Type Normalization
+
+Configure how Rust types are normalized to ABI types:
+
+```rust
+use calimero_abi_emitter::{calimero_app, TypeNormalization};
+
+#[calimero_app(type_normalization = TypeNormalization::Strict)]
+pub struct StrictTypeApp {
+    // Strict type normalization
+}
+
+#[calimero_app(type_normalization = TypeNormalization::Lenient)]
+pub struct LenientTypeApp {
+    // Lenient type normalization
+}
+```
+
+### 4.2 Custom Type Mappings
+
+Define custom type mappings:
+
+```rust
+use calimero_abi_emitter::{calimero_app, custom_type_mapping};
+
+#[calimero_app]
+#[custom_type_mapping(
+    "MyCustomType" => "CustomType",
+    "SpecialString" => "string"
+)]
+pub struct CustomTypeApp {
+    pub data: MyCustomType,
+    pub message: SpecialString,
+}
+```
+
+### 4.3 Type Validation
+
+Configure type validation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, TypeValidation};
+
+#[calimero_app(
+    type_validation = TypeValidation::Strict,
+    validate_generics = true,
+    validate_lifetimes = false
+)]
+pub struct ValidatedApp {
+    // Strictly validated types
+}
+```
+
+## Event Configuration
+
+### 5.1 Event Generation
+
+Configure event generation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, EventConfig};
+
+#[calimero_app(
+    events = EventConfig {
+        generate: true,
+        prefix: Some("App".to_string()),
+        include_private: false,
+        include_internal: false,
+    }
+)]
+pub struct EventApp {
+    // Application with events
+}
+```
+
+### 5.2 Event Filtering
+
+Filter which events are included in the ABI:
+
+```rust
+use calimero_abi_emitter::{calimero_app, EventFilter};
+
+#[calimero_app(
+    event_filter = EventFilter::Include(vec![
+        "DataProcessed".to_string(),
+        "StateChanged".to_string(),
+    ])
+)]
+pub struct FilteredEventApp {
+    // Application with filtered events
+}
+```
+
+### 5.3 Event Documentation
+
+Configure event documentation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, EventDocumentation};
+
+#[calimero_app(
+    event_documentation = EventDocumentation {
+        include_examples: true,
+        include_parameters: true,
+        include_return_types: true,
+    }
+)]
+pub struct DocumentedEventApp {
+    // Application with documented events
+}
+```
+
+## Method Configuration
+
+### 6.1 Method Filtering
+
+Filter which methods are included in the ABI:
+
+```rust
+use calimero_abi_emitter::{calimero_app, MethodFilter};
+
+#[calimero_app(
+    method_filter = MethodFilter::Include(vec![
+        "public_method".to_string(),
+        "api_method".to_string(),
+    ])
+)]
+pub struct FilteredMethodApp {
+    // Application with filtered methods
+}
+```
+
+### 6.2 Method Documentation
+
+Configure method documentation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, MethodDocumentation};
+
+#[calimero_app(
+    method_documentation = MethodDocumentation {
+        include_examples: true,
+        include_parameters: true,
+        include_return_types: true,
+        include_errors: true,
+    }
+)]
+pub struct DocumentedMethodApp {
+    // Application with documented methods
+}
+```
+
+### 6.3 Method Validation
+
+Configure method validation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, MethodValidation};
+
+#[calimero_app(
+    method_validation = MethodValidation {
+        validate_signatures: true,
+        validate_async: true,
+        validate_generics: false,
+    }
+)]
+pub struct ValidatedMethodApp {
+    // Application with validated methods
+}
+```
+
+## Output Configuration
+
+### 7.1 Output Format
+
+Configure the output format:
+
+```rust
+use calimero_abi_emitter::{calimero_app, OutputFormat};
+
+#[calimero_app(output_format = OutputFormat::Json)]
+pub struct JsonOutputApp {
+    // JSON output format
+}
+
+#[calimero_app(output_format = OutputFormat::Yaml)]
+pub struct YamlOutputApp {
+    // YAML output format
+}
+```
+
+### 7.2 Output File
+
+Configure the output file location:
+
+```rust
+use calimero_abi_emitter::{calimero_app, OutputFile};
+
+#[calimero_app(
+    output_file = OutputFile::Custom("my-app.abi.json".to_string())
+)]
+pub struct CustomOutputApp {
+    // Custom output file
+}
+```
+
+### 7.3 Output Validation
+
+Configure output validation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, OutputValidation};
+
+#[calimero_app(
+    output_validation = OutputValidation {
+        validate_schema: true,
+        validate_types: true,
+        validate_methods: true,
+        validate_events: true,
+    }
+)]
+pub struct ValidatedOutputApp {
+    // Application with validated output
+}
+```
+
+## Debug Configuration
+
+### 8.1 Debug Mode
+
+Enable debug mode for ABI generation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, DebugConfig};
+
+#[calimero_app(
+    debug = DebugConfig {
+        enabled: true,
+        verbose_logging: true,
+        save_intermediate_files: true,
+        output_directory: Some("debug_output".to_string()),
+    }
+)]
+pub struct DebugApp {
+    // Application with debug information
+}
+```
+
+### 8.2 Logging Configuration
+
+Configure logging for ABI generation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, LoggingConfig};
+
+#[calimero_app(
+    logging = LoggingConfig {
+        level: LogLevel::Debug,
+        include_timestamps: true,
+        include_file_locations: true,
+        output_to_file: Some("abi_generation.log".to_string()),
+    }
+)]
+pub struct LoggedApp {
+    // Application with detailed logging
+}
+```
+
+## CI/CD Configuration
+
+### 9.1 GitHub Actions
+
+Configure ABI generation in GitHub Actions:
+
+```yaml
+# .github/workflows/abi-generation.yml
+name: ABI Generation
+
+on: [push, pull_request]
+
+jobs:
+  generate-abi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+      - name: Install ABI tools
+        run: |
+          cargo install calimero-abi
+
+      - name: Generate ABI
+        run: |
+          cargo build --target wasm32-unknown-unknown --release
+
+      - name: Validate ABI
+        run: |
+          calimero-abi validate target/wasm32-unknown-unknown/release/my_app.wasm
+
+      - name: Upload ABI
+        uses: actions/upload-artifact@v3
+        with:
+          name: abi-files
+          path: target/wasm32-unknown-unknown/release/*.abi.json
+```
+
+### 9.2 GitLab CI
+
+Configure ABI generation in GitLab CI:
+
+```yaml
+# .gitlab-ci.yml
+stages:
+  - build
+  - abi-generation
+  - validation
+
+generate-abi:
+  stage: abi-generation
+  image: rust:latest
+  script:
+    - rustup target add wasm32-unknown-unknown
+    - cargo install calimero-abi
+    - cargo build --target wasm32-unknown-unknown --release
+    - calimero-abi validate target/wasm32-unknown-unknown/release/my_app.wasm
+  artifacts:
+    paths:
+      - target/wasm32-unknown-unknown/release/*.abi.json
+```
+
+## Configuration Examples
+
+### 10.1 Ethereum Application
+
+Complete configuration for an Ethereum application:
+
+```rust
+use calimero_abi_emitter::{
+    calimero_app,
+    Protocol,
+    ProtocolFeatures,
+    TypeNormalization,
+    EventConfig,
+    MethodConfig
+};
+
+#[calimero_app(
+    protocol = Protocol::Ethereum,
+    features = [
+        ProtocolFeatures::GasOptimization,
+        ProtocolFeatures::EventLogging
+    ],
+    type_normalization = TypeNormalization::EthereumCompatible,
+    events = EventConfig {
+        generate: true,
+        prefix: Some("EthereumApp".to_string()),
+        include_private: false,
+    },
+    methods = MethodConfig {
+        include_public: true,
+        include_internal: false,
+        validate_gas_usage: true,
+    }
+)]
+pub struct EthereumApp {
+    // Ethereum-specific application
+}
+```
+
+### 10.2 Multi-Protocol Application
+
+Complete configuration for a multi-protocol application:
+
+```rust
+use calimero_abi_emitter::{
+    calimero_app,
+    Protocol,
+    ProtocolConfig,
+    TypeNormalization,
+    EventConfig,
+    MethodConfig
+};
+
+#[calimero_app(
+    protocols = [Protocol::Ethereum, Protocol::NEAR, Protocol::ICP],
+    protocol_config = ProtocolConfig {
+        ethereum: EthereumConfig {
+            gas_optimization: true,
+            event_logging: true,
+        },
+        near: NearConfig {
+            account_optimization: true,
+            storage_optimization: true,
+        },
+        icp: IcpConfig {
+            canister_optimization: true,
+            cycle_optimization: true,
+        },
+    },
+    type_normalization = TypeNormalization::MultiProtocol,
+    events = EventConfig {
+        generate: true,
+        prefix: Some("MultiProtocolApp".to_string()),
+        include_private: false,
+    },
+    methods = MethodConfig {
+        include_public: true,
+        include_internal: false,
+        validate_cross_protocol: true,
+    }
+)]
+pub struct MultiProtocolApp {
+    // Multi-protocol application
+}
+```
+
+## Troubleshooting Configuration
+
+### 11.1 Common Configuration Issues
+
+**Build Failures**: Check that all required dependencies are included in
+`Cargo.toml`
+
+**Protocol Mismatches**: Ensure your type definitions are compatible with the
+target protocol
+
+**Validation Errors**: Verify that your configuration matches your actual code
+structure
+
+### 11.2 Debug Configuration Issues
+
+Enable debug mode to troubleshoot configuration issues:
+
+```rust
+// build.rs
+use calimero_abi_emitter::{emit_manifest_with_config, AbiConfig, DebugConfig};
+
+fn main() {
+    let config = AbiConfig {
+        debug: DebugConfig {
+            enabled: true,
+            verbose_logging: true,
+            save_intermediate_files: true,
+            output_directory: Some("debug_output".to_string()),
+        },
+        // ... other configuration
+    };
+
+    emit_manifest_with_config(config)
+        .expect("Failed to generate ABI manifest");
+}
+```
+
+## Next Steps
+
+Now that you understand ABI configuration:
+
+- [Rust Integration](./rust-integration) - Integrate ABI generation with your
+  Rust code
+- [Validation](./validation) - Set up ABI validation and testing
+- [Protocol Support](./protocol-support) - Configure support for specific
+  protocols
+- [Tools](./tools) - Use ABI tools for debugging and validation

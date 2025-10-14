@@ -1,0 +1,769 @@
+---
+title: Rust Integration
+description:
+  Integrate ABI generation with your Rust code using attributes, macros, and
+  best practices.
+sidebar_position: 3
+---
+
+# Rust Integration
+
+This guide explains how to integrate ABI generation with your Rust code,
+including attribute usage, macro patterns, and best practices for creating
+ABI-compatible applications.
+
+## Basic Integration
+
+### 1.1 Application Structure
+
+Start by creating a basic Calimero application structure:
+
+```rust
+// src/lib.rs
+use calimero_abi_emitter::calimero_app;
+
+#[calimero_app]
+pub struct MyApp {
+    // Your application state
+    data: String,
+    count: u32,
+}
+
+impl MyApp {
+    pub fn new() -> Self {
+        Self {
+            data: String::new(),
+            count: 0,
+        }
+    }
+
+    pub fn process_data(&mut self, input: String) -> Result<String, String> {
+        self.data = input.clone();
+        self.count += 1;
+        Ok(format!("Processed: {}", input))
+    }
+
+    pub fn get_state(&self) -> AppState {
+        AppState {
+            data: self.data.clone(),
+            count: self.count,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct AppState {
+    pub data: String,
+    pub count: u32,
+}
+```
+
+### 1.2 Cargo.toml Configuration
+
+Add the required dependencies:
+
+```toml
+[package]
+name = "my-calimero-app"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+calimero-abi-emitter = "0.1.0"
+
+[dependencies]
+calimero-abi-emitter = "0.1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+```
+
+### 1.3 Build Script
+
+Create a `build.rs` file:
+
+```rust
+// build.rs
+use calimero_abi_emitter::emit_manifest;
+
+fn main() {
+    emit_manifest().expect("Failed to generate ABI manifest");
+}
+```
+
+## Attribute Usage
+
+### 2.1 Application Attributes
+
+Use the `#[calimero_app]` attribute to mark your main application:
+
+```rust
+use calimero_abi_emitter::calimero_app;
+
+#[calimero_app]
+pub struct MyApp {
+    // Application state
+}
+
+// The attribute automatically generates ABI metadata for this struct
+```
+
+### 2.2 Method Attributes
+
+Mark methods for ABI inclusion:
+
+```rust
+impl MyApp {
+    #[calimero_method]
+    pub fn public_api_method(&self, input: String) -> String {
+        // This method will be included in the ABI
+        format!("Processed: {}", input)
+    }
+
+    #[calimero_method]
+    pub fn get_data(&self) -> AppData {
+        // This method will be included in the ABI
+        AppData::default()
+    }
+
+    // This method will NOT be included in the ABI
+    fn internal_helper(&self) -> String {
+        "internal".to_string()
+    }
+}
+```
+
+### 2.3 Event Attributes
+
+Define events for your application:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_event};
+
+#[calimero_app]
+pub struct EventApp {
+    // Application state
+}
+
+#[calimero_event]
+pub struct DataProcessed {
+    pub input: String,
+    pub output: String,
+    pub timestamp: u64,
+}
+
+#[calimero_event]
+pub struct StateChanged {
+    pub old_state: AppState,
+    pub new_state: AppState,
+}
+
+impl EventApp {
+    pub fn process_data(&mut self, input: String) -> Result<String, String> {
+        let output = format!("Processed: {}", input);
+
+        // Emit event
+        self.emit_event(DataProcessed {
+            input: input.clone(),
+            output: output.clone(),
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        });
+
+        Ok(output)
+    }
+}
+```
+
+### 2.4 Type Attributes
+
+Configure type behavior for ABI generation:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_type};
+
+#[calimero_app]
+pub struct TypeApp {
+    // Application state
+}
+
+#[calimero_type]
+#[derive(Clone, Debug)]
+pub struct UserData {
+    pub id: u32,
+    pub name: String,
+    pub email: String,
+    pub created_at: u64,
+}
+
+#[calimero_type]
+#[derive(Clone, Debug)]
+pub enum UserStatus {
+    Active,
+    Inactive,
+    Suspended,
+}
+
+impl TypeApp {
+    pub fn create_user(&mut self, name: String, email: String) -> UserData {
+        UserData {
+            id: 1, // In real app, generate proper ID
+            name,
+            email,
+            created_at: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        }
+    }
+}
+```
+
+## Advanced Integration Patterns
+
+### 3.1 Generic Applications
+
+Handle generic types in your application:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_type};
+
+#[calimero_app]
+pub struct GenericApp<T> {
+    data: T,
+}
+
+impl<T> GenericApp<T>
+where
+    T: Clone + Send + Sync + 'static,
+{
+    pub fn new(data: T) -> Self {
+        Self { data }
+    }
+
+    pub fn get_data(&self) -> T {
+        self.data.clone()
+    }
+
+    pub fn set_data(&mut self, data: T) {
+        self.data = data;
+    }
+}
+
+// Specialize for specific types
+pub type StringApp = GenericApp<String>;
+pub type NumberApp = GenericApp<u32>;
+```
+
+### 3.2 Async Applications
+
+Handle async methods in your application:
+
+```rust
+use calimero_abi_emitter::calimero_app;
+use std::future::Future;
+
+#[calimero_app]
+pub struct AsyncApp {
+    // Application state
+}
+
+impl AsyncApp {
+    #[calimero_method]
+    pub async fn async_process(&self, input: String) -> Result<String, String> {
+        // Simulate async work
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        Ok(format!("Async processed: {}", input))
+    }
+
+    #[calimero_method]
+    pub fn sync_wrapper(&self, input: String) -> impl Future<Output = Result<String, String>> {
+        let future = self.async_process(input);
+        async move { future.await }
+    }
+}
+```
+
+### 3.3 Error Handling
+
+Implement proper error handling for ABI compatibility:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_type};
+
+#[calimero_app]
+pub struct ErrorHandlingApp {
+    // Application state
+}
+
+#[calimero_type]
+#[derive(Clone, Debug)]
+pub enum AppError {
+    ValidationError(String),
+    ProcessingError(String),
+    InternalError(String),
+}
+
+impl std::fmt::Display for AppError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AppError::ValidationError(msg) => write!(f, "Validation error: {}", msg),
+            AppError::ProcessingError(msg) => write!(f, "Processing error: {}", msg),
+            AppError::InternalError(msg) => write!(f, "Internal error: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for AppError {}
+
+impl ErrorHandlingApp {
+    pub fn validate_input(&self, input: &str) -> Result<(), AppError> {
+        if input.is_empty() {
+            return Err(AppError::ValidationError("Input cannot be empty".to_string()));
+        }
+        if input.len() > 100 {
+            return Err(AppError::ValidationError("Input too long".to_string()));
+        }
+        Ok(())
+    }
+
+    pub fn process_data(&self, input: String) -> Result<String, AppError> {
+        self.validate_input(&input)?;
+
+        if input.contains("error") {
+            return Err(AppError::ProcessingError("Input contains error keyword".to_string()));
+        }
+
+        Ok(format!("Processed: {}", input))
+    }
+}
+```
+
+## Type System Integration
+
+### 4.1 Standard Types
+
+Use standard Rust types that map well to ABI types:
+
+```rust
+use calimero_abi_emitter::calimero_app;
+
+#[calimero_app]
+pub struct StandardTypeApp {
+    // Standard types that map well to ABI
+    pub id: u32,
+    pub name: String,
+    pub is_active: bool,
+    pub score: f64,
+    pub tags: Vec<String>,
+    pub metadata: std::collections::BTreeMap<String, String>,
+}
+```
+
+### 4.2 Custom Types
+
+Define custom types with proper ABI compatibility:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_type};
+use serde::{Deserialize, Serialize};
+
+#[calimero_app]
+pub struct CustomTypeApp {
+    // Application state
+}
+
+#[calimero_type]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct User {
+    pub id: u32,
+    pub username: String,
+    pub email: String,
+    pub profile: UserProfile,
+    pub settings: UserSettings,
+}
+
+#[calimero_type]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct UserProfile {
+    pub first_name: String,
+    pub last_name: String,
+    pub bio: Option<String>,
+    pub avatar_url: Option<String>,
+}
+
+#[calimero_type]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct UserSettings {
+    pub theme: String,
+    pub notifications: bool,
+    pub privacy_level: PrivacyLevel,
+}
+
+#[calimero_type]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum PrivacyLevel {
+    Public,
+    Friends,
+    Private,
+}
+```
+
+### 4.3 Collection Types
+
+Handle collection types properly:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_type};
+use std::collections::{BTreeMap, HashMap, VecDeque};
+
+#[calimero_app]
+pub struct CollectionApp {
+    // Application state
+}
+
+#[calimero_type]
+#[derive(Clone, Debug)]
+pub struct DataContainer {
+    // Vec maps to list<T> in ABI
+    pub items: Vec<String>,
+
+    // BTreeMap maps to map<K,V> in ABI
+    pub metadata: BTreeMap<String, String>,
+
+    // HashMap maps to map<K,V> in ABI
+    pub cache: HashMap<String, u32>,
+
+    // VecDeque maps to list<T> in ABI
+    pub queue: VecDeque<String>,
+}
+```
+
+## Protocol-Specific Integration
+
+### 5.1 Ethereum Integration
+
+Configure your application for Ethereum:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolFeatures};
+
+#[calimero_app(
+    protocol = Protocol::Ethereum,
+    features = [
+        ProtocolFeatures::GasOptimization,
+        ProtocolFeatures::EventLogging
+    ]
+)]
+pub struct EthereumApp {
+    // Ethereum-specific application
+}
+
+impl EthereumApp {
+    pub fn transfer_tokens(&mut self, to: String, amount: u64) -> Result<(), String> {
+        // Ethereum-specific logic
+        Ok(())
+    }
+}
+```
+
+### 5.2 NEAR Integration
+
+Configure your application for NEAR:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolFeatures};
+
+#[calimero_app(
+    protocol = Protocol::NEAR,
+    features = [
+        ProtocolFeatures::AccountOptimization,
+        ProtocolFeatures::StorageOptimization
+    ]
+)]
+pub struct NearApp {
+    // NEAR-specific application
+}
+
+impl NearApp {
+    pub fn call_contract(&self, contract_id: String, method: String, args: String) -> Result<String, String> {
+        // NEAR-specific logic
+        Ok("Success".to_string())
+    }
+}
+```
+
+### 5.3 Multi-Protocol Integration
+
+Support multiple protocols in a single application:
+
+```rust
+use calimero_abi_emitter::{calimero_app, Protocol, ProtocolConfig};
+
+#[calimero_app(
+    protocols = [Protocol::Ethereum, Protocol::NEAR, Protocol::ICP],
+    protocol_config = ProtocolConfig {
+        ethereum: EthereumConfig {
+            gas_optimization: true,
+        },
+        near: NearConfig {
+            account_optimization: true,
+        },
+        icp: IcpConfig {
+            canister_optimization: true,
+        },
+    }
+)]
+pub struct MultiProtocolApp {
+    // Multi-protocol application
+}
+
+impl MultiProtocolApp {
+    pub fn process_cross_chain(&self, data: String, target_protocol: String) -> Result<String, String> {
+        match target_protocol.as_str() {
+            "ethereum" => self.process_ethereum(data),
+            "near" => self.process_near(data),
+            "icp" => self.process_icp(data),
+            _ => Err("Unsupported protocol".to_string()),
+        }
+    }
+
+    fn process_ethereum(&self, data: String) -> Result<String, String> {
+        // Ethereum-specific processing
+        Ok(format!("Ethereum: {}", data))
+    }
+
+    fn process_near(&self, data: String) -> Result<String, String> {
+        // NEAR-specific processing
+        Ok(format!("NEAR: {}", data))
+    }
+
+    fn process_icp(&self, data: String) -> Result<String, String> {
+        // ICP-specific processing
+        Ok(format!("ICP: {}", data))
+    }
+}
+```
+
+## Testing Integration
+
+### 6.1 Unit Testing
+
+Write unit tests for your ABI-compatible code:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use calimero_abi_emitter::validate_abi;
+
+    #[test]
+    fn test_app_creation() {
+        let app = MyApp::new();
+        assert_eq!(app.get_state().count, 0);
+    }
+
+    #[test]
+    fn test_data_processing() {
+        let mut app = MyApp::new();
+        let result = app.process_data("test".to_string());
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Processed: test");
+    }
+
+    #[test]
+    fn test_abi_validation() {
+        // This test ensures the ABI is valid
+        let abi = include_bytes!("../target/abi_conformance.abi.json");
+        validate_abi(abi).expect("ABI validation failed");
+    }
+}
+```
+
+### 6.2 Integration Testing
+
+Test your application with ABI validation:
+
+```rust
+#[cfg(test)]
+mod integration_tests {
+    use super::*;
+    use calimero_abi_emitter::{validate_abi, AbiManifest};
+
+    #[test]
+    fn test_abi_conformance() {
+        let abi_json = include_str!("../target/abi_conformance.abi.json");
+        let abi: AbiManifest = serde_json::from_str(abi_json).unwrap();
+
+        // Validate that all expected methods are present
+        let method_names: Vec<&String> = abi.methods.iter().map(|m| &m.name).collect();
+        assert!(method_names.contains(&"process_data".to_string()));
+        assert!(method_names.contains(&"get_state".to_string()));
+
+        // Validate that all expected types are present
+        let type_names: Vec<&String> = abi.types.keys().collect();
+        assert!(type_names.contains(&"AppState".to_string()));
+    }
+}
+```
+
+## Best Practices
+
+### 7.1 Code Organization
+
+Organize your code for ABI compatibility:
+
+```rust
+// src/lib.rs
+use calimero_abi_emitter::calimero_app;
+
+// Main application
+#[calimero_app]
+pub struct MyApp {
+    // Application state
+}
+
+impl MyApp {
+    // Public API methods
+}
+
+// src/types.rs
+use calimero_abi_emitter::calimero_type;
+
+// Type definitions
+#[calimero_type]
+pub struct AppState {
+    // State definition
+}
+
+// src/events.rs
+use calimero_abi_emitter::calimero_event;
+
+// Event definitions
+#[calimero_event]
+pub struct DataProcessed {
+    // Event definition
+}
+```
+
+### 7.2 Error Handling
+
+Implement consistent error handling:
+
+```rust
+use calimero_abi_emitter::{calimero_app, calimero_type};
+
+#[calimero_app]
+pub struct ErrorHandlingApp {
+    // Application state
+}
+
+#[calimero_type]
+#[derive(Clone, Debug)]
+pub enum AppError {
+    ValidationError(String),
+    ProcessingError(String),
+    InternalError(String),
+}
+
+impl AppError {
+    pub fn validation(msg: impl Into<String>) -> Self {
+        Self::ValidationError(msg.into())
+    }
+
+    pub fn processing(msg: impl Into<String>) -> Self {
+        Self::ProcessingError(msg.into())
+    }
+
+    pub fn internal(msg: impl Into<String>) -> Self {
+        Self::InternalError(msg.into())
+    }
+}
+```
+
+### 7.3 Documentation
+
+Document your ABI-compatible code:
+
+```rust
+use calimero_abi_emitter::calimero_app;
+
+#[calimero_app]
+/// Main application struct for data processing
+pub struct MyApp {
+    /// Application data storage
+    data: String,
+    /// Processing counter
+    count: u32,
+}
+
+impl MyApp {
+    /// Creates a new instance of the application
+    pub fn new() -> Self {
+        Self {
+            data: String::new(),
+            count: 0,
+        }
+    }
+
+    /// Processes input data and returns the result
+    ///
+    /// # Arguments
+    /// * `input` - The input data to process
+    ///
+    /// # Returns
+    /// * `Ok(String)` - The processed data
+    /// * `Err(String)` - Error message if processing fails
+    pub fn process_data(&mut self, input: String) -> Result<String, String> {
+        self.data = input.clone();
+        self.count += 1;
+        Ok(format!("Processed: {}", input))
+    }
+}
+```
+
+## Troubleshooting
+
+### 8.1 Common Issues
+
+**Build Failures**: Ensure all required dependencies are included in
+`Cargo.toml`
+
+**Type Mismatches**: Check that your type definitions are compatible with the
+target protocol
+
+**Attribute Errors**: Verify that you're using the correct attribute syntax
+
+### 8.2 Debug Tips
+
+Enable debug mode to troubleshoot issues:
+
+```rust
+// build.rs
+use calimero_abi_emitter::{emit_manifest_with_config, AbiConfig, DebugConfig};
+
+fn main() {
+    let config = AbiConfig {
+        debug: DebugConfig {
+            enabled: true,
+            verbose_logging: true,
+            save_intermediate_files: true,
+        },
+        // ... other configuration
+    };
+
+    emit_manifest_with_config(config)
+        .expect("Failed to generate ABI manifest");
+}
+```
+
+## Next Steps
+
+Now that you understand Rust integration:
+
+- [Validation](./validation) - Set up ABI validation and testing
+- [Protocol Support](./protocol-support) - Configure support for specific
+  protocols
+- [Tools](./tools) - Use ABI tools for debugging and validation
+- [Examples](./examples) - See real-world examples and patterns

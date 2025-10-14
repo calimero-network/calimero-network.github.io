@@ -1,0 +1,89 @@
+---
+title: Build Process
+description: Overview of how ABI generation works during the Rust build process.
+sidebar_position: 1
+---
+
+# ABI Build Process
+
+This document explains how ABI generation works during the Rust build process
+for Calimero applications.
+
+## Overview
+
+The ABI generation process follows a two-step flow:
+
+1. **Generate ABI at build time as JSON** - The build process analyzes your Rust
+   code and generates a JSON Schema-based ABI
+2. **Optionally embed into WASM** - The ABI can be embedded into the WASM binary
+   for tools that may load/swap different WASMs
+
+````mermaid
+graph TD
+    A[Source Code] --> B[Build Script]
+    B --> C[Parse Rust AST]
+    C --> D[Collect Types & Methods]
+    D --> E[Generate JSON ABI]
+    E --> F[ABI JSON File]
+    E --> G[Embed in WASM]
+    G --> H[WASM with ABI]
+
+## Build Configuration
+
+### Basic Setup
+
+Add the ABI generation dependencies to your `Cargo.toml`:
+
+```toml
+[build-dependencies]
+calimero-abi-emitter = "0.1.0"
+
+[dependencies]
+calimero-abi-emitter = "0.1.0"
+````
+
+### Build Script
+
+Create a simple `build.rs` file:
+
+```rust
+use calimero_abi_emitter::emit_manifest;
+
+fn main() {
+    emit_manifest().expect("Failed to generate ABI manifest");
+}
+```
+
+## Type Mapping
+
+Rust types are automatically mapped to ABI-compatible representations:
+
+| Rust Type                 | ABI Type                  | Notes             |
+| ------------------------- | ------------------------- | ----------------- |
+| `u8`, `u16`, `u32`, `u64` | `u8`, `u16`, `u32`, `u64` | Direct mapping    |
+| `i8`, `i16`, `i32`, `i64` | `i8`, `i16`, `i32`, `i64` | Direct mapping    |
+| `bool`                    | `bool`                    | Direct mapping    |
+| `String`                  | `string`                  | UTF-8 string      |
+| `Vec<T>`                  | `list<T>`                 | Dynamic array     |
+| `[T; N]`                  | `array<T, N>`             | Fixed-size array  |
+| `Option<T>`               | `T?`                      | Nullable type     |
+| `Result<T, E>`            | `T`                       | Success type only |
+| `BTreeMap<K, V>`          | `map<K, V>`               | Key-value mapping |
+| `HashMap<K, V>`           | `map<K, V>`               | Key-value mapping |
+| `struct S { ... }`        | `record S { ... }`        | Record type       |
+| `enum E { ... }`          | `variant E { ... }`       | Variant type      |
+
+## ABI Extraction
+
+Use the `calimero-abi` tool to extract the ABI from your WASM binary:
+
+```bash
+calimero-abi extract target/wasm32-unknown-unknown/release/my_app.wasm
+```
+
+## Next Steps
+
+- [Configuration](./configuration) - Configure ABI generation for your project
+- [Rust Integration](./rust-integration) - Integrate ABI generation with your
+  Rust code
+- [Validation](./validation) - Set up ABI validation and testing
